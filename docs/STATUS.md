@@ -6,10 +6,10 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 
 | | |
 |--|--|
-| **Stack** | Spring Boot 4.1 + Java 25 + SQLite (WAL) + JWT; Angular SPA not started |
+| **Stack** | Spring Boot 4.1 + Java 25 + SQLite (WAL) + JWT; Angular **21** SPA under `frontend/` |
 | **Done** | Phases 1–7 (API, local auth, Google OAuth when credentials set, exercises/templates/workouts, `PATCH …/sets/reorder`) |
-| **Next** | **Phase 8 — Angular frontend** — open questions locked in [`FRONTEND.md`](FRONTEND.md); **ready to scaffold** under `frontend/` |
-| **Run** | `backend/`: `.\mvnw.cmd spring-boot:run` → `http://localhost:8080` |
+| **Next** | Phase 8 — wire feature screens (exercises / templates / workouts) to API; polish shell |
+| **Run** | Backend `backend/`: `.\mvnw.cmd spring-boot:run` -> `:8080`; Frontend `frontend/`: `npm start` -> `:4200` |
 | **Key URLs** | Swagger UI `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login` |
 | **Docker** | Root `docker-compose.yml` → `docker compose up --build` (volume `fittrack-data` → `/data`) |
 | **Seed user** | `admin` / `admin` (env-overridable) |
@@ -20,7 +20,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 
 ## Current focus
 
-**Ready to scaffold** Phase 8 Angular SPA under `frontend/`. Open questions in [`FRONTEND.md`](FRONTEND.md) are **locked** (defaults accepted). Do not wait on further FE decisions before scaffolding.
+Phase 8 scaffold is in place (`frontend/`): NgModules, Material, auth (localStorage JWT + Google callback), shell sidenav, stub feature pages. **Next:** implement exercises / templates / workouts against the API.
 
 
 ## Phase checklist
@@ -35,7 +35,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 | 5 | Exercise seed + read APIs + custom exercise CRUD | **Done** |
 | 6 | Template CRUD + clone-to-workout | **Done** |
 | 7 | Workout CRUD + set logging + reorder support | **Done** (`PATCH .../sets/reorder`) |
-| 8 | Angular frontend | Pending |
+| 8 | Angular frontend | **In progress** — scaffold + auth/shell; feature CRUD pending |
 | 9 | Polish (validation, pagination, Docker runbook, sample data) | Partial — OpenAPI/Swagger, actuator health-only, docker-compose, WAL |
 
 ## Deferred / later

@@ -3,10 +3,10 @@
 Personal fitness tracker: exercises, templates, and workouts.
 
 - **Backend:** Spring Boot 4 + SQLite + local auth / Google OAuth + JWT
-- **Frontend:** Angular (planned)
+- **Frontend:** Angular 21 (NgModules + Material) under `frontend/`
 - **Container:** `backend/Dockerfile` + root `docker-compose.yml`
 - **Spec:** [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md)
-- **Status:** [`docs/STATUS.md`](docs/STATUS.md) (next: Phase 8 Angular)
+- **Status:** [`docs/STATUS.md`](docs/STATUS.md) · Frontend: [`docs/FRONTEND.md`](docs/FRONTEND.md)
 - **Tests:** [`docs/TESTS.md`](docs/TESTS.md)
 
 Default git branch is `main`. The remote may be named `github` (not always `origin`).
@@ -15,7 +15,7 @@ Default git branch is `main`. The remote may be named `github` (not always `orig
 
 ```
 backend/              Spring Boot API (+ Dockerfile)
-frontend/             Angular SPA (Phase 8 — not scaffolded yet)
+frontend/             Angular 21 SPA (Phase 8 in progress)
 docs/                 REQUIREMENTS, STATUS, TESTS
 docker-compose.yml    API + SQLite volume
 ```
@@ -24,6 +24,7 @@ docker-compose.yml    API + SQLite volume
 
 - **JDK 25+** on `PATH` (or set `JAVA_HOME` to a JDK 25+ install). Do not hardcode a machine-specific JDK path in scripts or docs.
 - Maven wrapper is included under `backend/` (`mvnw` / `mvnw.cmd` on Windows).
+- **Node.js 24 LTS** + npm for the Angular SPA (`frontend/`).
 
 ## Backend runbook
 
@@ -70,6 +71,22 @@ OpenAPI / Swagger UI (no auth required to view):
 Use **Authorize** with a JWT from `POST /api/v1/auth/login` to try secured endpoints.
 
 Actuator: only `/actuator/health` is exposed.
+
+## Frontend runbook
+
+From `frontend/` (Node 24 LTS):
+
+```bash
+npm install
+npm start
+```
+
+- SPA: `http://localhost:4200`
+- API base (dev): `http://localhost:8080` (`src/environments/environment.development.ts`)
+- Default login: `admin` / `admin` (backend must be running)
+- JWT stored in `localStorage`; Google SSO uses `/auth/callback#token=…`
+
+See [`docs/FRONTEND.md`](docs/FRONTEND.md) for SPA requirements.
 
 ### Docker Compose
 

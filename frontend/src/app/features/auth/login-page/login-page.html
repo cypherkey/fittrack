@@ -1,0 +1,42 @@
+<div class="login">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>FitTrack</mat-card-title>
+      <mat-card-subtitle>Sign in to continue</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" autocomplete="username" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+        </mat-form-field>
+
+        @if (error) {
+          <p class="error">{{ error }}</p>
+        }
+
+        <button mat-flat-button color="primary" class="full" type="submit" [disabled]="submitting">
+          @if (submitting) {
+            Signing in…
+          } @else {
+            Sign in
+          }
+        </button>
+      </form>
+
+      <button mat-stroked-button class="full google" type="button" (click)="continueWithGoogle()">
+        Continue with Google
+      </button>
+    </mat-card-content>
+  </mat-card>
+</div>

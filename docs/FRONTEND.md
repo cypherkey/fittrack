@@ -4,7 +4,7 @@ Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIRE
 
 **Open questions accepted — ready to scaffold Phase 8.**
 
-**Status:** Phase 8 decisions locked — scaffold Angular under `frontend/` next.
+**Status:** Phase 8 scaffold started — Angular 21 NgModule app under `frontend/` (auth + shell + stubs). Feature CRUD next.
 
 **UX reference (inspiration only):** [Ryot demo](https://demo.ryot.io/_s/acl_vUMPnPirkHlT) — collapsible side nav, Fitness area (Workouts / Templates / Exercises), list + search, theme toggle. FitTrack is **workout-focused** (no Ryot media/collections); do not copy Ryot branding or non-fitness domains.
 

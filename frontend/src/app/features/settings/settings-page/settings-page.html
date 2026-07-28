@@ -1,0 +1,11 @@
+<h1>Settings</h1>
+
+@if (user$ | async; as user) {
+  <p><strong>Signed in as</strong> {{ user.displayName || user.username }} ({{ user.username }})</p>
+  @if (user.email) {
+    <p><strong>Email</strong> {{ user.email }}</p>
+  }
+}
+
+<p><strong>API base</strong> {{ apiBaseUrl }}</p>
+<p>User management is deferred (#9).</p>

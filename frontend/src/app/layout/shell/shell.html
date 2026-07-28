@@ -1,0 +1,50 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav
+    class="shell-nav"
+    [mode]="sidenavOpened ? 'side' : 'over'"
+    [opened]="sidenavOpened"
+    fixedInViewport
+  >
+    <div class="brand">FitTrack</div>
+    <mat-nav-list>
+      @for (item of navItems; track item.path) {
+        <a
+          mat-list-item
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+        >
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="shell-toolbar">
+      <button mat-icon-button type="button" (click)="toggleSidenav()" aria-label="Toggle navigation">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="toolbar-title">FitTrack</span>
+      <span class="spacer"></span>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="theme.toggle()"
+        [matTooltip]="theme.mode === 'dark' ? 'Light mode' : 'Dark mode'"
+        aria-label="Toggle theme"
+      >
+        <mat-icon>{{ theme.mode === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+      @if (user$ | async; as user) {
+        <span class="user-name">{{ user.displayName || user.username }}</span>
+      }
+      <button mat-button type="button" (click)="logout()">Logout</button>
+    </mat-toolbar>
+
+    <main class="shell-content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

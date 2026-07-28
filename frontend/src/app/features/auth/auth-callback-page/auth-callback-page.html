@@ -1,0 +1,9 @@
+<div class="callback">
+  @if (error) {
+    <p class="error">{{ error }}</p>
+    <a mat-button routerLink="/login">Back to login</a>
+  } @else {
+    <mat-spinner diameter="40" />
+    <p>Completing sign-in…</p>
+  }
+</div>
