@@ -20,9 +20,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import com.fittrack.security.AppUserDetailsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Auth", description = "Login and current user")
 public class AuthController {
 
 	private final AuthenticationManager authenticationManager;
@@ -40,6 +44,8 @@ public class AuthController {
 	}
 
 	@PostMapping("/auth/login")
+	@SecurityRequirements
+	@Operation(summary = "Local username/password login", description = "Returns a JWT for Authorization: Bearer <token>")
 	public LoginResponse login(@Valid @RequestBody LoginRequest request) {
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(request.username(), request.password())
@@ -50,6 +56,7 @@ public class AuthController {
 	}
 
 	@GetMapping("/me")
+	@Operation(summary = "Current authenticated user")
 	public UserResponse me(@AuthenticationPrincipal Jwt jwt) {
 		if (jwt == null || jwt.getSubject() == null) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);

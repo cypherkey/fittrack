@@ -36,9 +36,11 @@ fittrack/
   docs/
     REQUIREMENTS.md         # Product/design source of truth
     STATUS.md               # Implementation progress (done / next / deferred)
+    TESTS.md                # Backend test inventory
   backend/                  # Spring Boot 4 API
     Dockerfile              # Container image for the API
   frontend/                 # Angular SPA (after API stabilizes)
+  docker-compose.yml        # API + SQLite volume
   README.md
 ```
 
@@ -319,13 +321,13 @@ Dual authentication; both issue the same **JWT** for `/api/v1`.
 
 - Spring Security form or JSON login endpoint (e.g. `POST /api/v1/auth/login` with `{ "username", "password" }`) → returns JWT
 - Passwords stored as hashes only (`passwordHash`)
-- Optional later: `POST /api/v1/auth/register` — not required for v1 if only the seeded default user exists initially
+- Optional later: local user creation via a **frontend user-management** page (deferred; not a public self-serve `POST /auth/register` for v1) — see STATUS deferred **#9**
 
 ### Google SSO
 
-- Google OAuth2 / OpenID Connect via Spring Security OAuth2 Client (enable via `fittrack.oauth2.google.enabled=true` + client credentials)
+- Google OAuth2 / OpenID Connect via Spring Security OAuth2 Client — **enabled when both** `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are non-empty (credentials alone are enough; `FITTRACK_GOOGLE_OAUTH_ENABLED` alone is not)
 - JIT upsert `User` by `googleSubject` on login
-- **JWT handoff to SPA:** after successful OAuth callback, backend redirects to the Angular app, e.g. `http://localhost:4200/auth/callback#token=<jwt>` (hash preferred so the token is less likely to hit server logs). SPA stores the JWT and clears it from the URL. No refresh tokens in v1; access token lifetime from `fittrack.jwt.expiration-minutes` (default ~12h); re-login when expired.
+- **JWT handoff to SPA:** after successful OAuth callback, backend redirects to the Angular app, e.g. `http://localhost:4200/auth/callback#token=<jwt>` (hash preferred so the token is less likely to hit server logs; override base via `FITTRACK_SPA_AUTH_CALLBACK_URL`). SPA stores the JWT and clears it from the URL. No refresh tokens in v1; access token lifetime from `fittrack.jwt.expiration-minutes` (default ~12h); re-login when expired.
 
 ### Common
 
@@ -363,9 +365,9 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `GET /api/v1/templates` — own templates; optional `visibility=PUBLIC` for browse
 - `GET /api/v1/templates/{id}` — get with sets (if owner or public)
 - `POST /api/v1/templates` — create (with optional sets); PUBLIC templates may only include catalog exercises
-- `PUT /api/v1/templates/{id}` — update metadata / replace sets (owner); client supplies `setNumber` for order/reorder (no server auto-renumber to 1…N)
-- Optional later: dedicated reorder endpoint that only updates `setNumber` values — same uniqueness rules, still no forced contiguous rewrite
-- `DELETE /api/v1/templates/{id}` — delete (owner)
+- `PUT /api/v1/templates/{id}` - update metadata / replace sets (owner); client supplies `setNumber` for order/reorder (no server auto-renumber to 1…N)
+- `PATCH /api/v1/templates/{id}/sets/reorder` - body: `{ "items": [ { "setId", "setNumber" } ] }` — updates `setNumber` only; uniqueness rules apply, no forced contiguous rewrite
+- `DELETE /api/v1/templates/{id}` - delete (owner)
 - `POST /api/v1/templates/{id}/clone` — body: `{ "performedAt": "ISO-8601", "name": "..." }` → creates Workout
 
 ### Workouts
@@ -373,9 +375,9 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `GET /api/v1/workouts` — list for current user (filter by `performedAt` range)
 - `GET /api/v1/workouts/{id}` — detail with sets (each set includes `exerciseId`)
 - `POST /api/v1/workouts` — create (empty or with sets); include `performedAt`
-- `PUT /api/v1/workouts/{id}` — update metadata / replace structure; client supplies `setNumber` to support frontend reorder (no server auto-renumber to 1…N)
-- Optional later: dedicated reorder endpoint with the same client-owned `setNumber` rules as templates
-- `DELETE /api/v1/workouts/{id}` — delete
+- `PUT /api/v1/workouts/{id}` - update metadata / replace structure; client supplies `setNumber` to support frontend reorder (no server auto-renumber to 1…N)
+- `PATCH /api/v1/workouts/{id}/sets/reorder` - body: `{ "items": [ { "setId", "setNumber" } ] }` — same client-owned `setNumber` rules as templates
+- `DELETE /api/v1/workouts/{id}` - delete
 
 Errors: problem+json or simple `{ "message", "code" }` with consistent HTTP status codes.
 
@@ -402,13 +404,14 @@ On first start when no users exist (or via Flyway seed migration / ApplicationRu
 
 Source: [yuhonas/free-exercise-db](https://github.com/yuhonas/free-exercise-db) — `dist/exercises.json`.
 
-Import strategy (backend startup or one-shot command):
+Import strategy (backend startup `ApplicationRunner`):
 
 1. Ship a copy under `backend/src/main/resources/data/exercises.json` **or** download at build time (prefer vendored file for reproducibility)
-2. Upsert lookup rows first: distinct `equipment` → `Equipment`; union of `primaryMuscles` + `secondaryMuscles` → `Muscle`; distinct image paths → `Image`
-3. Upsert `Exercise` by `id`; map `level` / `mechanic` to enums; set `equipmentId`; convert `instructions[]` to a single markdown `instructions` text field; set `trackedParameters` via category heuristic (§4.2); set `isCustom=false`, `addedBy=null`
-4. Replace join rows: `exerciseHasMuscle` with `isPrimary` from the two source lists (`primaryMuscles` → true, `secondaryMuscles` → false); `exerciseHasImage` with `sortOrder` from array index
-5. Serving image bytes is optional post-v1; store paths on `Image` regardless
+2. **Skip entirely if the `exercise` table already has any rows** (idempotent; does not re-upsert on later startups)
+3. Otherwise upsert lookup rows first: distinct `equipment` → `Equipment`; union of `primaryMuscles` + `secondaryMuscles` → `Muscle`; distinct image paths → `Image`
+4. Insert `Exercise` by `id`; map `level` / `mechanic` to enums; set `equipmentId`; convert `instructions[]` to a single markdown `instructions` text field; set `trackedParameters` via category heuristic (§4.2); set `isCustom=false`, `addedBy=null`
+5. Insert join rows: `exerciseHasMuscle` with `isPrimary` from the two source lists (`primaryMuscles` → true, `secondaryMuscles` → false); `exerciseHasImage` with `sortOrder` from array index
+6. Serving image bytes is optional post-v1; store paths on `Image` regardless
 
 Do not mutate upstream exercise ids.
 
@@ -433,18 +436,21 @@ com.fittrack
 ## 10. Frontend (later phase)
 
 - Angular SPA under `frontend/`
-- Feature areas: local login, Google login, exercise browser, templates CRUD, workout logger/calendar
-- Auth: local login and/or Google against backend; call APIs with Bearer JWT
-- Do not scaffold until core API endpoints and auth work end-to-end
+- Feature areas: local login, Google login, exercise browser, templates CRUD, workout logger/calendar, **user management** (deferred item **#9** — create local users; not public self-register)
+- Auth: local login and/or Google against backend; call APIs with Bearer JWT; Google callback page reads `#token=<jwt>` from handoff URL
+- Do not scaffold until core API endpoints and auth work end-to-end (Phases 1–7 complete; start at Phase 8)
 
 ---
 
 ## 11. Configuration, local run & Docker
 
-- SQLite file path: e.g. `./data/fittrack.db` (gitignore DB files); in Docker mount a volume at that path
+- SQLite file path: e.g. `./data/fittrack.db` (gitignore DB files); JDBC URL enables `foreign_keys=true` and `journal_mode=WAL`
+- In Docker: root **`docker-compose.yml`** builds `backend/` and mounts volume `fittrack-data` at `/data`; or use `backend/Dockerfile` alone
+- OpenAPI / Swagger UI (permitAll): `/swagger-ui.html`, `/v3/api-docs` (JWT bearer scheme for Try it out)
+- Actuator: only `/actuator/health` exposed
 - Google OAuth redirect URI registered for local backend (e.g. `http://localhost:8080/login/oauth2/code/google`) when SSO is enabled
 - Profiles: `local` (default), optional `test` with in-memory or temp SQLite
-- Env: `FITTRACK_DEFAULT_USER`, `FITTRACK_DEFAULT_PASSWORD`, `JWT_SECRET`, Google client credentials
+- Env: `FITTRACK_DEFAULT_USER`, `FITTRACK_DEFAULT_PASSWORD`, `JWT_SECRET`, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FITTRACK_SPA_AUTH_CALLBACK_URL`, `FITTRACK_CORS_ORIGINS` (see root README)
 
 ### Dockerfile (`backend/Dockerfile`)
 
@@ -452,15 +458,16 @@ com.fittrack
 - Expose API port (8080)
 - Persist SQLite via volume (e.g. `/data`)
 - Pass secrets/config via env or env-file, not baked into the image
-- Document `docker build` / `docker run` in root or backend README
+- Document `docker compose up --build` / `docker build` / `docker run` in root README
 
 ---
 
 ## 12. Testing expectations
 
 - Unit tests for services (clone template, weight totals, auth upsert)
-- `@SpringBootTest` / MockMvc for API happy paths
+- `@SpringBootTest` / MockMvc for API happy paths and endpoint coverage
 - Seed importer test with a small fixture JSON subset
+- Living inventory: [`TESTS.md`](TESTS.md)
 
 ---
 
@@ -468,15 +475,17 @@ com.fittrack
 
 Track live progress in [`STATUS.md`](STATUS.md). Ordered phases:
 
-1. **Docs** — this file + `AGENTS.md` + `STATUS.md` + root `README.md`
+1. **Docs** — this file + `AGENTS.md` + `STATUS.md` + `TESTS.md` + root `README.md`
 2. **Backend scaffold** — Spring Boot 4.1, Java 25 (or latest supported), Maven, SQLite, Flyway, **`backend/Dockerfile`**
 3. **Domain + migrations** — User (local + SSO fields), Equipment, Muscle, Image, Exercise + join tables, `WorkoutTemplate` + `TemplateSet`, Workout + `WorkoutSet`
 4. **Security** — local login + JWT + `/api/v1/me` + seed default local user; Google OAuth when credentials enabled
 5. **Exercise seed + read APIs + custom exercise CRUD**
 6. **Template CRUD + clone-to-workout** (public = catalog exercises only)
-7. **Workout CRUD + set logging + client-driven set reorder** (`performedAt` datetime)
+7. **Workout CRUD + set logging + client-driven set reorder** (`performedAt` datetime; `PATCH …/sets/reorder`)
 8. **Angular frontend** scaffold and wire to API
-9. **Polish** — validation, pagination, README runbook, Docker usage, sample data
+9. **Polish** — validation, pagination, README runbook, Docker Compose usage, OpenAPI, sample data
+
+Deferred (tracked in STATUS, not blocking Phase 8): **#1** auth hardening; **#9** frontend user-management page (no public self-register API in v1).
 
 ---
 

@@ -14,7 +14,10 @@ import com.fittrack.web.dto.TemplateResponse;
 import com.fittrack.web.dto.TemplateSetRequest;
 import com.fittrack.web.dto.TemplateSetResponse;
 import com.fittrack.web.dto.WorkoutResponse;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -109,6 +112,31 @@ public class TemplateService {
 		return workoutService.saveCloned(workout);
 	}
 
+	/**
+	 * Reassigns setNumbers from the client. Uses a two-phase update to avoid unique-constraint clashes.
+	 */
+	@Transactional
+	public TemplateResponse reorderSets(User user, String id, List<com.fittrack.web.dto.ReorderSetItem> items) {
+		WorkoutTemplate template = requireOwned(user, id);
+		Map<String, TemplateSet> byId = template.getSets().stream()
+				.collect(Collectors.toMap(TemplateSet::getId, s -> s));
+		if (items.size() != byId.size() || items.stream().anyMatch(i -> !byId.containsKey(i.setId()))) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reorder must include every set exactly once");
+		}
+		WorkoutService.assertUniqueSetNumbers(items.stream().map(com.fittrack.web.dto.ReorderSetItem::setNumber).toList());
+		int temp = -1;
+		for (com.fittrack.web.dto.ReorderSetItem item : items) {
+			byId.get(item.setId()).setSetNumber(temp--);
+		}
+		templateRepository.flush();
+		for (com.fittrack.web.dto.ReorderSetItem item : items) {
+			byId.get(item.setId()).setSetNumber(item.setNumber());
+		}
+		templateRepository.flush();
+		templateRepository.save(template);
+		return toResponse(template, true);
+	}
+
 	private void applyMetadata(WorkoutTemplate template, TemplateRequest request) {
 		template.setName(request.name());
 		template.setDurationSeconds(request.durationSeconds());
@@ -119,6 +147,7 @@ public class TemplateService {
 
 	private void replaceSets(User user, WorkoutTemplate template, List<TemplateSetRequest> setRequests) {
 		template.getSets().clear();
+		templateRepository.flush();
 		if (setRequests == null || setRequests.isEmpty()) {
 			template.setTotalWeightLifted(null);
 			return;
@@ -179,7 +208,10 @@ public class TemplateService {
 
 	private TemplateResponse toResponse(WorkoutTemplate template, boolean includeSets) {
 		List<TemplateSetResponse> sets = includeSets
-				? template.getSets().stream().map(this::toSetResponse).toList()
+				? template.getSets().stream()
+						.sorted(Comparator.comparingInt(TemplateSet::getSetNumber))
+						.map(this::toSetResponse)
+						.toList()
 				: List.of();
 		return new TemplateResponse(
 				template.getId(),

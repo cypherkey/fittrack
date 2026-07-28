@@ -69,6 +69,10 @@ public class ExerciseCatalogSeeder implements ApplicationRunner {
 	@Override
 	@Transactional
 	public void run(ApplicationArguments args) throws Exception {
+		if (exerciseRepository.count() > 0) {
+			log.info("Exercise table already has data; skipping catalog seed");
+			return;
+		}
 		ClassPathResource resource = new ClassPathResource(RESOURCE);
 		if (!resource.exists()) {
 			log.warn("Exercise catalog resource {} not found; skipping seed", RESOURCE);

@@ -13,8 +13,11 @@ import com.fittrack.web.dto.WorkoutSetRequest;
 import com.fittrack.web.dto.WorkoutSetResponse;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,6 +78,31 @@ public class WorkoutService {
 		workoutRepository.delete(workout);
 	}
 
+	/**
+	 * Reassigns setNumbers from the client. Uses a two-phase update to avoid unique-constraint clashes.
+	 */
+	@Transactional
+	public WorkoutResponse reorderSets(User user, String id, List<com.fittrack.web.dto.ReorderSetItem> items) {
+		Workout workout = requireOwned(user, id);
+		Map<String, WorkoutSet> byId = workout.getSets().stream()
+				.collect(Collectors.toMap(WorkoutSet::getId, s -> s));
+		if (items.size() != byId.size() || items.stream().anyMatch(i -> !byId.containsKey(i.setId()))) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reorder must include every set exactly once");
+		}
+		assertUniqueSetNumbers(items.stream().map(com.fittrack.web.dto.ReorderSetItem::setNumber).toList());
+		int temp = -1;
+		for (com.fittrack.web.dto.ReorderSetItem item : items) {
+			byId.get(item.setId()).setSetNumber(temp--);
+		}
+		workoutRepository.flush();
+		for (com.fittrack.web.dto.ReorderSetItem item : items) {
+			byId.get(item.setId()).setSetNumber(item.setNumber());
+		}
+		workoutRepository.flush();
+		workoutRepository.save(workout);
+		return toResponse(workout, true);
+	}
+
 	@Transactional
 	public WorkoutResponse saveCloned(Workout workout) {
 		workoutRepository.save(workout);
@@ -104,6 +132,7 @@ public class WorkoutService {
 
 	private void replaceSets(User user, Workout workout, List<WorkoutSetRequest> setRequests) {
 		workout.getSets().clear();
+		workoutRepository.flush();
 		if (setRequests == null || setRequests.isEmpty()) {
 			workout.setTotalWeightLifted(null);
 			return;
@@ -163,7 +192,10 @@ public class WorkoutService {
 
 	WorkoutResponse toResponse(Workout workout, boolean includeSets) {
 		List<WorkoutSetResponse> sets = includeSets
-				? workout.getSets().stream().map(this::toSetResponse).toList()
+				? workout.getSets().stream()
+						.sorted(Comparator.comparingInt(WorkoutSet::getSetNumber))
+						.map(this::toSetResponse)
+						.toList()
 				: List.of();
 		return new WorkoutResponse(
 				workout.getId(),

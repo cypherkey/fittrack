@@ -1,0 +1,301 @@
+package com.fittrack.web;
+
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fittrack.domain.User;
+import com.fittrack.repository.UserRepository;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+@SpringBootTest
+class EndpointCoverageTest {
+
+	@DynamicPropertySource
+	static void registerProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.datasource.url", () -> "jdbc:sqlite:./target/endpoint-coverage.db?foreign_keys=true&journal_mode=WAL");
+		registry.add("fittrack.jwt.secret", () -> "fittrack-test-secret-change-me-must-be-at-least-256-bits!!");
+	}
+
+	@Autowired
+	private WebApplicationContext context;
+	@Autowired
+	private ObjectMapper objectMapper;
+	@Autowired
+	private UserRepository userRepository;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	private MockMvc mockMvc;
+	private String adminToken;
+	private String otherToken;
+
+	@BeforeEach
+	void setUp() throws Exception {
+		mockMvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
+		adminToken = login("admin", "admin");
+		if (userRepository.findByUsername("other").isEmpty()) {
+			User other = new User();
+			other.setUsername("other");
+			other.setPasswordHash(passwordEncoder.encode("otherpass"));
+			other.setDisplayName("Other");
+			other.setEmail("other@localhost");
+			userRepository.save(other);
+		}
+		otherToken = login("other", "otherpass");
+	}
+
+	private String login(String username, String password) throws Exception {
+		MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}"))
+				.andExpect(status().isOk())
+				.andReturn();
+		return objectMapper.readTree(login.getResponse().getContentAsString()).get("token").asText();
+	}
+
+	@Test
+	void authMeAndActuatorAndOpenApi() throws Exception {
+		mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.username").value("admin"));
+
+		mockMvc.perform(get("/actuator/health")).andExpect(status().isOk());
+		mockMvc.perform(get("/actuator/info")).andExpect(status().isUnauthorized());
+		mockMvc.perform(get("/v3/api-docs")).andExpect(status().isOk());
+	}
+
+	@Test
+	void lookupsExercisesTemplatesWorkoutsAndReorder() throws Exception {
+		mockMvc.perform(get("/api/v1/equipment").header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk());
+		mockMvc.perform(get("/api/v1/muscles").header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(get("/api/v1/exercises").header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content").isArray());
+		mockMvc.perform(get("/api/v1/exercises/Ab_Roller").header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value("Ab_Roller"));
+
+		MvcResult custom = mockMvc.perform(post("/api/v1/exercises")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"name":"Coverage Curl","level":"BEGINNER","instructions":"x","trackedParameters":3}
+								"""))
+				.andExpect(status().isCreated())
+				.andReturn();
+		String customId = objectMapper.readTree(custom.getResponse().getContentAsString()).get("id").asText();
+
+		mockMvc.perform(put("/api/v1/exercises/" + customId)
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"name":"Coverage Curl 2","level":"BEGINNER","instructions":"x","trackedParameters":3}
+								"""))
+				.andExpect(status().isOk());
+
+		MvcResult template = mockMvc.perform(post("/api/v1/templates")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "name":"Coverage T",
+								  "visibility":"PRIVATE",
+								  "sets":[
+								    {"exerciseId":"Ab_Roller","setNumber":1,"reps":10,"weightKg":10.0},
+								    {"exerciseId":"Ab_Roller","setNumber":2,"reps":8,"weightKg":12.0}
+								  ]
+								}
+								"""))
+				.andExpect(status().isCreated())
+				.andReturn();
+		JsonNode tBody = objectMapper.readTree(template.getResponse().getContentAsString());
+		String templateId = tBody.get("id").asText();
+		String setA = tBody.get("sets").get(0).get("id").asText();
+		String setB = tBody.get("sets").get(1).get("id").asText();
+
+		mockMvc.perform(get("/api/v1/templates").header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk());
+		mockMvc.perform(get("/api/v1/templates/" + templateId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(patch("/api/v1/templates/" + templateId + "/sets/reorder")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"items":[{"setId":"%s","setNumber":20},{"setId":"%s","setNumber":10}]}
+								""".formatted(setA, setB)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.sets[0].setNumber").value(10));
+
+		mockMvc.perform(put("/api/v1/templates/" + templateId)
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"name":"Coverage T2","visibility":"PRIVATE","sets":[{"exerciseId":"Ab_Roller","setNumber":1,"reps":5}]}
+								"""))
+				.andExpect(status().isOk());
+
+		MvcResult clone = mockMvc.perform(post("/api/v1/templates/" + templateId + "/clone")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"performedAt\":\"2026-07-27T12:00:00Z\",\"name\":\"Cloned\"}"))
+				.andExpect(status().isCreated())
+				.andReturn();
+		String workoutId = objectMapper.readTree(clone.getResponse().getContentAsString()).get("id").asText();
+
+		MvcResult workout = mockMvc.perform(get("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andReturn();
+		objectMapper.readTree(workout.getResponse().getContentAsString());
+
+		mockMvc.perform(get("/api/v1/workouts").header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(post("/api/v1/workouts")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "performedAt":"2026-07-27T13:00:00Z",
+								  "name":"Direct",
+								  "sets":[
+								    {"exerciseId":"Ab_Roller","setNumber":1,"reps":3,"weightKg":5.0},
+								    {"exerciseId":"Ab_Roller","setNumber":2,"reps":3,"weightKg":5.0}
+								  ]
+								}
+								"""))
+				.andExpect(status().isCreated());
+
+		MvcResult createdW = mockMvc.perform(get("/api/v1/workouts")
+						.header("Authorization", "Bearer " + adminToken)
+						.param("from", "2026-07-27T13:00:00Z")
+						.param("to", "2026-07-27T14:00:00Z"))
+				.andExpect(status().isOk())
+				.andReturn();
+		String directId = objectMapper.readTree(createdW.getResponse().getContentAsString()).get(0).get("id").asText();
+		MvcResult directDetail = mockMvc.perform(get("/api/v1/workouts/" + directId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andReturn();
+		JsonNode dSets = objectMapper.readTree(directDetail.getResponse().getContentAsString()).get("sets");
+		String d0 = dSets.get(0).get("id").asText();
+		String d1 = dSets.get(1).get("id").asText();
+
+		mockMvc.perform(patch("/api/v1/workouts/" + directId + "/sets/reorder")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"items":[{"setId":"%s","setNumber":99},{"setId":"%s","setNumber":1}]}
+								""".formatted(d0, d1)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.sets[0].setNumber").value(1));
+
+		mockMvc.perform(put("/api/v1/workouts/" + directId)
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"performedAt":"2026-07-27T13:00:00Z","name":"Direct2","sets":[{"exerciseId":"Ab_Roller","setNumber":1,"reps":1}]}
+								"""))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(delete("/api/v1/workouts/" + directId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isNoContent());
+		mockMvc.perform(delete("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isNoContent());
+		mockMvc.perform(delete("/api/v1/templates/" + templateId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isNoContent());
+		mockMvc.perform(delete("/api/v1/exercises/" + customId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isNoContent());
+
+		// authz smoke: other cannot get admin-deleted resources; catalog update forbidden
+		mockMvc.perform(put("/api/v1/exercises/Ab_Roller")
+						.header("Authorization", "Bearer " + otherToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"name":"Nope","level":"BEGINNER","instructions":"x","trackedParameters":1}
+								"""))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void authorizationEdgesForPrivateTemplatesAndPublicCatalogOnly() throws Exception {
+		MvcResult custom = mockMvc.perform(post("/api/v1/exercises")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"name":"Secret Move","level":"BEGINNER","instructions":"x","trackedParameters":1}
+								"""))
+				.andExpect(status().isCreated())
+				.andReturn();
+		String customId = objectMapper.readTree(custom.getResponse().getContentAsString()).get("id").asText();
+
+		mockMvc.perform(post("/api/v1/templates")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "name":"Public Bad",
+								  "visibility":"PUBLIC",
+								  "sets":[{"exerciseId":"%s","setNumber":1,"reps":1}]
+								}
+								""".formatted(customId)))
+				.andExpect(status().isBadRequest());
+
+		MvcResult privateT = mockMvc.perform(post("/api/v1/templates")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "name":"Private Only",
+								  "visibility":"PRIVATE",
+								  "sets":[{"exerciseId":"Ab_Roller","setNumber":1,"reps":1}]
+								}
+								"""))
+				.andExpect(status().isCreated())
+				.andReturn();
+		String privateId = objectMapper.readTree(privateT.getResponse().getContentAsString()).get("id").asText();
+
+		mockMvc.perform(get("/api/v1/templates/" + privateId).header("Authorization", "Bearer " + otherToken))
+				.andExpect(status().isNotFound());
+
+		MvcResult workout = mockMvc.perform(post("/api/v1/workouts")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"performedAt":"2026-07-28T10:00:00Z","name":"Admin W","sets":[]}
+								"""))
+				.andExpect(status().isCreated())
+				.andReturn();
+		String workoutId = objectMapper.readTree(workout.getResponse().getContentAsString()).get("id").asText();
+		mockMvc.perform(get("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + otherToken))
+				.andExpect(status().isForbidden());
+
+		mockMvc.perform(delete("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isNoContent());
+		mockMvc.perform(delete("/api/v1/templates/" + privateId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isNoContent());
+		mockMvc.perform(delete("/api/v1/exercises/" + customId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isNoContent());
+	}
+}

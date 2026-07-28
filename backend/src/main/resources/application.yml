@@ -2,7 +2,7 @@ spring:
   application:
     name: fittrack-backend
   datasource:
-    url: jdbc:sqlite:${FITTRACK_DB_PATH:./data/fittrack.db}?foreign_keys=true
+    url: jdbc:sqlite:${FITTRACK_DB_PATH:./data/fittrack.db}?foreign_keys=true&journal_mode=WAL
     driver-class-name: org.sqlite.JDBC
   jpa:
     hibernate:
@@ -34,7 +34,21 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: false
 
 fittrack:
   jwt:

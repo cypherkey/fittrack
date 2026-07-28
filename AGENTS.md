@@ -8,6 +8,7 @@ Before implementing or changing behavior, read (in order):
 
 1. [`docs/STATUS.md`](docs/STATUS.md) — **what is done / next / deferred** (session continuity)
 2. [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md) — product requirements, domain model, API sketch, locked decisions
+3. [`docs/TESTS.md`](docs/TESTS.md) — backend test inventory
 
 Treat `REQUIREMENTS.md` as the product source of truth unless the user explicitly overrides it in chat. Treat `STATUS.md` as the progress source of truth; update it when phases complete.
 
@@ -15,7 +16,7 @@ Treat `REQUIREMENTS.md` as the product source of truth unless the user explicitl
 
 - Backend: **Spring Boot 4.1.x** (latest 4.x), **Java** latest supported by that Boot release (prefer Java 25+)
 - Database: **SQLite**
-- Auth: **local username/password** and **Google OAuth2**; API auth via **JWT**. Seed default local user (`admin`/`admin`, overridable) on first start. Google SSO is deferred until credentials are enabled (see STATUS)
+- Auth: **local username/password** and **Google OAuth2**; API auth via **JWT**. Seed default local user (`admin`/`admin`, overridable) on first start. Google SSO is implemented and enables when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` are set (see STATUS)
 - Container: provide **`backend/Dockerfile`** (multi-stage; SQLite via volume)
 - Frontend: **Angular** under `frontend/` — scaffold only after backend API/auth are usable
 - Monorepo: keep `backend/` and `frontend/` in this same git repository

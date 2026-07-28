@@ -4,6 +4,7 @@ import com.fittrack.domain.TemplateVisibility;
 import com.fittrack.domain.User;
 import com.fittrack.service.TemplateService;
 import com.fittrack.web.dto.CloneTemplateRequest;
+import com.fittrack.web.dto.ReorderSetsRequest;
 import com.fittrack.web.dto.TemplateRequest;
 import com.fittrack.web.dto.TemplateResponse;
 import com.fittrack.web.dto.WorkoutResponse;
@@ -14,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -22,9 +24,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v1/templates")
+@Tag(name = "Templates", description = "Workout templates and clone-to-workout")
 public class TemplateController {
 
 	private final TemplateService templateService;
@@ -62,6 +66,15 @@ public class TemplateController {
 			@Valid @RequestBody TemplateRequest request
 	) {
 		return templateService.update(currentUserResolver.requireUser(jwt), id, request);
+	}
+
+	@PatchMapping("/{id}/sets/reorder")
+	public TemplateResponse reorderSets(
+			@AuthenticationPrincipal Jwt jwt,
+			@PathVariable String id,
+			@Valid @RequestBody ReorderSetsRequest request
+	) {
+		return templateService.reorderSets(currentUserResolver.requireUser(jwt), id, request.items());
 	}
 
 	@DeleteMapping("/{id}")
