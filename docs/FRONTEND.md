@@ -34,9 +34,10 @@ Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIRE
 |-------|--------|--------|
 | Framework | **Angular 21.x (latest LTS)** | As of mid-2026: v22 is *Active*; v21 is the newest **LTS**. Prefer LTS for the SPA. |
 | Runtime | **Node.js 24.x (latest LTS)** | "Krypton" Active/Maintenance LTS; also satisfies Angular 21 engines (`^20.19 \|\| ^22.12 \|\| ^24`) |
-| Package manager | npm (default with CLI) | pnpm/yarn acceptable if team prefers later |
-| UI | **Angular Material** | + Angular CDK; theming via Material theme / CSS variables |
-| Components | **NgModules — not standalone** | Preference locked: `standalone: false` on components/directives/pipes; declare in feature `NgModule`s |
+| Package manager | **npm** (locked) | Default Angular CLI package manager |
+| UI | **Angular Material** | + Angular CDK; use theme from `ng add @angular/material` + dark toggle |
+| Components | **NgModules — not standalone** | Preference locked: `standalone: false` on components/directives/pipes; declare in feature 
+gModule`s |
 | Routing | `AppRoutingModule` + feature routing modules | Lazy-load feature modules where sensible |
 | HTTP | `HttpClientModule` (or `provideHttpClient` only if forced by CLI — prefer module style) | Interceptor attaches JWT |
 | State | Services + RxJS (BehaviorSubject / signals optional later) | No NgRx required for v1 |
@@ -45,7 +46,8 @@ Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIRE
 
 ### CLI / project conventions
 
-When scaffolding (`ng new` / generate):
+When scaffolding (
+g new` / generate):
 
 ```text
 --standalone=false
@@ -61,7 +63,8 @@ Set defaults in `angular.json` schematics:
 
 Bootstrap via `AppModule` + `platformBrowserDynamic().bootstrapModule(AppModule)` (not standalone `bootstrapApplication` unless CLI forces a thin wrapper — convert to NgModule app).
 
-Install Material: `ng add @angular/material` (pick a theme; support light/dark if inexpensive).
+Install Material: 
+g add @angular/material` (pick a theme; support light/dark if inexpensive).
 
 ---
 
@@ -75,9 +78,9 @@ Install Material: `ng add @angular/material` (pick a theme; support light/dark i
 
 ### Nav (authenticated)
 
-| Item | Route (proposed) | Backend |
-|------|------------------|---------|
-| Dashboard / Home | `/` or `/dashboard` | Summary of recent workouts (list API) |
+| Item | Route | Backend |
+|------|-------|---------|
+| Dashboard / Home | **`/`** (alias `/dashboard` optional) | Summary of recent workouts (list API) |
 | Workouts | `/workouts` | `GET/POST/PUT/DELETE /api/v1/workouts`, reorder |
 | Templates | `/templates` | Templates CRUD + clone |
 | Exercises | `/exercises` | Catalog + custom CRUD |
@@ -97,10 +100,10 @@ Out of scope vs Ryot: Media, Measurements, Collections, Discord links, Ryot Anal
 4. **Auth guard** — protect app routes; login page redirects away if already authenticated
 5. **CORS** — SPA origin `http://localhost:4200` (already default on backend)
 
-Environment:
+Environment (locked):
 
 ```ts
-apiBaseUrl: 'http://localhost:8080'  // environment.ts
+apiBaseUrl: 'http://localhost:8080'  // environment.ts — absolute URL; CORS already allows :4200
 ```
 
 ---
@@ -202,6 +205,10 @@ Open questions resolved — all defaults accepted. Ready to scaffold Phase 8.
 | D | Markdown for exercise instructions? | **Yes**, sanitized markdown pipe/library | Locked |
 | E | Set reorder UX | **CDK drag-drop** when practical; else up/down buttons | Locked |
 | F | Measurements (Ryot)? | **No** (not in backend) | Locked |
+| G | Package manager | **npm** | Locked |
+| H | Material base theme | Whatever **`ng add @angular/material`** selects; + dark toggle | Locked |
+| I | Home route | **`/`** (optional `/dashboard` redirect) | Locked |
+| J | API base URL | **`http://localhost:8080`** in `environment.ts` | Locked |
 
 ---
 

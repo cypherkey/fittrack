@@ -14,7 +14,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 | **Docker** | Root `docker-compose.yml` → `docker compose up --build` (volume `fittrack-data` → `/data`) |
 | **Seed user** | `admin` / `admin` (env-overridable) |
 | **Google SSO** | On when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` non-empty; handoff `{SPA_CALLBACK}#token=<jwt>` |
-| **Frontend prefs** | Angular **21 LTS**, Node **24 LTS**, **NgModules** (not standalone), **Angular Material**; Ryot demo = UX inspiration only; JWT in **localStorage** |
+| **Frontend prefs** | Angular **21 LTS**, Node **24 LTS**, **NgModules**, **Material**, **npm**; JWT in **localStorage**; home `/`; API `http://localhost:8080`; Ryot = UX inspiration only |
 | **Deferred** | **#1** auth hardening; **#9** user-management FE (no public self-register API in v1) |
 | **Tests** | [`TESTS.md`](TESTS.md) — `.\mvnw.cmd test` from `backend/` |
 
