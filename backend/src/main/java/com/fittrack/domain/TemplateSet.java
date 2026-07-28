@@ -2,6 +2,8 @@ package com.fittrack.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -12,7 +14,7 @@ import jakarta.persistence.UniqueConstraint;
 import java.util.UUID;
 
 @Entity
-@Table(name = "template_set", uniqueConstraints = @UniqueConstraint(columnNames = { "template_id", "set_number" }))
+@Table(name = "template_set", uniqueConstraints = @UniqueConstraint(columnNames = { "workout_template_id", "set_number" }))
 public class TemplateSet {
 
 	@Id
@@ -20,7 +22,7 @@ public class TemplateSet {
 	private String id;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "template_id", nullable = false)
+	@JoinColumn(name = "workout_template_id", nullable = false)
 	private WorkoutTemplate template;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -41,7 +43,8 @@ public class TemplateSet {
 	@Column(name = "distance_meters")
 	private Double distanceMeters;
 
-	private Double rpe;
+	@Enumerated(EnumType.STRING)
+	private RpeLevel rpe;
 
 	private String notes;
 
@@ -116,11 +119,11 @@ public class TemplateSet {
 		this.distanceMeters = distanceMeters;
 	}
 
-	public Double getRpe() {
+	public RpeLevel getRpe() {
 		return rpe;
 	}
 
-	public void setRpe(Double rpe) {
+	public void setRpe(RpeLevel rpe) {
 		this.rpe = rpe;
 	}
 

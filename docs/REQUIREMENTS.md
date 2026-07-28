@@ -34,7 +34,8 @@ Build a personal fitness tracker where users can:
 fittrack/
   AGENTS.md                 # Pointer for coding agents
   docs/
-    REQUIREMENTS.md         # This document (source of truth)
+    REQUIREMENTS.md         # Product/design source of truth
+    STATUS.md               # Implementation progress (done / next / deferred)
   backend/                  # Spring Boot 4 API
     Dockerfile              # Container image for the API
   frontend/                 # Angular SPA (after API stabilizes)
@@ -53,12 +54,24 @@ One git repository holds frontend and backend.
 | Language | **Java 25** (preferred) or latest LTS available | Boot 4.1 supports Java 17–26; prefer newest stable JDK that Boot supports |
 | Build | Maven | Gradle acceptable if preferred later |
 | DB | SQLite | File-backed; suitable for single-node / personal deploy |
-| ORM | Spring Data JPA + Hibernate | Dialect for SQLite (e.g. community SQLite dialect) |
+| ORM | Spring Data JPA + Hibernate | Dialect for SQLite (community SQLite dialect). See §3.1 |
 | Migrations | Flyway | Versioned SQL under `backend/src/main/resources/db/migration` |
 | Auth | Spring Security: local form/password + Google OAuth2 + JWT | Dual login; JWT for API — see §6 |
 | API style | REST + JSON | Versioned under `/api/v1` |
 | Frontend | Angular (latest stable when scaffolded) | Consumes REST API; local login + OAuth redirect |
 | Container | Docker (`backend/Dockerfile`) | Multi-stage build; SQLite data via volume |
+
+### 3.1 SQLite / JPA mapping conventions
+
+| Java type | SQLite storage | Notes |
+|-----------|----------------|--------|
+| `Instant` | TEXT (ISO-8601) | Via converter |
+| `boolean` | INTEGER 0/1 | Via converter |
+| Weight / distance (`Double`) | REAL | `weightKg`, `distanceMeters`, `totalWeightLifted` |
+| Enums | TEXT | Stored as enum name |
+| UUID ids | TEXT | String UUID |
+
+`trackedParameters` on `Exercise` is an **INTEGER bitmask**: `REPS=1`, `WEIGHT=2`, `DURATION=4`, `DISTANCE=8` (see `TrackedParameters`).
 
 ---
 
@@ -102,7 +115,7 @@ Exercises may be **catalog** (seeded from free-exercise-db, global) or **custom*
 | equipmentId | FK → Equipment | Required when known; resolve/create from seed string |
 | instructions | text | Markdown (seed: join instruction steps into markdown, e.g. numbered list) |
 | category | string? | strength, stretching, etc. |
-| trackedParameters | set/enum flags | Which metrics apply when logging this exercise |
+| trackedParameters | int bitmask | `REPS=1`, `WEIGHT=2`, `DURATION=4`, `DISTANCE=8` |
 | isCustom | boolean | `false` for seeded catalog; `true` for user-created |
 | addedBy | FK → User? | Required when `isCustom`; null for catalog exercises |
 
@@ -115,7 +128,7 @@ Lookup table populated from distinct equipment values in the seed (and any futur
 
 | Field | Type | Notes |
 |-------|------|--------|
-| id | UUID or long | Primary key |
+| id | UUID | Primary key (string UUID) |
 | name | string | Unique, e.g. `body only`, `machine`, `barbell` |
 
 Relationship: `Exercise` *──1 `Equipment` (many exercises share one equipment).
@@ -126,7 +139,7 @@ Lookup table of anatomical targets; populate from seed (union of primary + secon
 
 | Field | Type | Notes |
 |-------|------|--------|
-| id | UUID or long | Primary key |
+| id | UUID | Primary key (string UUID) |
 | name | string | Unique, e.g. `abdominals`, `hamstrings` |
 
 #### exerciseHasMuscle (M:N)
@@ -143,7 +156,7 @@ Unique constraint on `(exerciseId, muscleId)` (one row per pair).
 
 | Field | Type | Notes |
 |-------|------|--------|
-| id | UUID or long | Primary key |
+| id | UUID | Primary key (string UUID) |
 | path | string | Unique storage key / relative path from free-exercise-db (e.g. `Ab_Roller/0.jpg`) |
 | altText | string? | Optional |
 
@@ -180,9 +193,11 @@ Mapping for seed import (v1 heuristic):
 - Default / `strength` / `powerlifting` / `olympic weightlifting` / `strongman` → `REPS`, `WEIGHT`
 - Allow admin/user override later; v1 can store defaults only on `Exercise`
 
-### 4.3 Template
+### 4.3 WorkoutTemplate (table `workout_template`)
 
 Same shape as a workout: header metadata plus a flat list of sets. Owned by a user; can be cloned into a workout. Differs from workout mainly by **visibility** (no `performedAt` / `sourceTemplateId`).
+
+JPA entity name: `WorkoutTemplate`. Database table: **`workout_template`**.
 
 | Field | Type | Notes |
 |-------|------|--------|
@@ -196,34 +211,34 @@ Same shape as a workout: header metadata plus a flat list of sets. Owned by a us
 | visibility | enum | `PRIVATE` \| `PUBLIC` — template-only |
 | createdAt / updatedAt | instant | |
 
-#### TemplateSet
+#### TemplateSet (table `template_set`)
 
-Same structure as `WorkoutSet`: one row per planned set; each set points at an exercise directly.
+Same structure as `WorkoutSet`: one row per planned set; each set points at an exercise directly. The same exercise may appear on multiple sets (no unique on exerciseId).
 
 | Field | Type | Notes |
 |-------|------|--------|
 | id | UUID | |
-| templateId | FK → Template | |
+| workoutTemplateId | FK → WorkoutTemplate | |
 | exerciseId | FK → Exercise | Which exercise this set is for |
-| setNumber | int | Order within the template |
+| setNumber | int | Client-controlled order within the template (frontend may reorder) |
 | reps | int? | Planned |
 | weightKg | decimal? | Planned |
 | durationSeconds | int? | Planned |
 | distanceMeters | decimal? | Planned |
-| rpe | decimal? | Optional planned RPE |
+| rpe | enum? | `EASY` \| `CHALLENGING` \| `HARD` (extensible later) |
 | notes | string? | Optional per-set notes |
 
-**Unique constraint:** `(templateId, setNumber)` — set numbers are unique within a template (e.g. 1…N).
+**Unique constraint:** `(workoutTemplateId, setNumber)` — set numbers must be unique within a template. The API must support reordering: clients send explicit `setNumber` values; the server does **not** auto-rewrite to contiguous 1…N. When replacing/reordering sets, the client is responsible for sending a conflict-free set of numbers (unique within the template).
 
 No `completed` flag on template sets (that is workout/logging-only).
 
-**Clone template → workout:** create a new `Workout` for the current user with chosen `performedAt`; copy template header fields that apply (`name`, `durationSeconds`, `difficulty`, `notes`, and optionally recompute `totalWeightLifted`); for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics, notes; `completed` default true); set `sourceTemplateId`; leave template unchanged.
+**Clone template → workout:** create a new `Workout` for the current user with chosen `performedAt`; copy template header fields that apply (`name`, `durationSeconds`, `difficulty`, `notes`, and optionally recompute `totalWeightLifted`); for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics, `rpe`, notes; `completed` default true); set `sourceTemplateId`; leave template unchanged.
 
-Public templates: any authenticated user may **read** and **clone**; only owner may **edit/delete**. No template search in v1 (list own templates and/or browse public list is enough).
+**Public templates:** any authenticated user may **read** and **clone**; only owner may **edit/delete**. No template search in v1. A **PUBLIC** template may only include **catalog** exercises (`isCustom=false`). Custom exercises are allowed only on **PRIVATE** templates owned by their creator. Reject create/update of a public template that references a custom exercise.
 
 ### 4.4 Workout
 
-Tied to a specific user and a **datetime** (not date-only), so multiple workouts on the same calendar day are allowed. Structurally mirrors `Template` + `TemplateSet`.
+Tied to a specific user and a **datetime** (not date-only), so multiple workouts on the same calendar day are allowed. Structurally mirrors `WorkoutTemplate` + `TemplateSet`.
 
 | Field | Type | Notes |
 |-------|------|--------|
@@ -235,36 +250,44 @@ Tied to a specific user and a **datetime** (not date-only), so multiple workouts
 | totalWeightLifted | decimal? | Computed and/or stored metadata (kg) |
 | difficulty | enum? | `EASY` \| `MEDIUM` \| `HARD` |
 | notes | string? | |
-| sourceTemplateId | FK? | Optional provenance if cloned |
+| sourceTemplateId | FK → WorkoutTemplate? | Optional provenance if cloned |
 | createdAt / updatedAt | instant | |
 
 #### Difficulty enum
 
-Shared by `Template` and `Workout`:
+Shared by `WorkoutTemplate` and `Workout` (session-level):
 
 ```
 WorkoutDifficulty: EASY | MEDIUM | HARD
 ```
 
+#### RPE enum (per set)
+
+Perceived effort on a set (template planned or workout logged). More values may be added later:
+
+```
+RpeLevel: EASY | CHALLENGING | HARD
+```
+
 #### WorkoutSet
 
-One row per set in a workout. Flat: each set points at an exercise directly. Mirrors `TemplateSet`, plus logging fields.
+One row per set in a workout. Flat: each set points at an exercise directly. Mirrors `TemplateSet`, plus logging fields. Same exercise may appear on multiple sets.
 
 | Field | Type | Notes |
 |-------|------|--------|
 | id | UUID | |
 | workoutId | FK → Workout | |
 | exerciseId | FK → Exercise | Which exercise this set is for |
-| setNumber | int | Order within the workout |
+| setNumber | int | Client-controlled order; frontend may reorder sets |
 | reps | int? | |
 | weightKg | decimal? | |
 | durationSeconds | int? | |
 | distanceMeters | decimal? | |
 | completed | boolean | default true; workout-only |
-| rpe | decimal? | optional |
+| rpe | enum? | `EASY` \| `CHALLENGING` \| `HARD` |
 | notes | string? | Optional per-set notes |
 
-**Unique constraint:** `(workoutId, setNumber)` — set numbers are unique within a workout (e.g. 1…N across the session).
+**Unique constraint:** `(workoutId, setNumber)`. Same reorder rules as templates: client owns `setNumber`; server enforces uniqueness and does not auto-renumber.
 
 Only parameters enabled on the exercise should be required/validated; others may be null.
 
@@ -275,15 +298,15 @@ Only parameters enabled on the exercise should be required/validated; others may
 ## 5. ER relationships (logical)
 
 ```
-User 1──* Template
+User 1──* WorkoutTemplate
 User 1──* Workout
 User 1──* Exercise (custom only, via addedBy)
 Equipment 1──* Exercise
 Exercise *──* Muscle          via exerciseHasMuscle (isPrimary boolean)
 Exercise *──* Image           via exerciseHasImage (sortOrder)
-Template 1──* TemplateSet *──1 Exercise
+WorkoutTemplate 1──* TemplateSet *──1 Exercise
 Workout 1──* WorkoutSet *──1 Exercise
-Template (optional) ──<cloned into>── Workout
+WorkoutTemplate (optional) ──<cloned into>── Workout
 ```
 
 ---
@@ -300,9 +323,9 @@ Dual authentication; both issue the same **JWT** for `/api/v1`.
 
 ### Google SSO
 
-- Google OAuth2 / OpenID Connect via Spring Security OAuth2 Client
+- Google OAuth2 / OpenID Connect via Spring Security OAuth2 Client (enable via `fittrack.oauth2.google.enabled=true` + client credentials)
 - JIT upsert `User` by `googleSubject` on login
-- After successful OAuth, issue the same JWT (redirect handoff to SPA)
+- **JWT handoff to SPA:** after successful OAuth callback, backend redirects to the Angular app, e.g. `http://localhost:4200/auth/callback#token=<jwt>` (hash preferred so the token is less likely to hit server logs). SPA stores the JWT and clears it from the URL. No refresh tokens in v1; access token lifetime from `fittrack.jwt.expiration-minutes` (default ~12h); re-login when expired.
 
 ### Common
 
@@ -311,9 +334,9 @@ Dual authentication; both issue the same **JWT** for `/api/v1`.
 - **Token strategy:** JWT after either local or Google success (`sub` = user id, expiry); signing secret via env (never committed)
 - **Authorization rules:**
   - Users read/write only their own workouts and private templates
-  - Public templates: readable/cloneable by any authenticated user
+  - Public templates: readable/cloneable by any authenticated user; may only reference catalog exercises (`isCustom=false`)
   - Exercise catalog (`isCustom=false`): read-only for all authenticated users (seed managed by app)
-  - Custom exercises (`isCustom=true`): owner (`addedBy`) may create/update/delete; listed to owner alongside catalog
+  - Custom exercises (`isCustom=true`): owner (`addedBy`) may create/update/delete; listed to owner alongside catalog; usable only on that owner's private templates
 
 Config via env / `application.yml`: Google client id/secret (optional if only local login in a given env), JWT signing key, default seed user credentials. Secrets never committed.
 
@@ -324,7 +347,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 ### Auth / me
 
 - `POST /api/v1/auth/login` — local `{ "username", "password" }` → `{ "token", "user" }`
-- Google OAuth via Spring Security endpoints (`/oauth2/authorization/google`, callback) → JWT handoff
+- Google OAuth via Spring Security endpoints (`/oauth2/authorization/google`, callback) → redirect SPA with JWT in URL hash (§6)
 - `GET /api/v1/me` — current user profile
 
 ### Exercises
@@ -339,8 +362,9 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 
 - `GET /api/v1/templates` — own templates; optional `visibility=PUBLIC` for browse
 - `GET /api/v1/templates/{id}` — get with sets (if owner or public)
-- `POST /api/v1/templates` — create (with optional sets)
-- `PUT /api/v1/templates/{id}` — update metadata / replace sets (owner)
+- `POST /api/v1/templates` — create (with optional sets); PUBLIC templates may only include catalog exercises
+- `PUT /api/v1/templates/{id}` — update metadata / replace sets (owner); client supplies `setNumber` for order/reorder (no server auto-renumber to 1…N)
+- Optional later: dedicated reorder endpoint that only updates `setNumber` values — same uniqueness rules, still no forced contiguous rewrite
 - `DELETE /api/v1/templates/{id}` — delete (owner)
 - `POST /api/v1/templates/{id}/clone` — body: `{ "performedAt": "ISO-8601", "name": "..." }` → creates Workout
 
@@ -349,7 +373,8 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `GET /api/v1/workouts` — list for current user (filter by `performedAt` range)
 - `GET /api/v1/workouts/{id}` — detail with sets (each set includes `exerciseId`)
 - `POST /api/v1/workouts` — create (empty or with sets); include `performedAt`
-- `PUT /api/v1/workouts/{id}` — update metadata / replace structure
+- `PUT /api/v1/workouts/{id}` — update metadata / replace structure; client supplies `setNumber` to support frontend reorder (no server auto-renumber to 1…N)
+- Optional later: dedicated reorder endpoint with the same client-owned `setNumber` rules as templates
 - `DELETE /api/v1/workouts/{id}` — delete
 
 Errors: problem+json or simple `{ "message", "code" }` with consistent HTTP status codes.
@@ -441,15 +466,15 @@ com.fittrack
 
 ## 13. Implementation phases (ordered)
 
-Agents and humans should follow this order unless told otherwise:
+Track live progress in [`STATUS.md`](STATUS.md). Ordered phases:
 
-1. **Docs** — this file + `AGENTS.md` + root `README.md` (current)
+1. **Docs** — this file + `AGENTS.md` + `STATUS.md` + root `README.md`
 2. **Backend scaffold** — Spring Boot 4.1, Java 25 (or latest supported), Maven, SQLite, Flyway, **`backend/Dockerfile`**
-3. **Domain + migrations** — User (local + SSO fields), Equipment, Muscle, Image, Exercise + join tables, Template + `TemplateSet`, Workout + `WorkoutSet`
-4. **Security** — local login + Google OAuth2, JWT, `/api/v1/me`, **seed default local user** on first start
+3. **Domain + migrations** — User (local + SSO fields), Equipment, Muscle, Image, Exercise + join tables, `WorkoutTemplate` + `TemplateSet`, Workout + `WorkoutSet`
+4. **Security** — local login + JWT + `/api/v1/me` + seed default local user; Google OAuth when credentials enabled
 5. **Exercise seed + read APIs + custom exercise CRUD**
-6. **Template CRUD + clone-to-workout**
-7. **Workout CRUD + set logging + metadata** (`performedAt` datetime)
+6. **Template CRUD + clone-to-workout** (public = catalog exercises only)
+7. **Workout CRUD + set logging + client-driven set reorder** (`performedAt` datetime)
 8. **Angular frontend** scaffold and wire to API
 9. **Polish** — validation, pagination, README runbook, Docker usage, sample data
 
@@ -459,17 +484,22 @@ Agents and humans should follow this order unless told otherwise:
 
 | Topic | Default for v1 | Change if needed |
 |-------|----------------|------------------|
-| ID type | **UUID** for app entities; catalog `Exercise.id` = free-exercise-db string; custom `Exercise.id` = UUID string | Locked |
-| Weight unit | **Store kg** (`weightKg`, `totalWeightLifted`); UI may convert for display | Locked |
+| ID type | **UUID** for app entities and lookup tables (`Equipment`/`Muscle`/`Image`); catalog `Exercise.id` = free-exercise-db string; custom `Exercise.id` = UUID string | Locked |
+| Weight unit | **Store kg** as SQLite REAL / Java `Double` (`weightKg`, `totalWeightLifted`); UI may convert for display | Locked |
 | Auth | **Local username/password + Google SSO**; both issue **JWT** Bearer tokens | Locked |
+| Google JWT handoff | Redirect to SPA `#token=<jwt>`; no refresh token in v1 | Locked |
 | Default user | Seed on first start: username/password `admin`/`admin` (overridable via env) | Locked |
 | Docker | **`backend/Dockerfile`** multi-stage; SQLite on a volume | Locked |
-| Public templates | Listed to all logged-in users; **no search** in v1 | Locked |
-| Difficulty | Enum `EASY` \| `MEDIUM` \| `HARD` (nullable) | Locked |
+| Public templates | Listed to all logged-in users; **no search**; **catalog exercises only** | Locked |
+| Difficulty | Enum `EASY` \| `MEDIUM` \| `HARD` (nullable, session-level) | Locked |
+| RPE (per set) | Enum `EASY` \| `CHALLENGING` \| `HARD` (nullable; more values later) | Locked |
 | Muscle on join | `exerciseHasMuscle.isPrimary` boolean (not an enum) | Locked |
 | Workout time | **`performedAt` datetime** (not date-only); multiple workouts per day allowed | Locked |
-| Custom exercises | Allowed: `isCustom` + optional `addedBy` (FK → User; required when custom) | Locked |
-| Template vs workout | Same shape: header + flat sets (`TemplateSet` ↔ `WorkoutSet`); template adds `visibility`, workout adds `performedAt` / `completed` / `sourceTemplateId` | Locked |
+| Custom exercises | Allowed: `isCustom` + `addedBy`; private templates only for customs | Locked |
+| Template vs workout | Same shape: header + flat sets; table `workout_template` / entity `WorkoutTemplate` | Locked |
+| trackedParameters | INTEGER bitmask on Exercise | Locked |
+| Set order | Client-controlled `setNumber`; API supports reorder; no server auto-renumber | Locked |
+| Progress tracking | Living file [`docs/STATUS.md`](STATUS.md) | Locked |
 
 ---
 

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "template")
+@Table(name = "workout_template")
 public class WorkoutTemplate {
 
 	@Id

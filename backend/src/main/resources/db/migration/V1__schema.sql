@@ -66,7 +66,7 @@ CREATE TABLE exercise_has_image (
     PRIMARY KEY (exercise_id, image_id)
 );
 
-CREATE TABLE template (
+CREATE TABLE workout_template (
     id                   TEXT PRIMARY KEY NOT NULL,
     user_id              TEXT NOT NULL REFERENCES app_user(id),
     name                 TEXT,
@@ -82,17 +82,18 @@ CREATE TABLE template (
 );
 
 CREATE TABLE template_set (
-    id                TEXT PRIMARY KEY NOT NULL,
-    template_id       TEXT NOT NULL REFERENCES template(id) ON DELETE CASCADE,
-    exercise_id       TEXT NOT NULL REFERENCES exercise(id),
-    set_number        INTEGER NOT NULL,
-    reps              INTEGER,
-    weight_kg         REAL,
-    duration_seconds  INTEGER,
-    distance_meters   REAL,
-    rpe               REAL,
-    notes             TEXT,
-    UNIQUE (template_id, set_number)
+    id                   TEXT PRIMARY KEY NOT NULL,
+    workout_template_id  TEXT NOT NULL REFERENCES workout_template(id) ON DELETE CASCADE,
+    exercise_id          TEXT NOT NULL REFERENCES exercise(id),
+    set_number           INTEGER NOT NULL,
+    reps                 INTEGER,
+    weight_kg            REAL,
+    duration_seconds     INTEGER,
+    distance_meters      REAL,
+    rpe                  TEXT,
+    notes                TEXT,
+    UNIQUE (workout_template_id, set_number),
+    CHECK (rpe IS NULL OR rpe IN ('EASY', 'CHALLENGING', 'HARD'))
 );
 
 CREATE TABLE workout (
@@ -104,7 +105,7 @@ CREATE TABLE workout (
     total_weight_lifted  REAL,
     difficulty           TEXT,
     notes                TEXT,
-    source_template_id   TEXT REFERENCES template(id) ON DELETE SET NULL,
+    source_template_id   TEXT REFERENCES workout_template(id) ON DELETE SET NULL,
     created_at           TEXT NOT NULL,
     updated_at           TEXT NOT NULL,
     CHECK (difficulty IS NULL OR difficulty IN ('EASY', 'MEDIUM', 'HARD'))
@@ -122,8 +123,9 @@ CREATE TABLE workout_set (
     duration_seconds  INTEGER,
     distance_meters   REAL,
     completed         INTEGER NOT NULL DEFAULT 1,
-    rpe               REAL,
+    rpe               TEXT,
     notes             TEXT,
     UNIQUE (workout_id, set_number),
-    CHECK (completed IN (0, 1))
+    CHECK (completed IN (0, 1)),
+    CHECK (rpe IS NULL OR rpe IN ('EASY', 'CHALLENGING', 'HARD'))
 );

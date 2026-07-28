@@ -2,6 +2,8 @@ package com.fittrack.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -44,7 +46,8 @@ public class WorkoutSet {
 	@Column(nullable = false)
 	private boolean completed = true;
 
-	private Double rpe;
+	@Enumerated(EnumType.STRING)
+	private RpeLevel rpe;
 
 	private String notes;
 
@@ -127,11 +130,11 @@ public class WorkoutSet {
 		this.completed = completed;
 	}
 
-	public Double getRpe() {
+	public RpeLevel getRpe() {
 		return rpe;
 	}
 
-	public void setRpe(Double rpe) {
+	public void setRpe(RpeLevel rpe) {
 		this.rpe = rpe;
 	}
 
