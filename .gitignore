@@ -1,0 +1,32 @@
+# Build / IDE
+target/
+build/
+.gradle/
+.idea/
+*.iml
+.vscode/
+*.class
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime / secrets
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+.env.*
+!*.env.example
+application-local.yml
+application-secret.yml
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+
+# Logs
+*.log
