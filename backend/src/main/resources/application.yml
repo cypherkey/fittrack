@@ -48,6 +48,7 @@ fittrack:
   oauth2:
     google:
       enabled: ${FITTRACK_GOOGLE_OAUTH_ENABLED:false}
+    success-redirect: ${FITTRACK_SPA_AUTH_CALLBACK_URL:http://localhost:4200/auth/callback}
   cors:
     allowed-origins: ${FITTRACK_CORS_ORIGINS:http://localhost:4200}
 

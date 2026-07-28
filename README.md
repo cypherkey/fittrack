@@ -52,13 +52,13 @@ From `backend/`:
 | `FITTRACK_DB_PATH` | SQLite file path | `./data/fittrack.db` |
 | `JWT_SECRET` | JWT signing secret (≥256 bits recommended) | dev default in `application.yml` |
 | `JWT_EXPIRATION_MINUTES` | Access token lifetime | `720` |
-| `FITTRACK_GOOGLE_OAUTH_ENABLED` | Enable Google OAuth2 autoconfig | `false` |
-| `GOOGLE_CLIENT_ID` | Google OAuth client id | _(empty)_ |
+| `FITTRACK_GOOGLE_OAUTH_ENABLED` | Optional flag (credentials alone also enable Google OAuth) | `false` |
+| `GOOGLE_CLIENT_ID` | Google OAuth client id (required with secret to enable SSO) | _(empty)_ |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | _(empty)_ |
 | `FITTRACK_CORS_ORIGINS` | Allowed CORS origins | `http://localhost:4200` |
 | `FITTRACK_SPA_AUTH_CALLBACK_URL` | SPA OAuth JWT handoff base (hash `#token=<jwt>` appended) | `http://localhost:4200/auth/callback` |
 
-Google SSO stays deferred until credentials are set and `FITTRACK_GOOGLE_OAUTH_ENABLED=true`. Local username/password + JWT work without Google secrets. After Google login, the backend will redirect to `{FITTRACK_SPA_AUTH_CALLBACK_URL}#token=<jwt>` (no refresh tokens in v1).
+Google SSO enables automatically when both `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are non-empty (startup stays local-only if they are empty). Start login at `/oauth2/authorization/google`. After Google login, the backend redirects to `{FITTRACK_SPA_AUTH_CALLBACK_URL}#token=<jwt>` (no refresh tokens in v1). Local username/password + JWT always work.
 
 ### Login example
 

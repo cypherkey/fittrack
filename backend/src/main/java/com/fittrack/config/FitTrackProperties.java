@@ -20,7 +20,7 @@ public record FitTrackProperties(
 	) {
 	}
 
-	public record Oauth2(Google google) {
+	public record Oauth2(Google google, String successRedirect) {
 		public record Google(boolean enabled) {
 		}
 	}

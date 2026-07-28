@@ -4,7 +4,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 
 ## Current focus
 
-**Next:** Phase 5 - exercise catalog seed (free-exercise-db) + exercise read APIs + custom exercise CRUD.
+**Next:** Phase 8 - Angular frontend (or Phase 9 polish if API tweaks are needed first).
 
 ## Phase checklist
 
@@ -14,12 +14,12 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 | 2 | Backend scaffold (Boot 4.1, Java 25, Maven, SQLite, Flyway, Dockerfile) | **Done** |
 | 3 | Domain + migrations | **Done** (see notes) |
 | 4 | Security: local login + JWT + default user seed | **Done** |
-| 4b | Google OAuth2 SSO + JWT handoff to SPA | **Deferred** until Google client credentials are configured (`fittrack.oauth2.google.enabled`) |
-| 5 | Exercise seed + read APIs + custom exercise CRUD | **Next** |
-| 6 | Template CRUD + clone-to-workout | Pending |
-| 7 | Workout CRUD + set logging + reorder support | Pending |
+| 4b | Google OAuth2 SSO + JWT handoff to SPA | **Done** (enabled when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` are non-empty; local-only startup without secrets) |
+| 5 | Exercise seed + read APIs + custom exercise CRUD | **Done** |
+| 6 | Template CRUD + clone-to-workout | **Done** |
+| 7 | Workout CRUD + set logging + reorder support | **Done** |
 | 8 | Angular frontend | Pending |
-| 9 | Polish (validation, pagination, Docker runbook, sample data) | Pending |
+| 9 | Polish (validation, pagination, Docker runbook, sample data) | Pending (basic validation/pagination already present) |
 
 ## Implementation notes (agents)
 
@@ -28,8 +28,8 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - Same exercise may appear on multiple sets; uniqueness is `(template|workout, setNumber)` only
 - Set order is client-controlled; server does not auto-renumber to 1..N
 - PUBLIC templates may only contain catalog exercises (`isCustom=false`)
-- Google OAuth client autoconfig is **excluded** until enabled; local JWT auth works without Google secrets
-- After Google callback (when enabled): redirect SPA to `http://localhost:4200/auth/callback#token=<jwt>`; no refresh tokens in v1
+- Exercise catalog: vendored `backend/src/main/resources/data/exercises.json` (free-exercise-db); `ExerciseCatalogSeeder` upserts on startup. Tests use a small fixture under `src/test/resources/data/`
+- Google OAuth: `OAuth2ClientAutoConfiguration` stays excluded from the main app; `GoogleOAuthConfig` imports it only when Google client id/secret are both set. Success redirect: `{fittrack.oauth2.success-redirect}#token=<jwt>` (env `FITTRACK_SPA_AUTH_CALLBACK_URL`)
 - Default seed user: `admin` / `admin` (env-overridable)
 - SQLite file: `./data/fittrack.db` (gitignored). After schema changes, delete local DB files and restart so Flyway can recreate
 - Git remote name in this repo may be `github` (not `origin`); default branch `main`
