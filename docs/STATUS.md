@@ -8,18 +8,20 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 |--|--|
 | **Stack** | Spring Boot 4.1 + Java 25 + SQLite (WAL) + JWT; Angular SPA not started |
 | **Done** | Phases 1–7 (API, local auth, Google OAuth when credentials set, exercises/templates/workouts, `PATCH …/sets/reorder`) |
-| **Next** | **Phase 8 — Angular frontend** under `frontend/` (do not scaffold until starting that phase) |
+| **Next** | **Phase 8 — Angular frontend** — open questions locked in [`FRONTEND.md`](FRONTEND.md); **ready to scaffold** under `frontend/` |
 | **Run** | `backend/`: `.\mvnw.cmd spring-boot:run` → `http://localhost:8080` |
 | **Key URLs** | Swagger UI `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login` |
 | **Docker** | Root `docker-compose.yml` → `docker compose up --build` (volume `fittrack-data` → `/data`) |
 | **Seed user** | `admin` / `admin` (env-overridable) |
 | **Google SSO** | On when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` non-empty; handoff `{SPA_CALLBACK}#token=<jwt>` |
+| **Frontend prefs** | Angular **21 LTS**, Node **24 LTS**, **NgModules** (not standalone), **Angular Material**; Ryot demo = UX inspiration only; JWT in **localStorage** |
 | **Deferred** | **#1** auth hardening; **#9** user-management FE (no public self-register API in v1) |
 | **Tests** | [`TESTS.md`](TESTS.md) — `.\mvnw.cmd test` from `backend/` |
 
 ## Current focus
 
-**Next:** Phase 8 — Angular frontend.
+**Ready to scaffold** Phase 8 Angular SPA under `frontend/`. Open questions in [`FRONTEND.md`](FRONTEND.md) are **locked** (defaults accepted). Do not wait on further FE decisions before scaffolding.
+
 
 ## Phase checklist
 

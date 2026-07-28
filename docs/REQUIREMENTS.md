@@ -433,12 +433,27 @@ com.fittrack
 
 ---
 
-## 10. Frontend (later phase)
+## 10. Frontend (Phase 8)
 
-- Angular SPA under `frontend/`
-- Feature areas: local login, Google login, exercise browser, templates CRUD, workout logger/calendar, **user management** (deferred item **#9** — create local users; not public self-register)
-- Auth: local login and/or Google against backend; call APIs with Bearer JWT; Google callback page reads `#token=<jwt>` from handoff URL
-- Do not scaffold until core API endpoints and auth work end-to-end (Phases 1–7 complete; start at Phase 8)
+Full SPA requirements: **[`FRONTEND.md`](FRONTEND.md)** (source of truth for Angular).
+
+### Locked stack preferences
+
+| Item | Choice |
+|------|--------|
+| Angular | **21.x LTS** (newest LTS; v22 is Active — use only if explicitly chosen) |
+| Node | **24.x LTS** |
+| UI | **Angular Material** (+ CDK) |
+| Components | **NgModules** — `standalone: false` (not standalone-by-default) |
+| UX inspiration | [Ryot demo Fitness IA](https://demo.ryot.io/_s/acl_vUMPnPirkHlT) (nav + lists; not media features) |
+
+### Feature areas
+
+- Local login, Google callback (`#token=<jwt>`), JWT interceptor + guards
+- Exercises, templates (incl. clone), workouts (incl. set reorder)
+- Light dashboard; settings stub; **user management** deferred (**#9**)
+
+`FRONTEND.md` open questions are **locked** (defaults accepted). Ready to scaffold `frontend/` for Phase 8.
 
 ---
 
