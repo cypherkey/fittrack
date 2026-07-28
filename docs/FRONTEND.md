@@ -165,17 +165,89 @@ Each feature: `XxxModule` + `XxxRoutingModule` + components with `standalone: fa
 
 ---
 
-## 8. API alignment checklist
+## 8. Typed API clients (frontend ↔ backend)
 
-SPA must cover (see backend OpenAPI `/swagger-ui.html`):
+FitTrack does **not** auto-generate TypeScript from OpenAPI today. Typed clients are **hand-maintained** mirrors of the Spring Boot JSON API. Backend OpenAPI is the discoverability / contract check; TypeScript models and `HttpClient` services are the SPA contract.
+
+### Sources of truth (backend)
+
+| Source | Location / URL | Use for |
+|--------|----------------|---------|
+| Java DTOs (records) | `backend/src/main/java/com/fittrack/web/dto/` | Field names, nullability, request vs response shapes |
+| Domain enums | `backend/.../domain/*` (e.g. `RpeLevel`, `WorkoutDifficulty`) | Exact JSON string values (`EASY`, `HARD`, …) |
+| Controllers | `backend/.../web/*Controller.java` | Paths, HTTP methods, query params, status codes |
+| OpenAPI / Swagger | `http://localhost:8080/v3/api-docs` · UI `/swagger-ui.html` | Browse & verify after backend changes; Try it out with JWT |
+
+Jackson serializes Java records as **camelCase** JSON matching the record component names (`displayName`, `totalWeightLifted`, `custom`, …). Enums serialize as their **name** strings.
+
+### Frontend layout (typed clients)
+
+```
+frontend/src/app/core/
+  models/          # TypeScript interfaces / string-union enums (DTO mirrors)
+    enums.ts
+    user.ts
+    exercise.ts
+    template.ts
+    workout.ts
+    lookup.ts
+    page-response.ts
+  api/             # Thin HttpClient services (one per resource)
+    exercise-api.service.ts
+    template-api.service.ts
+    workout-api.service.ts
+    lookup-api.service.ts
+    user-api.service.ts
+```
+
+Auth login / `me` types live in `models/user.ts` and are used by `AuthService` (not a separate `auth-api` service).
+
+Services are `@Injectable({ providedIn: 'root' })`, call `${environment.apiBaseUrl}/api/v1/...`, and return `Observable<T>` with generics matching the models. The JWT interceptor attaches `Authorization: Bearer …`; feature components should not re-implement HTTP.
+
+### How to derive / update a typed client
+
+When the backend API changes (or when adding a new endpoint):
+
+1. **Change backend first** — DTO + controller (+ Flyway if schema); run tests; confirm Swagger shows the new shape.
+2. **Open the Java DTO / enum** (and/or Swagger schema) and map to TypeScript:
+   - `record FooResponse(...)` → `export interface Foo { ... }` (drop the `Response` suffix for entity-shaped types when clearer, e.g. `ExerciseResponse` → `Exercise`)
+   - `record FooRequest(...)` → `export interface FooRequest { ... }`
+   - Java `boolean` / `Boolean` → `boolean` (optional / nullable API fields as `field?: boolean | null`)
+   - Java `Instant` → `string` (ISO-8601)
+   - Java enum → string union or `enums.ts` const/type (must match names exactly)
+3. **Update or add** `core/models/*.ts`.
+4. **Update or add** `core/api/*-api.service.ts` methods (`get`/`post`/`put`/`patch`/`delete` + `HttpParams` for query strings).
+5. **Wire UI** to the service; keep forms aligned with `*Request` types.
+6. **Smoke-check** against a running API (`ng serve` + backend); prefer comparing a real JSON response to the interface.
+
+### Naming & mapping conventions
+
+| Backend | Frontend |
+|---------|----------|
+| `ExerciseResponse` | `Exercise` (or `ExerciseResponse` if you prefer 1:1 names) |
+| `ExerciseRequest` | `ExerciseRequest` |
+| `PageResponse<T>` | `PageResponse<T>` (`content`, `page`, `size`, `totalElements`, `totalPages`) |
+| `RpeLevel.CHALLENGING` | `'CHALLENGING'` |
+| Query params (`q`, `from`, `to`, `visibility`) | Same names on `HttpParams` / `*ListParams` |
+
+Do **not** invent parallel field names (e.g. do not rename `custom` to `isCustom` in TS unless the JSON changes).
+
+### What is intentionally not generated
+
+- No `openapi-generator` / `ng-openapi-gen` / Orval pipeline in v1
+- No committed `openapi.json` snapshot in the repo (fetch live from `/v3/api-docs` when needed)
+- Regenerating clients is a **possible later improvement**; until then, treat hand mirrors + Swagger as the process
+
+### API surface checklist (SPA must cover)
+
+See also Swagger UI:
 
 - Auth: login, me; Google callback
 - Lookups: equipment, muscles
 - Exercises CRUD + list filters
 - Templates CRUD, clone, sets reorder
 - Workouts CRUD, list range, sets reorder
-
-Types: mirror backend enums (`WorkoutDifficulty`, `RpeLevel`, `TemplateVisibility`, `ExerciseLevel`, …).
+- Users (admin): list/create/update/delete
 
 ---
 

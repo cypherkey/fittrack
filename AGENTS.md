@@ -30,3 +30,4 @@ Treat `REQUIREMENTS.md` / `FRONTEND.md` as product sources of truth unless the u
 4. When requirements are ambiguous, prefer the defaults in §14 of the requirements doc, then ask.
 5. Update `docs/REQUIREMENTS.md` when durable product/design decisions change.
 6. Update `docs/STATUS.md` when implementation progress or deferrals change.
+7. When changing REST DTOs/endpoints, update hand-mirrored SPA types/services per [`docs/FRONTEND.md`](docs/FRONTEND.md) §8 (Typed API clients).
