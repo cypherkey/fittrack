@@ -5,6 +5,6 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 public record ReorderSetsRequest(
-		@NotEmpty @Valid List<ReorderSetItem> items
+		@NotEmpty List<@Valid ReorderSetItem> items
 ) {
 }

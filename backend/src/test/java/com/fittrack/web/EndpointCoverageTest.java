@@ -76,11 +76,58 @@ class EndpointCoverageTest {
 	void authMeAndActuatorAndOpenApi() throws Exception {
 		mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.username").value("admin"));
+				.andExpect(jsonPath("$.username").value("admin"))
+				.andExpect(jsonPath("$.admin").value(true));
 
 		mockMvc.perform(get("/actuator/health")).andExpect(status().isOk());
 		mockMvc.perform(get("/actuator/info")).andExpect(status().isUnauthorized());
 		mockMvc.perform(get("/v3/api-docs")).andExpect(status().isOk());
+	}
+
+	@Test
+	void adminUserManagement() throws Exception {
+		mockMvc.perform(get("/api/v1/users").header("Authorization", "Bearer " + otherToken))
+				.andExpect(status().isForbidden());
+
+		mockMvc.perform(get("/api/v1/users").header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[?(@.username=='admin')].admin").value(org.hamcrest.Matchers.hasItem(true)));
+
+		MvcResult created = mockMvc.perform(post("/api/v1/users")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"username":"coach","password":"coachpass","displayName":"Coach","email":"coach@localhost","admin":false}
+								"""))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.username").value("coach"))
+				.andExpect(jsonPath("$.admin").value(false))
+				.andReturn();
+		String coachId = objectMapper.readTree(created.getResponse().getContentAsString()).get("id").asText();
+
+		mockMvc.perform(put("/api/v1/users/" + coachId)
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"displayName":"Head Coach","password":"coachpass2"}
+								"""))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.displayName").value("Head Coach"));
+
+		String coachToken = login("coach", "coachpass2");
+		mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + coachToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.username").value("coach"))
+				.andExpect(jsonPath("$.admin").value(false));
+
+		mockMvc.perform(delete("/api/v1/users/" + coachId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isNoContent());
+
+		mockMvc.perform(delete("/api/v1/users/" + objectMapper.readTree(
+						mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + adminToken))
+								.andReturn().getResponse().getContentAsString()).get("id").asText())
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test

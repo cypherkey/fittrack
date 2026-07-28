@@ -2,9 +2,9 @@
 
 Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIREMENTS.md). Progress: [`STATUS.md`](STATUS.md).
 
-**Open questions accepted — ready to scaffold Phase 8.**
+**Phase 8 complete.**
 
-**Status:** Phase 8 scaffold started — Angular 21 NgModule app under `frontend/` (auth + shell + stubs). Feature CRUD next.
+**Status:** Phase 8 complete — feature CRUD wired to API (exercises, templates, workouts, settings/user mgmt).
 
 **UX reference (inspiration only):** [Ryot demo](https://demo.ryot.io/_s/acl_vUMPnPirkHlT) — collapsible side nav, Fitness area (Workouts / Templates / Exercises), list + search, theme toggle. FitTrack is **workout-focused** (no Ryot media/collections); do not copy Ryot branding or non-fitness domains.
 
@@ -20,7 +20,7 @@ Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIRE
 
 ### Non-goals (v1 SPA)
 
-- Public self-registration (user management page is deferred **#9**)
+- Public self-registration (admins manage users in Settings; no public register)
 - Offline-first / PWA sync
 - Serving exercise images from free-exercise-db (paths may display later)
 - Native mobile shells
@@ -37,7 +37,7 @@ Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIRE
 | Package manager | **npm** (locked) | Default Angular CLI package manager |
 | UI | **Angular Material** | + Angular CDK; use theme from `ng add @angular/material` + dark toggle |
 | Components | **NgModules — not standalone** | Preference locked: `standalone: false` on components/directives/pipes; declare in feature 
-gModule`s |
+NgModule`s |
 | Routing | `AppRoutingModule` + feature routing modules | Lazy-load feature modules where sensible |
 | HTTP | `HttpClientModule` (or `provideHttpClient` only if forced by CLI — prefer module style) | Interceptor attaches JWT |
 | State | Services + RxJS (BehaviorSubject / signals optional later) | No NgRx required for v1 |
@@ -46,8 +46,7 @@ gModule`s |
 
 ### CLI / project conventions
 
-When scaffolding (
-g new` / generate):
+When scaffolding (`ng new` / generate):
 
 ```text
 --standalone=false
@@ -63,8 +62,7 @@ Set defaults in `angular.json` schematics:
 
 Bootstrap via `AppModule` + `platformBrowserDynamic().bootstrapModule(AppModule)` (not standalone `bootstrapApplication` unless CLI forces a thin wrapper — convert to NgModule app).
 
-Install Material: 
-g add @angular/material` (pick a theme; support light/dark if inexpensive).
+Install Material: `ng add @angular/material` (pick a theme; support light/dark if inexpensive).
 
 ---
 
@@ -84,7 +82,7 @@ g add @angular/material` (pick a theme; support light/dark if inexpensive).
 | Workouts | `/workouts` | `GET/POST/PUT/DELETE /api/v1/workouts`, reorder |
 | Templates | `/templates` | Templates CRUD + clone |
 | Exercises | `/exercises` | Catalog + custom CRUD |
-| Settings (minimal) | `/settings` | Display me + API base info; user mgmt later (#9) |
+| Settings | `/settings` | Display me + API base; **admin user management** (#9) |
 
 Unauthenticated: `/login`, `/auth/callback` (Google JWT hash handoff).
 

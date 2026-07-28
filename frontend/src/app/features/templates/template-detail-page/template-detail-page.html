@@ -1,0 +1,62 @@
+@if (loading) {
+  <div class="loading"><mat-spinner diameter="40" /></div>
+} @else if (template) {
+  <div class="page-header">
+    <button mat-button type="button" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+      Back
+    </button>
+    <div class="actions">
+      <button mat-stroked-button type="button" (click)="clone()">
+        <mat-icon>content_copy</mat-icon>
+        Clone to workout
+      </button>
+      <button mat-flat-button color="primary" type="button" (click)="edit()">
+        <mat-icon>edit</mat-icon>
+        Edit
+      </button>
+    </div>
+  </div>
+
+  <h1>{{ template.name }}</h1>
+
+  <mat-card>
+    <mat-card-content>
+      <dl class="meta">
+        <div><dt>Visibility</dt><dd>{{ template.visibility }}</dd></div>
+        <div><dt>Difficulty</dt><dd>{{ template.difficulty || '—' }}</dd></div>
+        <div><dt>Duration</dt><dd>{{ template.durationSeconds ? template.durationSeconds + 's' : '—' }}</dd></div>
+        <div><dt>Total weight</dt><dd>{{ template.totalWeightLifted ?? '—' }} kg</dd></div>
+      </dl>
+      @if (template.notes) {
+        <p><strong>Notes:</strong> {{ template.notes }}</p>
+      }
+
+      <h3>Sets</h3>
+      <table mat-table [dataSource]="template.sets" class="mat-elevation-z1">
+        <ng-container matColumnDef="setNumber">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row">{{ row.setNumber }}</td>
+        </ng-container>
+        <ng-container matColumnDef="exercise">
+          <th mat-header-cell *matHeaderCellDef>Exercise</th>
+          <td mat-cell *matCellDef="let row">{{ row.exerciseName }}</td>
+        </ng-container>
+        <ng-container matColumnDef="reps">
+          <th mat-header-cell *matHeaderCellDef>Reps</th>
+          <td mat-cell *matCellDef="let row">{{ row.reps ?? '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="weight">
+          <th mat-header-cell *matHeaderCellDef>Weight</th>
+          <td mat-cell *matCellDef="let row">{{ row.weightKg ?? '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="rpe">
+          <th mat-header-cell *matHeaderCellDef>RPE</th>
+          <td mat-cell *matCellDef="let row">{{ row.rpe ?? '—' }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="['setNumber', 'exercise', 'reps', 'weight', 'rpe']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['setNumber', 'exercise', 'reps', 'weight', 'rpe']"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+}

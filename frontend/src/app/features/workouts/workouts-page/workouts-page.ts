@@ -1,4 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
+import { Router } from '@angular/router';
+import { WorkoutApi } from '../../../core/api/workout-api.service';
+import { Workout } from '../../../core/models/workout';
+import { NotificationService } from '../../../core/services/notification.service';
+import { errorMessage } from '../../../core/utils/http-error';
+import { fromDatetimeLocalValue } from '../../../shared/utils/set-form';
 
 @Component({
   selector: 'app-workouts-page',
@@ -6,4 +13,80 @@ import { Component } from '@angular/core';
   standalone: false,
   styleUrl: './workouts-page.scss',
 })
-export class WorkoutsPage {}
+export class WorkoutsPage implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly workoutApi = inject(WorkoutApi);
+  private readonly router = inject(Router);
+  private readonly notify = inject(NotificationService);
+
+  readonly filterForm = this.fb.group({
+    from: [''],
+    to: [''],
+  });
+
+  workouts: Workout[] = [];
+  loading = false;
+
+  ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.loading = true;
+    const v = this.filterForm.value;
+    this.workoutApi
+      .list({
+        from: v.from ? fromDatetimeLocalValue(v.from) : undefined,
+        to: v.to ? fromDatetimeLocalValue(v.to) : undefined,
+      })
+      .subscribe({
+        next: (items) => {
+          this.workouts = items;
+          this.loading = false;
+        },
+        error: (err) => {
+          this.loading = false;
+          this.notify.error(errorMessage(err, 'Failed to load workouts'));
+        },
+      });
+  }
+
+  applyFilters(): void {
+    this.load();
+  }
+
+  clearFilters(): void {
+    this.filterForm.reset({ from: '', to: '' });
+    this.load();
+  }
+
+  create(): void {
+    void this.router.navigate(['/workouts/new']);
+  }
+
+  view(id: string): void {
+    void this.router.navigate(['/workouts', id]);
+  }
+
+  edit(id: string): void {
+    void this.router.navigate(['/workouts', id, 'edit']);
+  }
+
+  delete(workout: Workout): void {
+    const label = workout.name || workout.performedAt;
+    if (!confirm(`Delete workout "${label}"?`)) {
+      return;
+    }
+    this.workoutApi.delete(workout.id).subscribe({
+      next: () => {
+        this.notify.success('Workout deleted');
+        this.load();
+      },
+      error: (err) => this.notify.error(errorMessage(err)),
+    });
+  }
+
+  formatDate(iso: string): string {
+    return new Date(iso).toLocaleString();
+  }
+}

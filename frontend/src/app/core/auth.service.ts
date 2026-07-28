@@ -31,7 +31,7 @@ export class AuthService {
       .pipe(
         tap((res) => {
           this.tokens.setToken(res.token);
-          this.userSubject.next(res.user);
+          this.userSubject.next({ ...res.user, admin: res.user.admin ?? false });
         }),
         map((res) => res.user),
       );
@@ -47,6 +47,7 @@ export class AuthService {
       return of(null);
     }
     return this.http.get<User>(`${environment.apiBaseUrl}/api/v1/me`).pipe(
+      map((user) => ({ ...user, admin: user.admin ?? false })),
       tap((user) => this.userSubject.next(user)),
       catchError(() => {
         this.clearSession();

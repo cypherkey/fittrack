@@ -5,6 +5,7 @@ public record UserResponse(
 		String username,
 		String email,
 		String displayName,
-		String avatarUrl
+		String avatarUrl,
+		boolean admin
 ) {
 }

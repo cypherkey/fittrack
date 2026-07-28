@@ -1,0 +1,20 @@
+.section {
+  margin-bottom: 1.5rem;
+}
+
+mat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+table {
+  width: 100%;
+}

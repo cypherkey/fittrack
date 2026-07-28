@@ -16,6 +16,6 @@ public record ExerciseRequest(
 		String instructions,
 		String category,
 		Integer trackedParameters,
-		@Valid List<MuscleLinkRequest> muscles
+		List<@Valid MuscleLinkRequest> muscles
 ) {
 }

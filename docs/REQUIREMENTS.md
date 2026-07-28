@@ -321,7 +321,7 @@ Dual authentication; both issue the same **JWT** for `/api/v1`.
 
 - Spring Security form or JSON login endpoint (e.g. `POST /api/v1/auth/login` with `{ "username", "password" }`) → returns JWT
 - Passwords stored as hashes only (`passwordHash`)
-- Optional later: local user creation via a **frontend user-management** page (deferred; not a public self-serve `POST /auth/register` for v1) — see STATUS deferred **#9**
+- Local user creation via **admin user management** (`/api/v1/users`, Settings UI for `ROLE_ADMIN`). Not a public self-serve `POST /auth/register`.
 
 ### Google SSO
 
@@ -451,9 +451,9 @@ Full SPA requirements: **[`FRONTEND.md`](FRONTEND.md)** (source of truth for Ang
 
 - Local login, Google callback (`#token=<jwt>`), JWT interceptor + guards
 - Exercises, templates (incl. clone), workouts (incl. set reorder)
-- Light dashboard; settings stub; **user management** deferred (**#9**)
+- Light dashboard; settings + **admin user management** (`#9` done)
 
-`FRONTEND.md` open questions are **locked** (defaults accepted). Ready to scaffold `frontend/` for Phase 8.
+`FRONTEND.md` locked. Phase 8 SPA implemented under `frontend/`.
 
 ---
 
@@ -500,7 +500,7 @@ Track live progress in [`STATUS.md`](STATUS.md). Ordered phases:
 8. **Angular frontend** scaffold and wire to API
 9. **Polish** — validation, pagination, README runbook, Docker Compose usage, OpenAPI, sample data
 
-Deferred (tracked in STATUS, not blocking Phase 8): **#1** auth hardening; **#9** frontend user-management page (no public self-register API in v1).
+Deferred (tracked in STATUS): **#1** auth hardening. **#9** user management is done (admin API + Settings UI; no public self-register).
 
 ---
 

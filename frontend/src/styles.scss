@@ -29,3 +29,8 @@ app-root {
   display: block;
   height: 100%;
 }
+
+.snackbar-error {
+  --mat-snack-bar-container-color: #b3261e;
+  --mat-snack-bar-supporting-text-color: #fff;
+}

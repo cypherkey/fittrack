@@ -35,6 +35,9 @@ public class User {
 	@Column(name = "avatar_url")
 	private String avatarUrl;
 
+	@Column(name = "admin", nullable = false)
+	private boolean admin;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
@@ -110,6 +113,14 @@ public class User {
 
 	public void setAvatarUrl(String avatarUrl) {
 		this.avatarUrl = avatarUrl;
+	}
+
+	public boolean isAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(boolean admin) {
+		this.admin = admin;
 	}
 
 	public Instant getCreatedAt() {

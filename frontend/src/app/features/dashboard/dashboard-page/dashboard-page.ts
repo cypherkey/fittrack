@@ -1,4 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { WorkoutApi } from '../../../core/api/workout-api.service';
+import { Workout } from '../../../core/models/workout';
+import { NotificationService } from '../../../core/services/notification.service';
+import { errorMessage } from '../../../core/utils/http-error';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -6,4 +11,43 @@ import { Component } from '@angular/core';
   standalone: false,
   styleUrl: './dashboard-page.scss',
 })
-export class DashboardPage {}
+export class DashboardPage implements OnInit {
+  private readonly workoutApi = inject(WorkoutApi);
+  private readonly router = inject(Router);
+  private readonly notify = inject(NotificationService);
+
+  recentWorkouts: Workout[] = [];
+  loading = false;
+
+  readonly shortcuts = [
+    { label: 'Log workout', path: '/workouts/new', icon: 'fitness_center' },
+    { label: 'Templates', path: '/templates', icon: 'view_list' },
+    { label: 'Exercises', path: '/exercises', icon: 'sports_gymnastics' },
+  ];
+
+  ngOnInit(): void {
+    this.loading = true;
+    this.workoutApi.list().subscribe({
+      next: (items) => {
+        this.recentWorkouts = items.slice(0, 10);
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        this.notify.error(errorMessage(err, 'Failed to load recent workouts'));
+      },
+    });
+  }
+
+  openWorkout(id: string): void {
+    void this.router.navigate(['/workouts', id]);
+  }
+
+  navigate(path: string): void {
+    void this.router.navigate([path]);
+  }
+
+  formatDate(iso: string): string {
+    return new Date(iso).toLocaleString();
+  }
+}

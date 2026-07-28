@@ -14,6 +14,6 @@ public record WorkoutRequest(
 		WorkoutDifficulty difficulty,
 		String notes,
 		String sourceTemplateId,
-		@Valid List<WorkoutSetRequest> sets
+		List<@Valid WorkoutSetRequest> sets
 ) {
 }

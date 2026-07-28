@@ -1,2 +1,62 @@
-<h1>Templates</h1>
-<p>Workout templates — coming next.</p>
+<div class="page-header">
+  <h1>Templates</h1>
+  <button mat-flat-button color="primary" type="button" (click)="create()">
+    <mat-icon>add</mat-icon>
+    New template
+  </button>
+</div>
+
+<mat-slide-toggle [checked]="showPublic" (change)="togglePublic($event.checked)">
+  Browse public templates
+</mat-slide-toggle>
+
+@if (loading) {
+  <div class="loading"><mat-spinner diameter="40" /></div>
+} @else {
+  <h2>{{ showPublic ? 'Public templates' : 'My templates' }}</h2>
+  <table mat-table [dataSource]="showPublic ? publicTemplates : ownTemplates" class="mat-elevation-z1">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let row">
+        <a [routerLink]="['/templates', row.id]">{{ row.name }}</a>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="visibility">
+      <th mat-header-cell *matHeaderCellDef>Visibility</th>
+      <td mat-cell *matCellDef="let row">{{ row.visibility }}</td>
+    </ng-container>
+    <ng-container matColumnDef="difficulty">
+      <th mat-header-cell *matHeaderCellDef>Difficulty</th>
+      <td mat-cell *matCellDef="let row">{{ row.difficulty || '—' }}</td>
+    </ng-container>
+    <ng-container matColumnDef="sets">
+      <th mat-header-cell *matHeaderCellDef>Sets</th>
+      <td mat-cell *matCellDef="let row">{{ row.sets.length }}</td>
+    </ng-container>
+    <ng-container matColumnDef="weight">
+      <th mat-header-cell *matHeaderCellDef>Total weight</th>
+      <td mat-cell *matCellDef="let row">{{ row.totalWeightLifted ?? '—' }}</td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let row">
+        <button mat-icon-button type="button" (click)="view(row.id)" aria-label="View">
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button mat-icon-button type="button" (click)="clone(row)" aria-label="Clone to workout">
+          <mat-icon>content_copy</mat-icon>
+        </button>
+        @if (!showPublic) {
+          <button mat-icon-button type="button" (click)="edit(row.id)" aria-label="Edit">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button type="button" color="warn" (click)="delete(row)" aria-label="Delete">
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="['name', 'visibility', 'difficulty', 'sets', 'weight', 'actions']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['name', 'visibility', 'difficulty', 'sets', 'weight', 'actions']"></tr>
+  </table>
+}

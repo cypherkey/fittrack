@@ -1,0 +1,90 @@
+@if (loading) {
+  <div class="loading"><mat-spinner diameter="40" /></div>
+} @else {
+  <h1>{{ exerciseId ? 'Edit exercise' : 'New custom exercise' }}</h1>
+
+  <form [formGroup]="form" (ngSubmit)="save()" class="form">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" required />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Level</mat-label>
+      <mat-select formControlName="level">
+        @for (l of levels; track l) {
+          <mat-option [value]="l">{{ l }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Mechanic</mat-label>
+      <mat-select formControlName="mechanic">
+        <mat-option value="">—</mat-option>
+        @for (m of mechanics; track m) {
+          <mat-option [value]="m">{{ m }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Equipment</mat-label>
+      <mat-select formControlName="equipmentId">
+        <mat-option value="">—</mat-option>
+        @for (e of equipment; track e.id) {
+          <mat-option [value]="e.id">{{ e.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Category</mat-label>
+      <input matInput formControlName="category" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Force</mat-label>
+      <input matInput formControlName="force" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Instructions (markdown)</mat-label>
+      <textarea matInput formControlName="instructions" rows="6"></textarea>
+    </mat-form-field>
+
+    <section class="muscles">
+      <div class="section-header">
+        <h3>Muscles</h3>
+        <button mat-stroked-button type="button" (click)="addMuscle()">Add muscle</button>
+      </div>
+      @for (link of muscleLinks.controls; track $index; let i = $index) {
+        <div class="muscle-row" [formGroup]="$any(link)">
+          <mat-form-field appearance="outline">
+            <mat-label>Muscle</mat-label>
+            <mat-select formControlName="muscleId">
+              @for (m of muscles; track m.id) {
+                <mat-option [value]="m.id">{{ m.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-checkbox formControlName="primary">Primary</mat-checkbox>
+          <button mat-icon-button type="button" color="warn" (click)="removeMuscle(i)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+    </section>
+
+    <div class="actions">
+      <button mat-flat-button color="primary" type="submit" [disabled]="saving">
+        @if (saving) {
+          <mat-spinner diameter="20" />
+        } @else {
+          Save
+        }
+      </button>
+      <button mat-button type="button" (click)="cancel()">Cancel</button>
+    </div>
+  </form>
+}

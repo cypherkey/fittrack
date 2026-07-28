@@ -1,11 +1,68 @@
 <h1>Settings</h1>
 
+<mat-card class="section">
+  <mat-card-header>
+    <mat-card-title>Account</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    @if (user$ | async; as user) {
+      <p><strong>Signed in as</strong> {{ user.displayName || user.username }} ({{ user.username }})</p>
+      @if (user.email) {
+        <p><strong>Email</strong> {{ user.email }}</p>
+      }
+      <p><strong>Role</strong> {{ user.admin ? 'Administrator' : 'User' }}</p>
+    }
+    <p><strong>API base</strong> {{ apiBaseUrl }}</p>
+  </mat-card-content>
+</mat-card>
+
 @if (user$ | async; as user) {
-  <p><strong>Signed in as</strong> {{ user.displayName || user.username }} ({{ user.username }})</p>
-  @if (user.email) {
-    <p><strong>Email</strong> {{ user.email }}</p>
+  @if (user.admin) {
+    <mat-card class="section">
+      <mat-card-header>
+        <mat-card-title>User management</mat-card-title>
+        <button mat-flat-button color="primary" type="button" (click)="createUser()">
+          <mat-icon>person_add</mat-icon>
+          Add user
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        @if (usersLoading) {
+          <div class="loading"><mat-spinner diameter="32" /></div>
+        } @else {
+          <table mat-table [dataSource]="users" class="mat-elevation-z1">
+            <ng-container matColumnDef="username">
+              <th mat-header-cell *matHeaderCellDef>Username</th>
+              <td mat-cell *matCellDef="let row">{{ row.username }}</td>
+            </ng-container>
+            <ng-container matColumnDef="displayName">
+              <th mat-header-cell *matHeaderCellDef>Display name</th>
+              <td mat-cell *matCellDef="let row">{{ row.displayName || '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <td mat-cell *matCellDef="let row">{{ row.email || '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="admin">
+              <th mat-header-cell *matHeaderCellDef>Admin</th>
+              <td mat-cell *matCellDef="let row">{{ row.admin ? 'Yes' : 'No' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let row">
+                <button mat-icon-button type="button" (click)="editUser(row)" aria-label="Edit user">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button type="button" color="warn" (click)="deleteUser(row)" aria-label="Delete user">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="['username', 'displayName', 'email', 'admin', 'actions']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['username', 'displayName', 'email', 'admin', 'actions']"></tr>
+          </table>
+        }
+      </mat-card-content>
+    </mat-card>
   }
 }
-
-<p><strong>API base</strong> {{ apiBaseUrl }}</p>
-<p>User management is deferred (#9).</p>

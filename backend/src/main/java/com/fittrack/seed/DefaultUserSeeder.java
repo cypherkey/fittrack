@@ -42,6 +42,7 @@ public class DefaultUserSeeder implements ApplicationRunner {
 		user.setPasswordHash(passwordEncoder.encode(properties.seed().defaultPassword()));
 		user.setDisplayName(properties.seed().defaultDisplayName());
 		user.setEmail(properties.seed().defaultEmail());
+		user.setAdmin(true);
 		userRepository.save(user);
 		log.info("Seeded default local user '{}'", username);
 	}

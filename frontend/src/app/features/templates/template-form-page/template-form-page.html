@@ -1,0 +1,62 @@
+@if (loading) {
+  <div class="loading"><mat-spinner diameter="40" /></div>
+} @else {
+  <h1>{{ templateId ? 'Edit template' : 'New template' }}</h1>
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Visibility</mat-label>
+        <mat-select formControlName="visibility">
+          @for (v of visibilities; track v) {
+            <mat-option [value]="v">{{ v }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Difficulty</mat-label>
+        <mat-select formControlName="difficulty">
+          <mat-option value="">—</mat-option>
+          @for (d of difficulties; track d) {
+            <mat-option [value]="d">{{ d }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Duration (seconds)</mat-label>
+        <input matInput type="number" formControlName="durationSeconds" />
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Notes</mat-label>
+      <textarea matInput formControlName="notes" rows="2"></textarea>
+    </mat-form-field>
+
+    @if (catalogOnly) {
+      <p class="hint">Public templates may only use catalog exercises (no custom exercises).</p>
+    }
+
+    <app-sets-editor
+      [sets]="sets"
+      [catalogOnly]="catalogOnly"
+      [entityId]="templateId"
+      (reorderPersisted)="onReorder($event)"
+    />
+
+    <div class="actions">
+      <button mat-flat-button color="primary" type="submit" [disabled]="saving">
+        @if (saving) {
+          <mat-spinner diameter="20" />
+        } @else {
+          Save
+        }
+      </button>
+      <button mat-button type="button" (click)="cancel()">Cancel</button>
+    </div>
+  </form>
+}

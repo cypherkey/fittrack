@@ -1,7 +1,38 @@
 <h1>Dashboard</h1>
-<p>Recent workouts and quick actions will appear here.</p>
-<p>
-  <a mat-button routerLink="/workouts">Workouts</a>
-  <a mat-button routerLink="/templates">Templates</a>
-  <a mat-button routerLink="/exercises">Exercises</a>
-</p>
+
+<section class="shortcuts">
+  @for (s of shortcuts; track s.path) {
+    <button mat-stroked-button type="button" (click)="navigate(s.path)">
+      <mat-icon>{{ s.icon }}</mat-icon>
+      {{ s.label }}
+    </button>
+  }
+</section>
+
+<h2>Recent workouts</h2>
+
+@if (loading) {
+  <div class="loading"><mat-spinner diameter="40" /></div>
+} @else if (recentWorkouts.length === 0) {
+  <p>No workouts yet. <a routerLink="/workouts/new">Log your first workout</a>.</p>
+} @else {
+  <table mat-table [dataSource]="recentWorkouts" class="mat-elevation-z1">
+    <ng-container matColumnDef="performedAt">
+      <th mat-header-cell *matHeaderCellDef>Performed</th>
+      <td mat-cell *matCellDef="let row">{{ formatDate(row.performedAt) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let row">
+        <a [routerLink]="['/workouts', row.id]">{{ row.name || '—' }}</a>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="weight">
+      <th mat-header-cell *matHeaderCellDef>Total weight</th>
+      <td mat-cell *matCellDef="let row">{{ row.totalWeightLifted ?? '—' }} kg</td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="['performedAt', 'name', 'weight']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['performedAt', 'name', 'weight']"></tr>
+  </table>
+  <p class="view-all"><a routerLink="/workouts">View all workouts</a></p>
+}

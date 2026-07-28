@@ -17,9 +17,9 @@ Treat `REQUIREMENTS.md` / `FRONTEND.md` as product sources of truth unless the u
 
 - Backend: **Spring Boot 4.1.x** (latest 4.x), **Java** latest supported by that Boot release (prefer Java 25+)
 - Database: **SQLite**
-- Auth: **local username/password** and **Google OAuth2**; API auth via **JWT**. Seed default local user (`admin`/`admin`, overridable) on first start. Google SSO is implemented and enables when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` are set (see STATUS)
+- Auth: **local username/password** and **Google OAuth2**; API auth via **JWT**. Seed default local user (`admin`/`admin`, **admin role**) on first start. Admins manage users via `/api/v1/users`. Google SSO enables when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` are set (see STATUS)
 - Container: provide **`backend/Dockerfile`** (multi-stage; SQLite via volume)
-- Frontend: **Angular 21 LTS** under `frontend/` — **NgModules** (`standalone: false`), **Angular Material**, Node **24 LTS**. See [`docs/FRONTEND.md`](docs/FRONTEND.md). Scaffold only after frontend open questions are accepted.
+- Frontend: **Angular 21 LTS** under `frontend/` — **NgModules** (`standalone: false`), **Angular Material**, Node **24 LTS**. See [`docs/FRONTEND.md`](docs/FRONTEND.md).
 - Monorepo: keep `backend/` and `frontend/` in this same git repository
 
 ## Working rules

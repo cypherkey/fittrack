@@ -13,6 +13,6 @@ public record TemplateRequest(
 		WorkoutDifficulty difficulty,
 		String notes,
 		@NotNull TemplateVisibility visibility,
-		@Valid List<TemplateSetRequest> sets
+		List<@Valid TemplateSetRequest> sets
 ) {
 }

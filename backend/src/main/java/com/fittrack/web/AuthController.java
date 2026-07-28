@@ -71,7 +71,8 @@ public class AuthController {
 				user.getUsername(),
 				user.getEmail(),
 				user.getDisplayName(),
-				user.getAvatarUrl()
+				user.getAvatarUrl(),
+				user.isAdmin()
 		);
 	}
 }

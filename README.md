@@ -6,7 +6,7 @@ Personal fitness tracker: exercises, templates, and workouts.
 - **Frontend:** Angular 21 (NgModules + Material) under `frontend/`
 - **Container:** `backend/Dockerfile` + root `docker-compose.yml`
 - **Spec:** [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md)
-- **Status:** [`docs/STATUS.md`](docs/STATUS.md) · Frontend: [`docs/FRONTEND.md`](docs/FRONTEND.md)
+- **Status:** [`docs/STATUS.md`](docs/STATUS.md) (Phases 1–9 done) · Frontend: [`docs/FRONTEND.md`](docs/FRONTEND.md)
 - **Tests:** [`docs/TESTS.md`](docs/TESTS.md)
 
 Default git branch is `main`. The remote may be named `github` (not always `origin`).
@@ -15,7 +15,7 @@ Default git branch is `main`. The remote may be named `github` (not always `orig
 
 ```
 backend/              Spring Boot API (+ Dockerfile)
-frontend/             Angular 21 SPA (Phase 8 in progress)
+frontend/             Angular 21 SPA (Phase 8 done)
 docs/                 REQUIREMENTS, STATUS, TESTS
 docker-compose.yml    API + SQLite volume
 ```
@@ -84,6 +84,7 @@ npm start
 - SPA: `http://localhost:4200`
 - API base (dev): `http://localhost:8080` (`src/environments/environment.development.ts`)
 - Default login: `admin` / `admin` (backend must be running)
+- Admin user management: Settings page (seed admin has `admin: true`)
 - JWT stored in `localStorage`; Google SSO uses `/auth/callback#token=…`
 
 See [`docs/FRONTEND.md`](docs/FRONTEND.md) for SPA requirements.

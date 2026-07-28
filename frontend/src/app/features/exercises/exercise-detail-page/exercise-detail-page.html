@@ -1,0 +1,45 @@
+@if (loading) {
+  <div class="loading"><mat-spinner diameter="40" /></div>
+} @else if (exercise) {
+  <div class="page-header">
+    <button mat-button type="button" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+      Back
+    </button>
+    @if (exercise.custom) {
+      <button mat-flat-button color="primary" type="button" (click)="edit()">
+        <mat-icon>edit</mat-icon>
+        Edit
+      </button>
+    }
+  </div>
+
+  <h1>{{ exercise.name }}</h1>
+
+  <mat-card>
+    <mat-card-content>
+      <dl class="meta">
+        <div><dt>Level</dt><dd>{{ exercise.level }}</dd></div>
+        <div><dt>Category</dt><dd>{{ exercise.category || '—' }}</dd></div>
+        <div><dt>Equipment</dt><dd>{{ exercise.equipmentName || '—' }}</dd></div>
+        <div><dt>Mechanic</dt><dd>{{ exercise.mechanic || '—' }}</dd></div>
+        <div><dt>Force</dt><dd>{{ exercise.force || '—' }}</dd></div>
+        <div><dt>Type</dt><dd>{{ exercise.custom ? 'Custom' : 'Catalog' }}</dd></div>
+      </dl>
+
+      @if (exercise.muscles.length) {
+        <h3>Muscles</h3>
+        <mat-chip-set>
+          @for (m of exercise.muscles; track m.muscleId) {
+            <mat-chip>{{ m.name }}{{ m.primary ? ' (primary)' : '' }}</mat-chip>
+          }
+        </mat-chip-set>
+      }
+
+      @if (exercise.instructions) {
+        <h3>Instructions</h3>
+        <div class="instructions" [innerHTML]="exercise.instructions | markdown"></div>
+      }
+    </mat-card-content>
+  </mat-card>
+}

@@ -2,26 +2,25 @@
 
 Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md`](REQUIREMENTS.md). Update this file when a phase completes or is deferred.
 
-## Context handoff (≈30s)
+## Context handoff (~30s)
 
 | | |
 |--|--|
 | **Stack** | Spring Boot 4.1 + Java 25 + SQLite (WAL) + JWT; Angular **21** SPA under `frontend/` |
-| **Done** | Phases 1–7 (API, local auth, Google OAuth when credentials set, exercises/templates/workouts, `PATCH …/sets/reorder`) |
-| **Next** | Phase 8 — wire feature screens (exercises / templates / workouts) to API; polish shell |
+| **Done** | Phases 1–9 + deferred **#9** user management (admin API + Settings UI) |
+| **Next** | Deferred **#1** auth hardening; UX polish / E2E; optional exercise images |
 | **Run** | Backend `backend/`: `.\mvnw.cmd spring-boot:run` -> `:8080`; Frontend `frontend/`: `npm start` -> `:4200` |
-| **Key URLs** | Swagger UI `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login` |
-| **Docker** | Root `docker-compose.yml` → `docker compose up --build` (volume `fittrack-data` → `/data`) |
-| **Seed user** | `admin` / `admin` (env-overridable) |
+| **Key URLs** | Swagger `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login`, users (admin) `/api/v1/users` |
+| **Docker** | Root `docker-compose.yml` -> `docker compose up --build` (volume `fittrack-data` -> `/data`) |
+| **Seed user** | `admin` / `admin` (**ROLE_ADMIN**); env-overridable |
 | **Google SSO** | On when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` non-empty; handoff `{SPA_CALLBACK}#token=<jwt>` |
-| **Frontend prefs** | Angular **21 LTS**, Node **24 LTS**, **NgModules**, **Material**, **npm**; JWT in **localStorage**; home `/`; API `http://localhost:8080`; Ryot = UX inspiration only |
-| **Deferred** | **#1** auth hardening; **#9** user-management FE (no public self-register API in v1) |
-| **Tests** | [`TESTS.md`](TESTS.md) — `.\mvnw.cmd test` from `backend/` |
+| **Frontend prefs** | Angular **21 LTS**, Node **24 LTS**, **NgModules**, **Material**, **npm**; JWT in **localStorage**; home `/`; API `http://localhost:8080` |
+| **Deferred** | **#1** auth hardening only |
+| **Tests** | [`TESTS.md`](TESTS.md) — `.\mvnw.cmd test` from `backend/`; frontend `ng build` |
 
 ## Current focus
 
-Phase 8 scaffold is in place (`frontend/`): NgModules, Material, auth (localStorage JWT + Google callback), shell sidenav, stub feature pages. **Next:** implement exercises / templates / workouts against the API.
-
+**v1 complete** for Phases 1–9. SPA covers auth, exercises, templates, workouts, dashboard, settings, and admin user management. Remaining product debt: **#1** auth hardening.
 
 ## Phase checklist
 
@@ -29,39 +28,39 @@ Phase 8 scaffold is in place (`frontend/`): NgModules, Material, auth (localStor
 |-------|------|--------|
 | 1 | Docs (`REQUIREMENTS.md`, `AGENTS.md`, `README.md`, `STATUS.md`, `TESTS.md`) | **Done** |
 | 2 | Backend scaffold (Boot 4.1, Java 25, Maven, SQLite, Flyway, Dockerfile) | **Done** |
-| 3 | Domain + migrations | **Done** (see notes) |
+| 3 | Domain + migrations | **Done** (V1 schema + V2 `admin` flag) |
 | 4 | Security: local login + JWT + default user seed | **Done** |
-| 4b | Google OAuth2 SSO + JWT handoff to SPA | **Done** (enabled when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` are non-empty) |
+| 4b | Google OAuth2 SSO + JWT handoff to SPA | **Done** |
 | 5 | Exercise seed + read APIs + custom exercise CRUD | **Done** |
 | 6 | Template CRUD + clone-to-workout | **Done** |
-| 7 | Workout CRUD + set logging + reorder support | **Done** (`PATCH .../sets/reorder`) |
-| 8 | Angular frontend | **In progress** — scaffold + auth/shell; feature CRUD pending |
-| 9 | Polish (validation, pagination, Docker runbook, sample data) | Partial — OpenAPI/Swagger, actuator health-only, docker-compose, WAL |
+| 7 | Workout CRUD + set logging + reorder support | **Done** |
+| 8 | Angular frontend | **Done** — Material SPA wired to API |
+| 9 | Polish (validation, pagination, Docker runbook, sample data) | **Done** |
 
 ## Deferred / later
 
 | ID | Item | Notes |
 |----|------|--------|
-| **#1** | Auth hardening | JWT refresh / shorter access tokens; rate-limit `/auth/login`; fail-fast if `JWT_SECRET` is still the dev default outside local. **Todo later.** |
-| **#9** | User management (frontend) | Local user registration API deferred — handled by a **user management** page on the frontend (not a public self-serve register for v1). |
+| **#1** | Auth hardening | JWT refresh / shorter access tokens; rate-limit `/auth/login`; fail-fast if `JWT_SECRET` is still the dev default outside local. |
+| ~~**#9**~~ | User management | **Done** — `app_user.admin`, `ROLE_ADMIN`, `/api/v1/users` CRUD, Settings UI for admins. Not public self-register. |
 
 ## Implementation notes (agents)
 
-- Package root: `com.fittrack`; template JPA entity is `WorkoutTemplate` → table `workout_template`
-- RPE on sets is enum `RpeLevel` (`EASY` \| `CHALLENGING` \| `HARD`), not decimal; distinct from session `WorkoutDifficulty`
-- Same exercise may appear on multiple sets; uniqueness is `(template\|workout, setNumber)` only
-- Set order is client-controlled; `PATCH /api/v1/workouts\|templates/{id}/sets/reorder` updates `setNumber` without forced 1…N rewrite
+- Package root: `com.fittrack`; template JPA entity is `WorkoutTemplate` -> table `workout_template`
+- RPE on sets is enum `RpeLevel` (`EASY` | `CHALLENGING` | `HARD`), not decimal; distinct from session `WorkoutDifficulty`
+- Same exercise may appear on multiple sets; uniqueness is `(template|workout, setNumber)` only
+- Set order is client-controlled; `PATCH /api/v1/workouts|templates/{id}/sets/reorder` updates `setNumber`
 - PUBLIC templates may only contain catalog exercises (`isCustom=false`)
-- Exercise catalog: vendored `data/exercises.json`; `ExerciseCatalogSeeder` runs **only if `exercise` table has zero rows**
-- Google OAuth: enabled when Google client id/secret are both set (`FITTRACK_GOOGLE_OAUTH_ENABLED` alone is not enough); success redirect `{success-redirect}#token=<jwt>`
-- OpenAPI / Swagger UI: `/v3/api-docs`, `/swagger-ui.html` (permitAll); JWT bearer scheme configured for Try it out
-- Actuator: only `health` exposed publicly; other actuator endpoints not exposed
-- SQLite: `foreign_keys=true&journal_mode=WAL` on JDBC URL; backup by copying the DB file (and `-wal`/`-shm` if present) while app is stopped or after checkpoint
-- Prefer additive Flyway `V2__*.sql` for future schema changes; delete local DBs only when intentionally resetting
+- Exercise catalog: vendored `data/exercises.json`; seeder skips if exercise table has rows
+- User admin: Flyway `V2__user_admin.sql`; seed `admin` is admin; Google JIT users are non-admin
+- OpenAPI / Swagger UI: `/v3/api-docs`, `/swagger-ui.html`; JWT bearer for Try it out
+- Actuator: only `health` exposed
+- SQLite: `foreign_keys=true&journal_mode=WAL`
+- Prefer additive Flyway `V3__*.sql` for future schema changes
 - Docker: root `docker-compose.yml` builds `backend/` and mounts volume `/data`
-- Default seed user: `admin` / `admin` (env-overridable)
 - Git remote may be `github`; branch `main`
-- Test inventory: [`docs/TESTS.md`](TESTS.md)
+- Frontend: `frontend/` Angular 21 NgModules + Material; see [`FRONTEND.md`](FRONTEND.md)
+- Test inventory: [`TESTS.md`](TESTS.md)
 
 ## How to update this file
 

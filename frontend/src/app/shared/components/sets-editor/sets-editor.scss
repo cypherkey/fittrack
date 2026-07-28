@@ -1,0 +1,87 @@
+.sets-editor {
+  margin-top: 1rem;
+}
+
+.sets-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.exercise-filter {
+  width: 220px;
+}
+
+.sets-header h3 {
+  margin: 0;
+}
+
+.empty {
+  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.6));
+}
+
+.sets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.set-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container-low, #fafafa);
+}
+
+.field-exercise {
+  flex: 2 1 200px;
+  min-width: 180px;
+}
+
+.field-num {
+  flex: 0 1 90px;
+  min-width: 80px;
+}
+
+.field-rpe {
+  flex: 0 1 120px;
+  min-width: 100px;
+}
+
+.field-notes {
+  flex: 2 1 140px;
+  min-width: 120px;
+}
+
+.field-completed {
+  flex: 0 0 auto;
+}
+
+.set-actions {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}

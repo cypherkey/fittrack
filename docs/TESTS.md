@@ -3,13 +3,15 @@
 Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 
 ```bash
+# Linux / macOS
 ./mvnw test
-# Windows: .\mvnw.cmd test
+# Windows
+.\mvnw.cmd test
 ```
 
 ## Test classes
 
-### `FitTrackApplicationTests`
+### `FitTrackApplicationTest`
 
 | Method | Covers |
 |--------|--------|
@@ -21,7 +23,7 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 |--------|--------|
 | `mapsLevelAndMechanic` | Seed enum mapping |
 | `instructionsBecomeMarkdownList` | Instructions → markdown |
-| `trackedParametersFollowCategoryHeuristic` | Category → bitmask |
+| `trackedParametersFollowCategoryHeuristics` | Category → bitmasks |
 
 ### `GoogleOAuthSuccessHandlerTest`
 
@@ -41,22 +43,27 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 | Method | Covers |
 |--------|--------|
 | `listsSeededCatalogExercisesAndSupportsCustomCrud` | `GET /exercises`, `GET /equipment`, custom exercise POST/PUT/DELETE |
-| `templatesAndWorkoutsRoundTripWithClone` | Template create, clone → workout, workout GET/PUT |
+| `templatesAndWorkoutRoundTripWithClone` | Template create, clone → workout, workout GET/PUT |
 
 ### `EndpointCoverageTest`
 
 | Method | Covers |
 |--------|--------|
-| `authMeAndActuatorAndOpenApi` | `POST /auth/login` (via setup), `GET /me`, `GET /actuator/health`, `GET /actuator/info` (401; endpoint not exposed), `GET /v3/api-docs` |
-| `lookupsExercisesTemplatesWorkoutsAndReorder` | `GET /equipment`, `GET /muscles`, exercise CRUD, template CRUD + `PATCH .../sets/reorder`, clone, workout list/create/get/put/reorder/delete |
-| `authorizationEdgesForPrivateTemplatesAndPublicCatalogOnly` | PUBLIC template rejects custom exercise; private template hidden from other user; workout forbidden for non-owner; catalog PUT forbidden |
+| `authMeAndActuatorAndOpenApi` | Login, `GET /me` (incl. `admin`), health, info 401, OpenAPI |
+| `adminUserManagement` | Admin users CRUD (`/api/v1/users`); non-admin 403; cannot delete self |
+| `lookupsExercisesTemplatesWorkoutsAndReorder` | Equipment, muscles, exercise CRUD, template CRUD + reorder + clone, workout list/create/get/put/reorder/delete |
+| `authorizationEdgesForPrivateTemplatesAndPublicCatalogOnly` | PUBLIC rejects custom exercises; private template hidden from other; workout forbidden for non-owner; catalog PUT forbidden |
 
 ## Endpoints vs tests (checklist)
 
 | Endpoint | Exercised by |
 |----------|--------------|
-| `POST /api/v1/auth/login` | All MockMvc integration tests (setup) |
+| `POST /api/v1/auth/login` | All MockMvc tests (setup) |
 | `GET /api/v1/me` | `EndpointCoverageTest.authMeAndActuatorAndOpenApi` |
+| `GET /api/v1/users` | `EndpointCoverageTest.adminUserManagement` |
+| `POST /api/v1/users` | `EndpointCoverageTest.adminUserManagement` |
+| `PUT /api/v1/users/{id}` | `EndpointCoverageTest.adminUserManagement` |
+| `DELETE /api/v1/users/{id}` | `EndpointCoverageTest.adminUserManagement` |
 | `GET /oauth2/authorization/google` | Manual / enabled only with credentials; condition + success handler unit-tested |
 | `GET /api/v1/equipment` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `GET /api/v1/muscles` | `EndpointCoverageTest` |
