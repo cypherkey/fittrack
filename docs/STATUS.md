@@ -9,12 +9,12 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 | **Stack** | Spring Boot 4.1 + Java 25 + SQLite (WAL) + JWT; Angular **21** SPA under `frontend/` |
 | **Done** | Phases 1–9 + deferred **#9** user management (admin API + Settings UI) |
 | **Next** | Deferred **#1** auth hardening; UX polish / E2E; optional exercise images |
-| **Run** | Backend `backend/`: `.\mvnw.cmd spring-boot:run` -> `:8080`; Frontend `frontend/`: `npm start` -> `:4200` |
+| **Run** | Backend `backend/`: `.\mvnw.cmd spring-boot:run` -> `:8080`; Frontend `frontend/`: `npm start` -> `:4200` (proxies `/api` to `:8080`) |
 | **Key URLs** | Swagger `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login`, users (admin) `/api/v1/users` |
 | **Docker** | Root `docker-compose.yml` -> `docker compose up --build` (volume `fittrack-data` -> `/data`) |
 | **Seed user** | `admin` / `admin` (**ROLE_ADMIN**); env-overridable |
 | **Google SSO** | On when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` non-empty; handoff `{SPA_CALLBACK}#token=<jwt>` |
-| **Frontend prefs** | Angular **21 LTS**, Node **24 LTS**, **NgModules**, **Material**, **npm**; JWT in **localStorage**; home `/`; API `http://localhost:8080` |
+| **Frontend prefs** | Angular **21 LTS**, Node **24 LTS**, **NgModules**, **Material**, **npm**; JWT in **localStorage**; home `/`; **dev proxy** `/api`→`:8080` |
 | **Deferred** | **#1** auth hardening only |
 | **Tests** | [`TESTS.md`](TESTS.md) — `.\mvnw.cmd test` from `backend/`; frontend `ng build` |
 

@@ -82,10 +82,11 @@ npm start
 ```
 
 - SPA: `http://localhost:4200`
-- API base (dev): `http://localhost:8080` (`src/environments/environment.development.ts`)
-- Default login: `admin` / `admin` (backend must be running)
+- API in dev: same-origin via **`proxy.conf.json`** (`/api`, `/oauth2` → `http://localhost:8080`); `environment.development.ts` sets `apiBaseUrl: ''`
+- Backend must still run on `:8080`
+- Default login: `admin` / `admin`
 - Admin user management: Settings page (seed admin has `admin: true`)
-- JWT stored in `localStorage`; Google SSO uses `/auth/callback#token=…`
+- JWT stored in `localStorage`; Google SSO uses `/auth/callback#token=…` (start URL `/oauth2/authorization/google` is also proxied in dev)
 
 See [`docs/FRONTEND.md`](docs/FRONTEND.md) for SPA requirements.
 

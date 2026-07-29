@@ -21,7 +21,8 @@ export class SettingsPage implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotificationService);
 
-  readonly apiBaseUrl = environment.apiBaseUrl;
+  readonly apiBaseUrl =
+    environment.apiBaseUrl || '(dev proxy → http://localhost:8080)';
   readonly user$: Observable<User | null> = this.auth.user$;
 
   users: User[] = [];

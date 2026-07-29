@@ -96,12 +96,16 @@ Out of scope vs Ryot: Media, Measurements, Collections, Discord links, Ryot Anal
 2. **Google** — link/button to `{apiBase}/oauth2/authorization/google` (full page redirect). Callback route `/auth/callback` reads `#token=…`, stores JWT in **`localStorage`**, clears hash, navigates home
 3. **HTTP interceptor** — `Authorization: Bearer <token>` on API calls; on 401 clear token and redirect to login
 4. **Auth guard** — protect app routes; login page redirects away if already authenticated
-5. **CORS** — SPA origin `http://localhost:4200` (already default on backend)
+5. **CORS** — production / absolute API URLs need backend CORS (`FITTRACK_CORS_ORIGINS`, default `http://localhost:4200`). **Local `ng serve` uses a DEV proxy** (same-origin `/api`, `/oauth2`) so browser CORS preflight is avoided.
 
-Environment (locked):
+Environment:
 
 ```ts
-apiBaseUrl: 'http://localhost:8080'  // environment.ts — absolute URL; CORS already allows :4200
+// environment.development.ts — relative; ng serve proxies to :8080 (proxy.conf.json)
+apiBaseUrl: ''
+
+// environment.ts (production builds) — absolute backend origin
+apiBaseUrl: 'http://localhost:8080'
 ```
 
 ---
@@ -278,7 +282,7 @@ Open questions resolved — all defaults accepted. Ready to scaffold Phase 8.
 | G | Package manager | **npm** | Locked |
 | H | Material base theme | Whatever **`ng add @angular/material`** selects; + dark toggle | Locked |
 | I | Home route | **`/`** (optional `/dashboard` redirect) | Locked |
-| J | API base URL | **`http://localhost:8080`** in `environment.ts` | Locked |
+| J | API base URL | Dev: **`''`** via `proxy.conf.json` → `:8080`; prod `environment.ts`: absolute backend URL | Locked |
 
 ---
 

@@ -1,4 +1,5 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:8080',
+  // Same-origin via ng serve proxy (see proxy.conf.json → http://localhost:8080)
+  apiBaseUrl: '',
 };
