@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TemplateApi } from '../../../core/api/template-api.service';
@@ -29,8 +29,8 @@ export class TemplateFormPage implements OnInit {
   readonly difficulties = WORKOUT_DIFFICULTIES;
 
   templateId: string | null = null;
-  loading = false;
-  saving = false;
+  readonly loading = signal(false);
+  readonly saving = signal(false);
 
   readonly form = this.fb.group({
     name: ['', Validators.required],
@@ -52,7 +52,7 @@ export class TemplateFormPage implements OnInit {
   ngOnInit(): void {
     this.templateId = this.route.snapshot.paramMap.get('id');
     if (this.templateId) {
-      this.loading = true;
+      this.loading.set(true);
       this.templateApi.get(this.templateId).subscribe({
         next: (t) => {
           this.form.patchValue({
@@ -63,10 +63,10 @@ export class TemplateFormPage implements OnInit {
             visibility: t.visibility,
           });
           t.sets.forEach((s) => this.sets.push(createTemplateSetGroup(this.fb, s)));
-          this.loading = false;
+          this.loading.set(false);
         },
         error: (err) => {
-          this.loading = false;
+          this.loading.set(false);
           this.notify.error(errorMessage(err));
           void this.router.navigate(['/templates']);
         },
@@ -112,19 +112,19 @@ export class TemplateFormPage implements OnInit {
       })),
     };
 
-    this.saving = true;
+    this.saving.set(true);
     const req = this.templateId
       ? this.templateApi.update(this.templateId, body)
       : this.templateApi.create(body);
 
     req.subscribe({
       next: (t) => {
-        this.saving = false;
+        this.saving.set(false);
         this.notify.success(this.templateId ? 'Template updated' : 'Template created');
         void this.router.navigate(['/templates', t.id]);
       },
       error: (err) => {
-        this.saving = false;
+        this.saving.set(false);
         this.notify.error(errorMessage(err, 'Failed to save template'));
       },
     });

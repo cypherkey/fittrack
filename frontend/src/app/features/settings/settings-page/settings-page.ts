@@ -1,6 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { UserApi } from '../../../core/api/user-api.service';
 import { AuthService } from '../../../core/auth.service';
@@ -15,36 +14,36 @@ import { UserFormDialog, UserFormDialogData } from '../user-form-dialog/user-for
   standalone: false,
   styleUrl: './settings-page.scss',
 })
-export class SettingsPage implements OnInit {
-  private readonly auth = inject(AuthService);
+export class SettingsPage {
+  readonly auth = inject(AuthService);
   private readonly userApi = inject(UserApi);
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotificationService);
 
   readonly apiBaseUrl =
     environment.apiBaseUrl || '(dev proxy → http://localhost:8080)';
-  readonly user$: Observable<User | null> = this.auth.user$;
 
-  users: User[] = [];
-  usersLoading = false;
+  readonly users = signal<User[]>([]);
+  readonly usersLoading = signal(false);
 
-  ngOnInit(): void {
-    this.auth.user$.subscribe((user) => {
+  constructor() {
+    effect(() => {
+      const user = this.auth.user();
       if (user?.admin) {
-        this.loadUsers();
+        untracked(() => this.loadUsers());
       }
     });
   }
 
   loadUsers(): void {
-    this.usersLoading = true;
+    this.usersLoading.set(true);
     this.userApi.list().subscribe({
       next: (items) => {
-        this.users = items;
-        this.usersLoading = false;
+        this.users.set(items);
+        this.usersLoading.set(false);
       },
       error: (err) => {
-        this.usersLoading = false;
+        this.usersLoading.set(false);
         this.notify.error(errorMessage(err, 'Failed to load users'));
       },
     });

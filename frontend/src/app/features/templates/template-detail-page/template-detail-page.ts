@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TemplateApi } from '../../../core/api/template-api.service';
@@ -23,8 +23,8 @@ export class TemplateDetailPage implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotificationService);
 
-  template: Template | null = null;
-  loading = true;
+  readonly template = signal<Template | null>(null);
+  readonly loading = signal(true);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -34,11 +34,11 @@ export class TemplateDetailPage implements OnInit {
     }
     this.templateApi.get(id).subscribe({
       next: (t) => {
-        this.template = t;
-        this.loading = false;
+        this.template.set(t);
+        this.loading.set(false);
       },
       error: (err) => {
-        this.loading = false;
+        this.loading.set(false);
         this.notify.error(errorMessage(err));
         void this.router.navigate(['/templates']);
       },
@@ -46,24 +46,26 @@ export class TemplateDetailPage implements OnInit {
   }
 
   edit(): void {
-    if (this.template) {
-      void this.router.navigate(['/templates', this.template.id, 'edit']);
+    const t = this.template();
+    if (t) {
+      void this.router.navigate(['/templates', t.id, 'edit']);
     }
   }
 
   clone(): void {
-    if (!this.template) {
+    const t = this.template();
+    if (!t) {
       return;
     }
     const ref = this.dialog.open<CloneTemplateDialog, CloneTemplateDialogData>(
       CloneTemplateDialog,
-      { data: { templateName: this.template.name }, width: '400px' },
+      { data: { templateName: t.name }, width: '400px' },
     );
     ref.afterClosed().subscribe((result) => {
-      if (!result || !this.template) {
+      if (!result || !this.template()) {
         return;
       }
-      this.templateApi.clone(this.template.id, result).subscribe({
+      this.templateApi.clone(this.template()!.id, result).subscribe({
         next: (workout) => {
           this.notify.success('Workout created');
           void this.router.navigate(['/workouts', workout.id]);

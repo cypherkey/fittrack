@@ -29,7 +29,7 @@
               formControlName="exerciseId"
               (selectionChange)="onExerciseSelected(i, $event.value)"
             >
-              @for (ex of exercises; track ex.id) {
+              @for (ex of exercises(); track ex.id) {
                 <mat-option [value]="ex.id">{{ ex.name }}</mat-option>
               }
             </mat-select>

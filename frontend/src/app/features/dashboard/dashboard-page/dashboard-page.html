@@ -11,12 +11,12 @@
 
 <h2>Recent workouts</h2>
 
-@if (loading) {
+@if (loading()) {
   <div class="loading"><mat-spinner diameter="40" /></div>
-} @else if (recentWorkouts.length === 0) {
+} @else if (recentWorkouts().length === 0) {
   <p>No workouts yet. <a routerLink="/workouts/new">Log your first workout</a>.</p>
 } @else {
-  <table mat-table [dataSource]="recentWorkouts" class="mat-elevation-z1">
+  <table mat-table [dataSource]="recentWorkouts()" class="mat-elevation-z1">
     <ng-container matColumnDef="performedAt">
       <th mat-header-cell *matHeaderCellDef>Performed</th>
       <td mat-cell *matCellDef="let row">{{ formatDate(row.performedAt) }}</td>

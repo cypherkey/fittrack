@@ -36,11 +36,10 @@ Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIRE
 | Runtime | **Node.js 24.x (latest LTS)** | "Krypton" Active/Maintenance LTS; also satisfies Angular 21 engines (`^20.19 \|\| ^22.12 \|\| ^24`) |
 | Package manager | **npm** (locked) | Default Angular CLI package manager |
 | UI | **Angular Material** | + Angular CDK; use theme from `ng add @angular/material` + dark toggle |
-| Components | **NgModules — not standalone** | Preference locked: `standalone: false` on components/directives/pipes; declare in feature 
-NgModule`s |
+| Components | **NgModules — not standalone** | Preference locked: `standalone: false` on components/directives/pipes; declare in feature `NgModule`s |
 | Routing | `AppRoutingModule` + feature routing modules | Lazy-load feature modules where sensible |
 | HTTP | `HttpClientModule` (or `provideHttpClient` only if forced by CLI — prefer module style) | Interceptor attaches JWT |
-| State | Services + RxJS (BehaviorSubject / signals optional later) | No NgRx required for v1 |
+| State | **Signals** for UI state + RxJS `HttpClient` Observables for API | **Zoneless** (Angular 21 default). No `zone.js` / no `provideZoneChangeDetection`. No NgRx. |
 | Forms | Reactive forms | Prefer `ReactiveFormsModule` |
 | Dates | Angular `DatePipe` / native `Date` / backend ISO-8601 instants | Align with `performedAt` Instant |
 
@@ -60,7 +59,17 @@ Set defaults in `angular.json` schematics:
 "@schematics/angular:pipe": { "standalone": false }
 ```
 
-Bootstrap via `AppModule` + `platformBrowserDynamic().bootstrapModule(AppModule)` (not standalone `bootstrapApplication` unless CLI forces a thin wrapper — convert to NgModule app).
+Bootstrap via `AppModule` + `platformBrowser().bootstrapModule(AppModule)` (zoneless; no Zone provider).
+
+### Change detection (zoneless)
+
+Angular 21 apps are **zoneless by default**. FitTrack:
+
+- Does **not** load `zone.js` or call `provideZoneChangeDetection()`
+- Uses **`signal()`** for component/service UI state updated after HTTP (`loading`, lists, `AuthService.user`, `ThemeService.mode`, …)
+- Keeps API services as `Observable` + `.subscribe()` that call `.set()` / `.update()` on signals
+- Template event handlers (`(click)`, etc.) still schedule change detection
+
 
 Install Material: `ng add @angular/material` (pick a theme; support light/dark if inexpensive).
 
@@ -283,6 +292,7 @@ Open questions resolved — all defaults accepted. Ready to scaffold Phase 8.
 | H | Material base theme | Whatever **`ng add @angular/material`** selects; + dark toggle | Locked |
 | I | Home route | **`/`** (optional `/dashboard` redirect) | Locked |
 | J | API base URL | Dev: **`''`** via `proxy.conf.json` → `:8080`; prod `environment.ts`: absolute backend URL | Locked |
+| K | Change detection | **Zoneless** + **signals** for UI state (no `zone.js`) | Locked |
 
 ---
 

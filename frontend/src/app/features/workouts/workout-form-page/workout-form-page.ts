@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
@@ -29,8 +29,8 @@ export class WorkoutFormPage implements OnInit {
   readonly difficulties = WORKOUT_DIFFICULTIES;
 
   workoutId: string | null = null;
-  loading = false;
-  saving = false;
+  readonly loading = signal(false);
+  readonly saving = signal(false);
 
   readonly form = this.fb.group({
     performedAt: [toDatetimeLocalValue(new Date().toISOString()), Validators.required],
@@ -48,7 +48,7 @@ export class WorkoutFormPage implements OnInit {
   ngOnInit(): void {
     this.workoutId = this.route.snapshot.paramMap.get('id');
     if (this.workoutId) {
-      this.loading = true;
+      this.loading.set(true);
       this.workoutApi.get(this.workoutId).subscribe({
         next: (w) => {
           this.form.patchValue({
@@ -59,10 +59,10 @@ export class WorkoutFormPage implements OnInit {
             notes: w.notes ?? '',
           });
           w.sets.forEach((s) => this.sets.push(createWorkoutSetGroup(this.fb, s)));
-          this.loading = false;
+          this.loading.set(false);
         },
         error: (err) => {
-          this.loading = false;
+          this.loading.set(false);
           this.notify.error(errorMessage(err));
           void this.router.navigate(['/workouts']);
         },
@@ -109,19 +109,19 @@ export class WorkoutFormPage implements OnInit {
       })),
     };
 
-    this.saving = true;
+    this.saving.set(true);
     const req = this.workoutId
       ? this.workoutApi.update(this.workoutId, body)
       : this.workoutApi.create(body);
 
     req.subscribe({
       next: (w) => {
-        this.saving = false;
+        this.saving.set(false);
         this.notify.success(this.workoutId ? 'Workout updated' : 'Workout logged');
         void this.router.navigate(['/workouts', w.id]);
       },
       error: (err) => {
-        this.saving = false;
+        this.saving.set(false);
         this.notify.error(errorMessage(err, 'Failed to save workout'));
       },
     });

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { Exercise } from '../../../core/models/exercise';
@@ -17,8 +17,8 @@ export class ExerciseDetailPage implements OnInit {
   private readonly exerciseApi = inject(ExerciseApi);
   private readonly notify = inject(NotificationService);
 
-  exercise: Exercise | null = null;
-  loading = true;
+  readonly exercise = signal<Exercise | null>(null);
+  readonly loading = signal(true);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -28,11 +28,11 @@ export class ExerciseDetailPage implements OnInit {
     }
     this.exerciseApi.get(id).subscribe({
       next: (ex) => {
-        this.exercise = ex;
-        this.loading = false;
+        this.exercise.set(ex);
+        this.loading.set(false);
       },
       error: (err) => {
-        this.loading = false;
+        this.loading.set(false);
         this.notify.error(errorMessage(err, 'Exercise not found'));
         void this.router.navigate(['/exercises']);
       },
@@ -40,8 +40,9 @@ export class ExerciseDetailPage implements OnInit {
   }
 
   edit(): void {
-    if (this.exercise?.custom) {
-      void this.router.navigate(['/exercises', this.exercise.id, 'edit']);
+    const ex = this.exercise();
+    if (ex?.custom) {
+      void this.router.navigate(['/exercises', ex.id, 'edit']);
     }
   }
 

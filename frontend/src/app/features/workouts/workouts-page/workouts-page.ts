@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
@@ -24,15 +24,15 @@ export class WorkoutsPage implements OnInit {
     to: [''],
   });
 
-  workouts: Workout[] = [];
-  loading = false;
+  readonly workouts = signal<Workout[]>([]);
+  readonly loading = signal(false);
 
   ngOnInit(): void {
     this.load();
   }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     const v = this.filterForm.value;
     this.workoutApi
       .list({
@@ -41,11 +41,11 @@ export class WorkoutsPage implements OnInit {
       })
       .subscribe({
         next: (items) => {
-          this.workouts = items;
-          this.loading = false;
+          this.workouts.set(items);
+          this.loading.set(false);
         },
         error: (err) => {
-          this.loading = false;
+          this.loading.set(false);
           this.notify.error(errorMessage(err, 'Failed to load workouts'));
         },
       });

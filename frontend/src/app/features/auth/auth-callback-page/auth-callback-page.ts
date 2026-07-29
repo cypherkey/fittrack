@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth.service';
 
@@ -12,7 +12,7 @@ export class AuthCallbackPage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  error: string | null = null;
+  readonly error = signal<string | null>(null);
 
   ngOnInit(): void {
     const hash = window.location.hash.startsWith('#')
@@ -22,7 +22,7 @@ export class AuthCallbackPage implements OnInit {
     const token = params.get('token');
 
     if (!token) {
-      this.error = 'Missing token from Google sign-in.';
+      this.error.set('Missing token from Google sign-in.');
       return;
     }
 
@@ -33,11 +33,11 @@ export class AuthCallbackPage implements OnInit {
         if (user) {
           void this.router.navigate(['/']);
         } else {
-          this.error = 'Could not load your profile.';
+          this.error.set('Could not load your profile.');
         }
       },
       error: () => {
-        this.error = 'Could not complete Google sign-in.';
+        this.error.set('Could not complete Google sign-in.');
       },
     });
   }

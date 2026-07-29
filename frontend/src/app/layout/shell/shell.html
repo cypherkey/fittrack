@@ -1,8 +1,8 @@
 <mat-sidenav-container class="shell">
   <mat-sidenav
     class="shell-nav"
-    [mode]="sidenavOpened ? 'side' : 'over'"
-    [opened]="sidenavOpened"
+    [mode]="sidenavOpened() ? 'side' : 'over'"
+    [opened]="sidenavOpened()"
     fixedInViewport
   >
     <div class="brand">FitTrack</div>
@@ -32,12 +32,12 @@
         mat-icon-button
         type="button"
         (click)="theme.toggle()"
-        [matTooltip]="theme.mode === 'dark' ? 'Light mode' : 'Dark mode'"
+        [matTooltip]="theme.mode() === 'dark' ? 'Light mode' : 'Dark mode'"
         aria-label="Toggle theme"
       >
-        <mat-icon>{{ theme.mode === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
       </button>
-      @if (user$ | async; as user) {
+      @if (auth.user(); as user) {
         <span class="user-name">{{ user.displayName || user.username }}</span>
       }
       <button mat-button type="button" (click)="logout()">Logout</button>

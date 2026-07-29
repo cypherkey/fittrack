@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
@@ -31,22 +31,22 @@ export class ExercisesPage implements OnInit {
   });
 
   displayedColumns = ['name', 'category', 'equipment', 'level', 'custom', 'actions'];
-  exercises: Exercise[] = [];
-  muscles: Muscle[] = [];
-  equipment: Equipment[] = [];
-  loading = false;
-  totalElements = 0;
-  pageIndex = 0;
-  pageSize = 20;
+  readonly exercises = signal<Exercise[]>([]);
+  readonly muscles = signal<Muscle[]>([]);
+  readonly equipment = signal<Equipment[]>([]);
+  readonly loading = signal(false);
+  readonly totalElements = signal(0);
+  readonly pageIndex = signal(0);
+  readonly pageSize = signal(20);
 
   ngOnInit(): void {
-    this.lookupApi.muscles().subscribe((m) => (this.muscles = m));
-    this.lookupApi.equipment().subscribe((e) => (this.equipment = e));
+    this.lookupApi.muscles().subscribe((m) => this.muscles.set(m));
+    this.lookupApi.equipment().subscribe((e) => this.equipment.set(e));
     this.load();
   }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     const v = this.filterForm.value;
     this.exerciseApi
       .list({
@@ -55,36 +55,36 @@ export class ExercisesPage implements OnInit {
         equipment: v.equipment || undefined,
         category: v.category || undefined,
         customOnly: v.customOnly ?? false,
-        page: this.pageIndex,
-        size: this.pageSize,
+        page: this.pageIndex(),
+        size: this.pageSize(),
       })
       .subscribe({
         next: (page) => {
-          this.exercises = page.content;
-          this.totalElements = page.totalElements;
-          this.loading = false;
+          this.exercises.set(page.content);
+          this.totalElements.set(page.totalElements);
+          this.loading.set(false);
         },
         error: (err) => {
-          this.loading = false;
+          this.loading.set(false);
           this.notify.error(errorMessage(err, 'Failed to load exercises'));
         },
       });
   }
 
   applyFilters(): void {
-    this.pageIndex = 0;
+    this.pageIndex.set(0);
     this.load();
   }
 
   clearFilters(): void {
     this.filterForm.reset({ q: '', muscle: '', equipment: '', category: '', customOnly: false });
-    this.pageIndex = 0;
+    this.pageIndex.set(0);
     this.load();
   }
 
   onPage(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.pageIndex.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
     this.load();
   }
 

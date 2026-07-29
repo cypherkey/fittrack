@@ -1,4 +1,4 @@
-@if (loading) {
+@if (loading()) {
   <div class="loading"><mat-spinner diameter="40" /></div>
 } @else {
   <h1>{{ templateId ? 'Edit template' : 'New template' }}</h1>
@@ -49,8 +49,8 @@
     />
 
     <div class="actions">
-      <button mat-flat-button color="primary" type="submit" [disabled]="saving">
-        @if (saving) {
+      <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+        @if (saving()) {
           <mat-spinner diameter="20" />
         } @else {
           Save

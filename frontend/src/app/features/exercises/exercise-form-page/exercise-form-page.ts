@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
@@ -27,10 +27,10 @@ export class ExerciseFormPage implements OnInit {
   readonly mechanics = EXERCISE_MECHANICS;
 
   exerciseId: string | null = null;
-  loading = false;
-  saving = false;
-  muscles: Muscle[] = [];
-  equipment: Equipment[] = [];
+  readonly loading = signal(false);
+  readonly saving = signal(false);
+  readonly muscles = signal<Muscle[]>([]);
+  readonly equipment = signal<Equipment[]>([]);
 
   readonly form = this.fb.group({
     name: ['', Validators.required],
@@ -49,12 +49,12 @@ export class ExerciseFormPage implements OnInit {
   }
 
   ngOnInit(): void {
-    this.lookupApi.muscles().subscribe((m) => (this.muscles = m));
-    this.lookupApi.equipment().subscribe((e) => (this.equipment = e));
+    this.lookupApi.muscles().subscribe((m) => this.muscles.set(m));
+    this.lookupApi.equipment().subscribe((e) => this.equipment.set(e));
 
     this.exerciseId = this.route.snapshot.paramMap.get('id');
     if (this.exerciseId) {
-      this.loading = true;
+      this.loading.set(true);
       this.exerciseApi.get(this.exerciseId).subscribe({
         next: (ex) => {
           if (!ex.custom) {
@@ -80,10 +80,10 @@ export class ExerciseFormPage implements OnInit {
               }),
             );
           });
-          this.loading = false;
+          this.loading.set(false);
         },
         error: (err) => {
-          this.loading = false;
+          this.loading.set(false);
           this.notify.error(errorMessage(err));
           void this.router.navigate(['/exercises']);
         },
@@ -122,19 +122,19 @@ export class ExerciseFormPage implements OnInit {
       muscles: this.muscleLinks.value,
     };
 
-    this.saving = true;
+    this.saving.set(true);
     const req = this.exerciseId
       ? this.exerciseApi.update(this.exerciseId, body)
       : this.exerciseApi.create(body);
 
     req.subscribe({
       next: (ex) => {
-        this.saving = false;
+        this.saving.set(false);
         this.notify.success(this.exerciseId ? 'Exercise updated' : 'Exercise created');
         void this.router.navigate(['/exercises', ex.id]);
       },
       error: (err) => {
-        this.saving = false;
+        this.saving.set(false);
         this.notify.error(errorMessage(err, 'Failed to save exercise'));
       },
     });

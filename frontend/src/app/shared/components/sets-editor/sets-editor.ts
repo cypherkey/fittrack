@@ -6,6 +6,7 @@ import {
   OnInit,
   Output,
   inject,
+  signal,
 } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
@@ -31,7 +32,7 @@ export class SetsEditor implements OnInit {
   @Output() reorderPersisted = new EventEmitter<ReorderSetItem[]>();
 
   readonly rpeLevels = RPE_LEVELS;
-  exercises: Exercise[] = [];
+  readonly exercises = signal<Exercise[]>([]);
   exerciseSearch = '';
 
   ngOnInit(): void {
@@ -42,7 +43,9 @@ export class SetsEditor implements OnInit {
     this.exerciseApi
       .list({ q, customOnly: this.catalogOnly ? false : undefined, size: 100 })
       .subscribe((page) => {
-        this.exercises = this.catalogOnly ? page.content.filter((e) => !e.custom) : page.content;
+        this.exercises.set(
+          this.catalogOnly ? page.content.filter((e) => !e.custom) : page.content,
+        );
       });
   }
 
@@ -108,7 +111,7 @@ export class SetsEditor implements OnInit {
   }
 
   onExerciseSelected(index: number, exerciseId: string): void {
-    const exercise = this.exercises.find((e) => e.id === exerciseId);
+    const exercise = this.exercises().find((e) => e.id === exerciseId);
     const group = this.sets.at(index);
     group.patchValue({
       exerciseId,

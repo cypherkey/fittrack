@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
 import { Workout } from '../../../core/models/workout';
@@ -17,8 +17,8 @@ export class WorkoutDetailPage implements OnInit {
   private readonly workoutApi = inject(WorkoutApi);
   private readonly notify = inject(NotificationService);
 
-  workout: Workout | null = null;
-  loading = true;
+  readonly workout = signal<Workout | null>(null);
+  readonly loading = signal(true);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -28,11 +28,11 @@ export class WorkoutDetailPage implements OnInit {
     }
     this.workoutApi.get(id).subscribe({
       next: (w) => {
-        this.workout = w;
-        this.loading = false;
+        this.workout.set(w);
+        this.loading.set(false);
       },
       error: (err) => {
-        this.loading = false;
+        this.loading.set(false);
         this.notify.error(errorMessage(err));
         void this.router.navigate(['/workouts']);
       },
@@ -40,8 +40,9 @@ export class WorkoutDetailPage implements OnInit {
   }
 
   edit(): void {
-    if (this.workout) {
-      void this.router.navigate(['/workouts', this.workout.id, 'edit']);
+    const w = this.workout();
+    if (w) {
+      void this.router.navigate(['/workouts', w.id, 'edit']);
     }
   }
 

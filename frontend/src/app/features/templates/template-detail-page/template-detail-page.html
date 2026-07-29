@@ -1,6 +1,6 @@
-@if (loading) {
+@if (loading()) {
   <div class="loading"><mat-spinner diameter="40" /></div>
-} @else if (template) {
+} @else if (template(); as template) {
   <div class="page-header">
     <button mat-button type="button" (click)="back()">
       <mat-icon>arrow_back</mat-icon>

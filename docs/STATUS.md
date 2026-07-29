@@ -60,7 +60,8 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - Docker: root `docker-compose.yml` builds `backend/` and mounts volume `/data`
 - Git remote may be `github`; branch `main`
 - Frontend: `frontend/` Angular 21 NgModules + Material; see [`FRONTEND.md`](FRONTEND.md)
-- Typed SPA clients: **hand-mirrored** from Java DTOs/OpenAPI (not codegen); process in [`FRONTEND.md`](FRONTEND.md) §8
+- Typed SPA clients: **hand-mirrored** from Java DTOs/OpenAPI (not codegen); process in [FRONTEND.md](FRONTEND.md) §8
+- Frontend CD: **zoneless** + **signals** (no `zone.js`)
 - Test inventory: [`TESTS.md`](TESTS.md)
 
 ## How to update this file

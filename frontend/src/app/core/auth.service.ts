@@ -1,25 +1,21 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
+import { Observable, catchError, map, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { LoginRequest, LoginResponse, User } from './models/user';
 import { TokenStorage } from './token-storage';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly userSubject = new BehaviorSubject<User | null>(null);
-  readonly user$ = this.userSubject.asObservable();
+  private readonly userSignal = signal<User | null>(null);
+  readonly user = this.userSignal.asReadonly();
 
   constructor(
     private readonly http: HttpClient,
     private readonly tokens: TokenStorage,
     private readonly router: Router,
   ) {}
-
-  get currentUser(): User | null {
-    return this.userSubject.value;
-  }
 
   isAuthenticated(): boolean {
     return this.tokens.hasToken();
@@ -31,9 +27,9 @@ export class AuthService {
       .pipe(
         tap((res) => {
           this.tokens.setToken(res.token);
-          this.userSubject.next({ ...res.user, admin: res.user.admin ?? false });
+          this.userSignal.set({ ...res.user, admin: res.user.admin ?? false });
         }),
-        map((res) => res.user),
+        map((res) => ({ ...res.user, admin: res.user.admin ?? false })),
       );
   }
 
@@ -43,12 +39,12 @@ export class AuthService {
 
   loadMe(): Observable<User | null> {
     if (!this.tokens.hasToken()) {
-      this.userSubject.next(null);
+      this.userSignal.set(null);
       return of(null);
     }
     return this.http.get<User>(`${environment.apiBaseUrl}/api/v1/me`).pipe(
       map((user) => ({ ...user, admin: user.admin ?? false })),
-      tap((user) => this.userSubject.next(user)),
+      tap((user) => this.userSignal.set(user)),
       catchError(() => {
         this.clearSession();
         return of(null);
@@ -67,6 +63,6 @@ export class AuthService {
 
   private clearSession(): void {
     this.tokens.clearToken();
-    this.userSubject.next(null);
+    this.userSignal.set(null);
   }
 }

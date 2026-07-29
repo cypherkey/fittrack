@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { TemplateApi } from '../../../core/api/template-api.service';
@@ -23,34 +23,34 @@ export class TemplatesPage implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotificationService);
 
-  showPublic = false;
-  ownTemplates: Template[] = [];
-  publicTemplates: Template[] = [];
-  loading = false;
+  readonly showPublic = signal(false);
+  readonly ownTemplates = signal<Template[]>([]);
+  readonly publicTemplates = signal<Template[]>([]);
+  readonly loading = signal(false);
 
   ngOnInit(): void {
     this.load();
   }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.templateApi.list().subscribe({
       next: (items) => {
-        this.ownTemplates = items;
-        this.loading = false;
+        this.ownTemplates.set(items);
+        this.loading.set(false);
       },
       error: (err) => {
-        this.loading = false;
+        this.loading.set(false);
         this.notify.error(errorMessage(err, 'Failed to load templates'));
       },
     });
   }
 
   togglePublic(show: boolean): void {
-    this.showPublic = show;
-    if (show && this.publicTemplates.length === 0) {
+    this.showPublic.set(show);
+    if (show && this.publicTemplates().length === 0) {
       this.templateApi.list(TemplateVisibility.Public).subscribe({
-        next: (items) => (this.publicTemplates = items),
+        next: (items) => this.publicTemplates.set(items),
         error: (err) => this.notify.error(errorMessage(err)),
       });
     }

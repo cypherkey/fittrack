@@ -1,7 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { AuthService } from '../../core/auth.service';
-import { User } from '../../core/models/user';
 import { ThemeService } from '../../core/theme.service';
 
 @Component({
@@ -11,11 +9,10 @@ import { ThemeService } from '../../core/theme.service';
   styleUrl: './shell.scss',
 })
 export class Shell implements OnInit {
-  private readonly auth = inject(AuthService);
+  readonly auth = inject(AuthService);
   readonly theme = inject(ThemeService);
 
-  sidenavOpened = true;
-  user$!: Observable<User | null>;
+  readonly sidenavOpened = signal(true);
 
   readonly navItems = [
     { label: 'Dashboard', path: '/', icon: 'dashboard', exact: true },
@@ -26,12 +23,11 @@ export class Shell implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.user$ = this.auth.user$;
     this.auth.loadMe().subscribe();
   }
 
   toggleSidenav(): void {
-    this.sidenavOpened = !this.sidenavOpened;
+    this.sidenavOpened.update((v) => !v);
   }
 
   logout(): void {

@@ -1,4 +1,4 @@
-@if (loading) {
+@if (loading()) {
   <div class="loading"><mat-spinner diameter="40" /></div>
 } @else {
   <h1>{{ exerciseId ? 'Edit exercise' : 'New custom exercise' }}</h1>
@@ -32,7 +32,7 @@
       <mat-label>Equipment</mat-label>
       <mat-select formControlName="equipmentId">
         <mat-option value="">—</mat-option>
-        @for (e of equipment; track e.id) {
+        @for (e of equipment(); track e.id) {
           <mat-option [value]="e.id">{{ e.name }}</mat-option>
         }
       </mat-select>
@@ -63,7 +63,7 @@
           <mat-form-field appearance="outline">
             <mat-label>Muscle</mat-label>
             <mat-select formControlName="muscleId">
-              @for (m of muscles; track m.id) {
+              @for (m of muscles(); track m.id) {
                 <mat-option [value]="m.id">{{ m.name }}</mat-option>
               }
             </mat-select>
@@ -77,8 +77,8 @@
     </section>
 
     <div class="actions">
-      <button mat-flat-button color="primary" type="submit" [disabled]="saving">
-        @if (saving) {
+      <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+        @if (saving()) {
           <mat-spinner diameter="20" />
         } @else {
           Save

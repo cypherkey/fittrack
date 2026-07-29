@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
 import { Workout } from '../../../core/models/workout';
@@ -16,8 +16,8 @@ export class DashboardPage implements OnInit {
   private readonly router = inject(Router);
   private readonly notify = inject(NotificationService);
 
-  recentWorkouts: Workout[] = [];
-  loading = false;
+  readonly recentWorkouts = signal<Workout[]>([]);
+  readonly loading = signal(false);
 
   readonly shortcuts = [
     { label: 'Log workout', path: '/workouts/new', icon: 'fitness_center' },
@@ -26,14 +26,14 @@ export class DashboardPage implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.workoutApi.list().subscribe({
       next: (items) => {
-        this.recentWorkouts = items.slice(0, 10);
-        this.loading = false;
+        this.recentWorkouts.set(items.slice(0, 10));
+        this.loading.set(false);
       },
       error: (err) => {
-        this.loading = false;
+        this.loading.set(false);
         this.notify.error(errorMessage(err, 'Failed to load recent workouts'));
       },
     });
