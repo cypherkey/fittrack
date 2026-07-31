@@ -15,7 +15,7 @@ Build a personal fitness tracker where users can:
 - Create reusable workout templates (private or public)
 - Log workouts at a specific datetime (multiple per day allowed), optionally cloned from a template
 - Persist everything in SQLite via a Spring Boot API, with an Angular SPA frontend
-- Run the backend in Docker via a provided Dockerfile
+- Run the full app (API + SPA) in Docker via a root Dockerfile
 
 ### Non-goals (v1)
 
@@ -37,10 +37,10 @@ fittrack/
     REQUIREMENTS.md         # Product/design source of truth
     STATUS.md               # Implementation progress (done / next / deferred)
     TESTS.md                # Backend test inventory
-  backend/                  # Spring Boot 4 API
-    Dockerfile              # Container image for the API
-  frontend/                 # Angular SPA (after API stabilizes)
-  docker-compose.yml        # API + SQLite volume
+  backend/                  # Spring Boot 4 API (also serves SPA from classpath:/static/)
+  frontend/                 # Angular SPA
+  Dockerfile                # Multi-stage: Angular + Spring Boot single image
+  docker-compose.yml        # App + SQLite volume
   README.md
 ```
 
@@ -61,7 +61,7 @@ One git repository holds frontend and backend.
 | Auth | Spring Security: local form/password + Google OAuth2 + JWT | Dual login; JWT for API — see §6 |
 | API style | REST + JSON | Versioned under `/api/v1` |
 | Frontend | Angular (latest stable when scaffolded) | Consumes REST API; local login + OAuth redirect |
-| Container | Docker (`backend/Dockerfile`) | Multi-stage build; SQLite data via volume |
+| Container | Docker (root `Dockerfile`) | Multi-stage: Node builds SPA → Maven embeds into Boot static → JRE; SQLite via volume |
 
 ### 3.1 SQLite / JPA mapping conventions
 
@@ -466,20 +466,22 @@ Full SPA requirements: **[`FRONTEND.md`](FRONTEND.md)** (source of truth for Ang
 ## 11. Configuration, local run & Docker
 
 - SQLite file path: e.g. `./data/fittrack.db` (gitignore DB files); JDBC URL enables `foreign_keys=true` and `journal_mode=WAL`
-- In Docker: root **`docker-compose.yml`** builds `backend/` and mounts volume `fittrack-data` at `/data`; or use `backend/Dockerfile` alone
+- **Local day-to-day:** API on `:8080`, SPA via `ng serve` on `:4200` with proxy
+- **Docker:** root **`docker-compose.yml`** builds the root **`Dockerfile`** (SPA + API in one image) and mounts volume `fittrack-data` at `/data`
+- Single image serves the Angular SPA from Spring Boot `classpath:/static/` (same origin); production `apiBaseUrl` is `''`
 - OpenAPI / Swagger UI (permitAll): `/swagger-ui.html`, `/v3/api-docs` (JWT bearer scheme for Try it out)
 - Actuator: only `/actuator/health` exposed
-- Google OAuth redirect URI registered for local backend (e.g. `http://localhost:8080/login/oauth2/code/google`) when SSO is enabled
+- Google OAuth redirect URI: `http://localhost:8080/login/oauth2/code/google` (compose sets `FITTRACK_SPA_AUTH_CALLBACK_URL` to `http://localhost:8080/auth/callback`)
 - Profiles: `local` (default), optional `test` with in-memory or temp SQLite
 - Env: `FITTRACK_DEFAULT_USER`, `FITTRACK_DEFAULT_PASSWORD`, `JWT_SECRET`, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FITTRACK_SPA_AUTH_CALLBACK_URL`, `FITTRACK_CORS_ORIGINS` (see root README)
 
-### Dockerfile (`backend/Dockerfile`)
+### Dockerfile (repo root)
 
-- Multi-stage: build with JDK + Maven, run with JRE/JDK slim image matching supported Java
-- Expose API port (8080)
+- Multi-stage: **Node 24** builds Angular → **JDK 25** Maven package with SPA copied into `src/main/resources/static/` → **JRE 25** runtime
+- Expose port **8080** (API + SPA)
 - Persist SQLite via volume (e.g. `/data`)
 - Pass secrets/config via env or env-file, not baked into the image
-- Document `docker compose up --build` / `docker build` / `docker run` in root README
+- Document `docker compose up --build` / `docker build -t fittrack .` in root README
 
 ---
 
@@ -497,7 +499,7 @@ Full SPA requirements: **[`FRONTEND.md`](FRONTEND.md)** (source of truth for Ang
 Track live progress in [`STATUS.md`](STATUS.md). Ordered phases:
 
 1. **Docs** — this file + `AGENTS.md` + `STATUS.md` + `TESTS.md` + root `README.md`
-2. **Backend scaffold** — Spring Boot 4.1, Java 25 (or latest supported), Maven, SQLite, Flyway, **`backend/Dockerfile`**
+2. **Backend scaffold** — Spring Boot 4.1, Java 25 (or latest supported), Maven, SQLite, Flyway, root **`Dockerfile`** (API + SPA)
 3. **Domain + migrations** — User (local + SSO fields), Equipment, Muscle, Image, Exercise + join tables, `WorkoutTemplate` + `TemplateSet`, Workout + `WorkoutSet`
 4. **Security** — local login + JWT + `/api/v1/me` + seed default local user; Google OAuth when credentials enabled
 5. **Exercise seed + read APIs + custom exercise CRUD**
@@ -519,7 +521,7 @@ Deferred (tracked in STATUS): **#1** auth hardening. **#9** user management is d
 | Auth | **Local username/password + Google SSO**; both issue **JWT** Bearer tokens | Locked |
 | Google JWT handoff | Redirect to SPA `#token=<jwt>`; no refresh token in v1 | Locked |
 | Default user | Seed on first start: username/password `admin`/`admin` (overridable via env) | Locked |
-| Docker | **`backend/Dockerfile`** multi-stage; SQLite on a volume | Locked |
+| Docker | Root **`Dockerfile`** multi-stage (Angular + Boot single image); SQLite on a volume | Locked |
 | Public templates | Listed to all logged-in users; **no search**; **catalog exercises only** | Locked |
 | Difficulty | Enum `EASY` \| `MEDIUM` \| `HARD` (nullable, session-level) | Locked |
 | RPE (per set) | Enum `EASY` \| `CHALLENGING` \| `HARD` (nullable; more values later) | Locked |

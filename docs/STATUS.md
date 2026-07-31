@@ -11,7 +11,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 | **Next** | Deferred **#1** auth hardening; UX polish / E2E |
 | **Run** | Backend `backend/`: `.\mvnw.cmd spring-boot:run` -> `:8080`; Frontend `frontend/`: `npm start` -> `:4200` (proxies `/api` to `:8080`) |
 | **Key URLs** | Swagger `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login`, users (admin) `/api/v1/users` |
-| **Docker** | Root `docker-compose.yml` -> `docker compose up --build` (volume `fittrack-data` -> `/data`) |
+| **Docker** | Root `Dockerfile` (SPA+API) via `docker compose up --build` → `:8080` (volume `fittrack-data` → `/data`) |
 | **Seed user** | `admin` / `admin` (**ROLE_ADMIN**); env-overridable |
 | **Google SSO** | On when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` non-empty; handoff `{SPA_CALLBACK}#token=<jwt>` |
 | **Frontend prefs** | Angular **21 LTS**, Node **24 LTS**, **NgModules**, **Material**, **npm**; JWT in **localStorage**; home `/`; **dev proxy** `/api`→`:8080` |
@@ -58,7 +58,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - Actuator: only `health` exposed
 - SQLite: `foreign_keys=true&journal_mode=WAL`
 - Prefer additive Flyway `V3__*.sql` for future schema changes
-- Docker: root `docker-compose.yml` builds `backend/` and mounts volume `/data`
+- Docker: root `Dockerfile` embeds Angular into Boot `static/`; compose mounts `/data`; SPA deep-link fallthrough via `SpaForwardController`
 - Git remote may be `github`; branch `main`
 - Frontend: `frontend/` Angular 21 NgModules + Material; see [`FRONTEND.md`](FRONTEND.md)
 - Typed SPA clients: **hand-mirrored** from Java DTOs/OpenAPI (not codegen); process in [FRONTEND.md](FRONTEND.md) §8

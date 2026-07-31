@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://localhost:8080',
+  /** Same-origin relative base (Docker single image / reverse proxy). Dev uses proxy via environment.development.ts. */
+  apiBaseUrl: '',
 };

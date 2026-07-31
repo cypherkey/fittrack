@@ -1,7 +1,9 @@
 services:
   api:
-    build: ./backend
-    image: fittrack-api:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fittrack:local
     ports:
       - "8080:8080"
     environment:
@@ -12,8 +14,9 @@ services:
       FITTRACK_DEFAULT_PASSWORD: ${FITTRACK_DEFAULT_PASSWORD:-admin}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      FITTRACK_SPA_AUTH_CALLBACK_URL: ${FITTRACK_SPA_AUTH_CALLBACK_URL:-http://localhost:4200/auth/callback}
-      FITTRACK_CORS_ORIGINS: ${FITTRACK_CORS_ORIGINS:-http://localhost:4200}
+      # Same-origin SPA served from this container
+      FITTRACK_SPA_AUTH_CALLBACK_URL: ${FITTRACK_SPA_AUTH_CALLBACK_URL:-http://localhost:8080/auth/callback}
+      FITTRACK_CORS_ORIGINS: ${FITTRACK_CORS_ORIGINS:-http://localhost:8080}
     volumes:
       - fittrack-data:/data
 

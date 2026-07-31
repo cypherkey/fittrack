@@ -4,7 +4,7 @@ Personal fitness tracker: exercises, templates, and workouts.
 
 - **Backend:** Spring Boot 4 + SQLite + local auth / Google OAuth + JWT
 - **Frontend:** Angular 21 (NgModules + Material) under `frontend/`
-- **Container:** `backend/Dockerfile` + root `docker-compose.yml`
+- **Container:** root `Dockerfile` (API + SPA) + `docker-compose.yml`
 - **Spec:** [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md)
 - **Status:** [`docs/STATUS.md`](docs/STATUS.md) (Phases 1–9 done) · Frontend: [`docs/FRONTEND.md`](docs/FRONTEND.md)
 - **Tests:** [`docs/TESTS.md`](docs/TESTS.md)
@@ -14,10 +14,11 @@ Default git branch is `main`. The remote may be named `github` (not always `orig
 ## Layout
 
 ```
-backend/              Spring Boot API (+ Dockerfile)
-frontend/             Angular 21 SPA (Phase 8 done)
-docs/                 REQUIREMENTS, STATUS, TESTS
-docker-compose.yml    API + SQLite volume
+backend/              Spring Boot API (serves SPA from classpath:/static/ in Docker)
+frontend/             Angular 21 SPA
+Dockerfile            Multi-stage single image (Node → Maven → JRE)
+docker-compose.yml    App + SQLite volume
+docs/                 REQUIREMENTS, STATUS, TESTS, FRONTEND
 ```
 
 ## Prerequisites
@@ -59,8 +60,8 @@ From `backend/`:
 | `FITTRACK_GOOGLE_OAUTH_ENABLED` | Optional flag only (credentials alone enable SSO; this flag alone does not) | `false` |
 | `GOOGLE_CLIENT_ID` | Google OAuth client id (required with secret to enable SSO) | _(empty)_ |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | _(empty)_ |
-| `FITTRACK_CORS_ORIGINS` | Allowed CORS origins | `http://localhost:4200` |
-| `FITTRACK_SPA_AUTH_CALLBACK_URL` | SPA OAuth JWT handoff base (hash `#token=<jwt>` appended) | `http://localhost:4200/auth/callback` |
+| `FITTRACK_CORS_ORIGINS` | Allowed CORS origins | `http://localhost:4200` (compose defaults to `:8080`) |
+| `FITTRACK_SPA_AUTH_CALLBACK_URL` | SPA OAuth JWT handoff base (hash `#token=<jwt>` appended) | `http://localhost:4200/auth/callback` (compose: `:8080`) |
 | `FITTRACK_SEED_LOAD_IMAGES` | Load image bytes into DB during catalog seed | `true` |
 | `FITTRACK_SEED_DOWNLOAD_IMAGES` | If a classpath image file is missing, download from GitHub raw | `true` |
 
@@ -93,15 +94,20 @@ npm start
 
 See [`docs/FRONTEND.md`](docs/FRONTEND.md) for SPA requirements.
 
-### Docker Compose
+## Docker (API + SPA)
 
 From the repo root (requires Docker):
 
 ```bash
 docker compose up --build
+# or: docker build -t fittrack . && docker run --rm -p 8080:8080 -v fittrack-data:/data fittrack
 ```
 
-SQLite data is stored in the `fittrack-data` volume at `/data/fittrack.db`. Override secrets via environment or a `.env` file (not committed).
+Opens **http://localhost:8080** (Angular SPA + REST API, same origin). Login `admin` / `admin`.
+
+SQLite data is stored in the `fittrack-data` volume at `/data/fittrack.db`. Override secrets via environment or a `.env` file (not committed). For Google SSO against the container, register redirect `http://localhost:8080/login/oauth2/code/google` and keep compose’s `FITTRACK_SPA_AUTH_CALLBACK_URL` / `FITTRACK_CORS_ORIGINS` on `:8080`.
+
+Day-to-day frontend work can still use `npm start` on `:4200` against a local API on `:8080`.
 
 ### SQLite notes
 

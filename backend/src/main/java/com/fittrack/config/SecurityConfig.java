@@ -86,6 +86,10 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
 						.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
 						.requestMatchers("/api/v1/users", "/api/v1/users/**").hasRole("ADMIN")
+						.requestMatchers("/api/**").authenticated()
+						.requestMatchers("/actuator/**").authenticated()
+						// SPA shell + static assets (same-origin image); JWT still required for /api/**
+						.requestMatchers(HttpMethod.GET, "/**").permitAll()
 						.anyRequest().authenticated()
 				)
 				.oauth2ResourceServer(oauth2 -> oauth2
