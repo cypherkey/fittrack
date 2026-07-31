@@ -473,7 +473,7 @@ Full SPA requirements: **[`FRONTEND.md`](FRONTEND.md)** (source of truth for Ang
 - Actuator: only `/actuator/health` exposed
 - Google OAuth redirect URI: `http://localhost:8080/login/oauth2/code/google` (compose sets `FRONTEND_URL` to `http://localhost:8080`)
 - Profiles: `local` (default), optional `test` with in-memory or temp SQLite
-- Env: `FITTRACK_DEFAULT_USER`, `FITTRACK_DEFAULT_PASSWORD`, `JWT_SECRET`, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FRONTEND_URL`, `DB_PATH` (see root README)
+- Env: `FITTRACK_DEFAULT_USER`, `FITTRACK_DEFAULT_PASSWORD`, `JWT_SECRET`, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FRONTEND_URL`, `DB_PATH`, `LOG_LEVEL` (see root README)
 
 ### Dockerfile (repo root)
 

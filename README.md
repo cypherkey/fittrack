@@ -60,6 +60,7 @@ From `backend/`:
 | `GOOGLE_CLIENT_ID` | Google OAuth client id (required with secret to enable SSO) | _(empty)_ |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | _(empty)_ |
 | `FRONTEND_URL` | SPA origin (CORS + OAuth callback `{FRONTEND_URL}/auth/callback`) | `http://localhost:4200` (compose/Docker: `http://localhost:8080`) |
+| `LOG_LEVEL` | Console log level (`INFO`, `DEBUG`, `TRACE`, …) for root, `com.fittrack`, Spring Security, and Spring Web | `INFO` |
 | `FITTRACK_SEED_LOAD_IMAGES` | Load image bytes into DB during catalog seed | `true` |
 | `FITTRACK_SEED_DOWNLOAD_IMAGES` | If a classpath image file is missing, download from GitHub raw | `true` |
 

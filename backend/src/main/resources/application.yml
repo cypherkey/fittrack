@@ -70,4 +70,7 @@ fittrack:
 
 logging:
   level:
-    org.springframework.security: INFO
+    root: ${LOG_LEVEL:INFO}
+    com.fittrack: ${LOG_LEVEL:INFO}
+    org.springframework.security: ${LOG_LEVEL:INFO}
+    org.springframework.web: ${LOG_LEVEL:INFO}

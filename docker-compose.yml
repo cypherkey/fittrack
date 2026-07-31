@@ -14,6 +14,7 @@ services:
       FITTRACK_DEFAULT_PASSWORD: ${FITTRACK_DEFAULT_PASSWORD:-admin}
       # Same-origin SPA in the container image
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
       # Optional Google SSO — set in .env / shell; omit when unused
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
