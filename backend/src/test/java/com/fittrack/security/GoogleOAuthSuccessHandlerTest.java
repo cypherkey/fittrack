@@ -28,8 +28,8 @@ class GoogleOAuthSuccessHandlerTest {
 		FitTrackProperties properties = new FitTrackProperties(
 				new FitTrackProperties.Jwt("fittrack-test-secret-change-me-must-be-at-least-256-bits!!", 60),
 				new FitTrackProperties.Seed("admin", "admin", "Admin", "admin@localhost"),
-				new FitTrackProperties.Oauth2(new FitTrackProperties.Oauth2.Google(false), "http://localhost:4200/auth/callback"),
-				new FitTrackProperties.Cors("http://localhost:4200")
+				new FitTrackProperties.Oauth2(new FitTrackProperties.Oauth2.Google(false)),
+				"http://localhost:4200"
 		);
 
 		User user = new User();

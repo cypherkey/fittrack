@@ -34,10 +34,7 @@ public class GoogleOAuthSuccessHandler implements AuthenticationSuccessHandler {
 		OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
 		User user = googleUserService.upsertFromOidc(oidcUser);
 		String token = jwtService.createToken(new AppUserDetails(user));
-		String base = properties.oauth2().successRedirect();
-		if (base.endsWith("#")) {
-			base = base.substring(0, base.length() - 1);
-		}
+		String base = properties.spaAuthCallbackUrl();
 		response.sendRedirect(base + "#token=" + token);
 	}
 }

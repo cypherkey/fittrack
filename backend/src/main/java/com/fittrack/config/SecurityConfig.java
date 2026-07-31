@@ -2,7 +2,6 @@ package com.fittrack.config;
 
 import com.fittrack.security.AppUserDetailsService;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -101,10 +100,7 @@ public class SecurityConfig {
 	@Bean
 	CorsConfigurationSource corsConfigurationSource(FitTrackProperties properties) {
 		CorsConfiguration config = new CorsConfiguration();
-		List<String> origins = Arrays.stream(properties.cors().allowedOrigins().split(","))
-				.map(String::trim)
-				.filter(s -> !s.isEmpty())
-				.toList();
+		List<String> origins = properties.corsAllowedOrigins();
 		config.setAllowedOrigins(origins);
 		config.setAllowedHeaders(List.of(CorsConfiguration.ALL));
 		config.setAllowedMethods(List.of(CorsConfiguration.ALL));

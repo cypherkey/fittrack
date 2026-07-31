@@ -2,7 +2,7 @@ spring:
   application:
     name: fittrack-backend
   datasource:
-    url: jdbc:sqlite:${FITTRACK_DB_PATH:./data/fittrack.db}?foreign_keys=true&journal_mode=WAL
+    url: jdbc:sqlite:${DB_PATH:./data/fittrack.db}?foreign_keys=true&journal_mode=WAL
     driver-class-name: org.sqlite.JDBC
   jpa:
     hibernate:
@@ -62,12 +62,11 @@ fittrack:
     # Load image bytes into image.content_base64 (classpath data/exercise-images/, else GitHub raw)
     load-images: ${FITTRACK_SEED_LOAD_IMAGES:true}
     download-images: ${FITTRACK_SEED_DOWNLOAD_IMAGES:true}
+  # SPA origin(s); auth callback = {FRONTEND_URL}/auth/callback; CORS uses the same value(s)
+  frontend-url: ${FRONTEND_URL:http://localhost:4200}
   oauth2:
     google:
       enabled: ${FITTRACK_GOOGLE_OAUTH_ENABLED:false}
-    success-redirect: ${FITTRACK_SPA_AUTH_CALLBACK_URL:http://localhost:4200/auth/callback}
-  cors:
-    allowed-origins: ${FITTRACK_CORS_ORIGINS:http://localhost:4200}
 
 logging:
   level:

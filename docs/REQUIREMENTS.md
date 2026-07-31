@@ -329,7 +329,7 @@ Dual authentication; both issue the same **JWT** for `/api/v1`.
 
 - Google OAuth2 / OpenID Connect via Spring Security OAuth2 Client — **enabled when both** `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are non-empty (credentials alone are enough; `FITTRACK_GOOGLE_OAUTH_ENABLED` alone is not)
 - JIT upsert `User` by `googleSubject` on login
-- **JWT handoff to SPA:** after successful OAuth callback, backend redirects to the Angular app, e.g. `http://localhost:4200/auth/callback#token=<jwt>` (hash preferred so the token is less likely to hit server logs; override base via `FITTRACK_SPA_AUTH_CALLBACK_URL`). SPA stores the JWT and clears it from the URL. No refresh tokens in v1; access token lifetime from `fittrack.jwt.expiration-minutes` (default ~12h); re-login when expired.
+- **JWT handoff to SPA:** after successful OAuth callback, backend redirects to the Angular app, e.g. `http://localhost:4200/auth/callback#token=<jwt>` (hash preferred so the token is less likely to hit server logs; SPA base via `FRONTEND_URL` (callback = `{FRONTEND_URL}/auth/callback`)). SPA stores the JWT and clears it from the URL. No refresh tokens in v1; access token lifetime from `fittrack.jwt.expiration-minutes` (default ~12h); re-login when expired.
 
 ### Common
 
@@ -471,9 +471,9 @@ Full SPA requirements: **[`FRONTEND.md`](FRONTEND.md)** (source of truth for Ang
 - Single image serves the Angular SPA from Spring Boot `classpath:/static/` (same origin); production `apiBaseUrl` is `''`
 - OpenAPI / Swagger UI (permitAll): `/swagger-ui.html`, `/v3/api-docs` (JWT bearer scheme for Try it out)
 - Actuator: only `/actuator/health` exposed
-- Google OAuth redirect URI: `http://localhost:8080/login/oauth2/code/google` (compose sets `FITTRACK_SPA_AUTH_CALLBACK_URL` to `http://localhost:8080/auth/callback`)
+- Google OAuth redirect URI: `http://localhost:8080/login/oauth2/code/google` (compose sets `FRONTEND_URL` to `http://localhost:8080`)
 - Profiles: `local` (default), optional `test` with in-memory or temp SQLite
-- Env: `FITTRACK_DEFAULT_USER`, `FITTRACK_DEFAULT_PASSWORD`, `JWT_SECRET`, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FITTRACK_SPA_AUTH_CALLBACK_URL`, `FITTRACK_CORS_ORIGINS` (see root README)
+- Env: `FITTRACK_DEFAULT_USER`, `FITTRACK_DEFAULT_PASSWORD`, `JWT_SECRET`, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `FRONTEND_URL`, `DB_PATH` (see root README)
 
 ### Dockerfile (repo root)
 

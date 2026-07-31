@@ -22,7 +22,8 @@ RUN chmod +x mvnw && ./mvnw -q -DskipTests package
 FROM eclipse-temurin:25-jre
 WORKDIR /app
 RUN mkdir -p /data
-ENV FITTRACK_DB_PATH=/data/fittrack.db
+ENV DB_PATH=/data/fittrack.db
+ENV FRONTEND_URL=http://localhost:8080
 ENV SERVER_PORT=8080
 EXPOSE 8080
 COPY --from=backend /workspace/target/backend-*.jar /app/app.jar
