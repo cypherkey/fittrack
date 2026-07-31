@@ -15,8 +15,26 @@ public class GoogleOAuthEnabledCondition implements Condition {
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
 		var env = context.getEnvironment();
-		String clientId = env.getProperty("spring.security.oauth2.client.registration.google.client-id", "");
-		String clientSecret = env.getProperty("spring.security.oauth2.client.registration.google.client-secret", "");
+		String clientId = firstNonBlank(
+				env.getProperty("spring.security.oauth2.client.registration.google.client-id"),
+				env.getProperty("GOOGLE_CLIENT_ID")
+		);
+		String clientSecret = firstNonBlank(
+				env.getProperty("spring.security.oauth2.client.registration.google.client-secret"),
+				env.getProperty("GOOGLE_CLIENT_SECRET")
+		);
 		return StringUtils.hasText(clientId) && StringUtils.hasText(clientSecret);
+	}
+
+	private static String firstNonBlank(String... values) {
+		if (values == null) {
+			return null;
+		}
+		for (String value : values) {
+			if (StringUtils.hasText(value) && !"null".equalsIgnoreCase(value.trim())) {
+				return value.trim();
+			}
+		}
+		return null;
 	}
 }

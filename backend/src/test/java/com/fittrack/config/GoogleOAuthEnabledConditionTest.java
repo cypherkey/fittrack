@@ -19,10 +19,26 @@ class GoogleOAuthEnabledConditionTest {
 	}
 
 	@Test
+	void disabledWhenCredentialsBlankOrNullLiteral() {
+		MockEnvironment env = new MockEnvironment()
+				.withProperty("spring.security.oauth2.client.registration.google.client-id", "  ")
+				.withProperty("spring.security.oauth2.client.registration.google.client-secret", "null");
+		assertThat(matches(env)).isFalse();
+	}
+
+	@Test
 	void enabledWhenClientIdAndSecretPresent() {
 		MockEnvironment env = new MockEnvironment()
 				.withProperty("spring.security.oauth2.client.registration.google.client-id", "cid")
 				.withProperty("spring.security.oauth2.client.registration.google.client-secret", "csecret");
+		assertThat(matches(env)).isTrue();
+	}
+
+	@Test
+	void enabledWhenRawEnvCredentialsPresent() {
+		MockEnvironment env = new MockEnvironment()
+				.withProperty("GOOGLE_CLIENT_ID", "cid")
+				.withProperty("GOOGLE_CLIENT_SECRET", "csecret");
 		assertThat(matches(env)).isTrue();
 	}
 

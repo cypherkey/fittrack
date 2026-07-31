@@ -12,11 +12,12 @@ services:
       JWT_SECRET: ${JWT_SECRET:-fittrack-compose-dev-secret-change-me-at-least-32-chars}
       FITTRACK_DEFAULT_USER: ${FITTRACK_DEFAULT_USER:-admin}
       FITTRACK_DEFAULT_PASSWORD: ${FITTRACK_DEFAULT_PASSWORD:-admin}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       # Same-origin SPA served from this container
       FITTRACK_SPA_AUTH_CALLBACK_URL: ${FITTRACK_SPA_AUTH_CALLBACK_URL:-http://localhost:8080/auth/callback}
       FITTRACK_CORS_ORIGINS: ${FITTRACK_CORS_ORIGINS:-http://localhost:8080}
+      # Optional Google SSO — set in .env / shell; omit when unused
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     volumes:
       - fittrack-data:/data
 

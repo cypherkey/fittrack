@@ -3,8 +3,7 @@ package com.fittrack.config;
 import com.fittrack.security.GoogleOAuthSuccessHandler;
 import com.fittrack.security.GoogleUserService;
 import com.fittrack.security.JwtService;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -12,12 +11,33 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Google OAuth login (optional). Enabled only when client-id and client-secret are non-empty.
+ * Registers {@link ClientRegistrationRepository} explicitly because
+ * {@code OAuth2ClientAutoConfiguration} is excluded on {@code FitTrackApplication}.
+ */
 @Configuration
 @Conditional(GoogleOAuthEnabledCondition.class)
-@ImportAutoConfiguration(OAuth2ClientAutoConfiguration.class)
 public class GoogleOAuthConfig {
+
+	@Bean
+	ClientRegistrationRepository googleClientRegistrationRepository(
+			@Value("${spring.security.oauth2.client.registration.google.client-id}") String clientId,
+			@Value("${spring.security.oauth2.client.registration.google.client-secret}") String clientSecret
+	) {
+		ClientRegistration google = CommonOAuth2Provider.GOOGLE.getBuilder("google")
+				.clientId(clientId.trim())
+				.clientSecret(clientSecret.trim())
+				.scope("openid", "profile", "email")
+				.build();
+		return new InMemoryClientRegistrationRepository(google);
+	}
 
 	@Bean
 	GoogleOAuthSuccessHandler googleOAuthSuccessHandler(
