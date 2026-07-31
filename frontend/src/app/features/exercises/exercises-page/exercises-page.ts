@@ -4,6 +4,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { LookupApi } from '../../../core/api/lookup-api.service';
+import { EXERCISE_CATEGORIES } from '../../../core/models/enums';
 import { Exercise, exerciseImageSrc } from '../../../core/models/exercise';
 import { Equipment, Muscle } from '../../../core/models/lookup';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -21,6 +22,8 @@ export class ExercisesPage implements OnInit {
   private readonly lookupApi = inject(LookupApi);
   private readonly router = inject(Router);
   private readonly notify = inject(NotificationService);
+
+  readonly categories = EXERCISE_CATEGORIES;
 
   readonly filterForm = this.fb.group({
     q: [''],

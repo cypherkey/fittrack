@@ -3,7 +3,17 @@ import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { LookupApi } from '../../../core/api/lookup-api.service';
-import { EXERCISE_LEVELS, EXERCISE_MECHANICS, ExerciseLevel } from '../../../core/models/enums';
+import {
+  DEFAULT_TRACKED_PARAMETERS,
+  EXERCISE_CATEGORIES,
+  EXERCISE_FORCES,
+  EXERCISE_LEVELS,
+  EXERCISE_MECHANICS,
+  ExerciseLevel,
+  TRACKED_PARAM_OPTIONS,
+  hasTrackedParam,
+  toggleTrackedParam,
+} from '../../../core/models/enums';
 import { ExerciseRequest } from '../../../core/models/exercise';
 import { Equipment, Muscle } from '../../../core/models/lookup';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -25,6 +35,9 @@ export class ExerciseFormPage implements OnInit {
 
   readonly levels = EXERCISE_LEVELS;
   readonly mechanics = EXERCISE_MECHANICS;
+  readonly forces = EXERCISE_FORCES;
+  readonly categories = EXERCISE_CATEGORIES;
+  readonly trackedParamOptions = TRACKED_PARAM_OPTIONS;
 
   exerciseId: string | null = null;
   readonly loading = signal(false);
@@ -40,7 +53,7 @@ export class ExerciseFormPage implements OnInit {
     equipmentId: [''],
     instructions: [''],
     category: [''],
-    trackedParameters: [null as number | null],
+    trackedParameters: [DEFAULT_TRACKED_PARAMETERS as number],
     muscles: this.fb.array([]),
   });
 
@@ -104,6 +117,15 @@ export class ExerciseFormPage implements OnInit {
     this.muscleLinks.removeAt(index);
   }
 
+  isTrackedParamOn(flag: number): boolean {
+    return hasTrackedParam(this.form.get('trackedParameters')?.value, flag);
+  }
+
+  onTrackedParamChange(flag: number, checked: boolean): void {
+    const next = toggleTrackedParam(this.form.get('trackedParameters')?.value, flag, checked);
+    this.form.patchValue({ trackedParameters: next });
+  }
+
   save(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -118,7 +140,7 @@ export class ExerciseFormPage implements OnInit {
       equipmentId: v.equipmentId || null,
       instructions: v.instructions || null,
       category: v.category || null,
-      trackedParameters: v.trackedParameters,
+      trackedParameters: v.trackedParameters ?? DEFAULT_TRACKED_PARAMETERS,
       muscles: this.muscleLinks.value,
     };
 

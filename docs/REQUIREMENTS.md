@@ -111,12 +111,12 @@ Exercises may be **catalog** (seeded from free-exercise-db, global) or **custom*
 |-------|------|--------|
 | id | UUID string | Catalog and custom: UUID. Catalog ids are stable UUIDs derived from the upstream free-exercise-db slug at seed-prep time |
 | name | string | Display name |
-| force | string? | e.g. pull, push (nullable in source data) |
+| force | string? | `push` \| `pull` \| `static` (nullable in source data) |
 | level | enum | `BEGINNER` \| `INTERMEDIATE` \| `EXPERT` |
 | mechanic | enum? | `COMPOUND` \| `ISOLATION` (nullable when source is null) |
 | equipmentId | FK → Equipment | Required when known; resolve/create from seed string |
 | instructions | text | Markdown (seed: join instruction steps into markdown, e.g. numbered list) |
-| category | string? | strength, stretching, etc. |
+| category | string? | `strength` \| `stretching` \| `plyometrics` \| `strongman` \| `powerlifting` \| `cardio` \| `olympic weightlifting` |
 | trackedParameters | int bitmask | `REPS=1`, `WEIGHT=2`, `DURATION=4`, `DISTANCE=8` |
 | isCustom | boolean | `false` for seeded catalog; `true` for user-created |
 | addedBy | FK → User? | Required when `isCustom`; null for catalog exercises |
@@ -177,6 +177,8 @@ Unique constraint on `(exerciseId, muscleId)` (one row per pair).
 ```
 ExerciseLevel:     BEGINNER | INTERMEDIATE | EXPERT
 ExerciseMechanic:  COMPOUND | ISOLATION
+ExerciseForce:     push | pull | static
+ExerciseCategory:  strength | stretching | plyometrics | strongman | powerlifting | cardio | olympic weightlifting
 ```
 
 #### Tracked parameters

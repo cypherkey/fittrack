@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
+import { trackedParamLabels } from '../../../core/models/enums';
 import { Exercise, ExerciseImage, exerciseImageSrc } from '../../../core/models/exercise';
 import { NotificationService } from '../../../core/services/notification.service';
 import { errorMessage } from '../../../core/utils/http-error';
@@ -41,6 +42,11 @@ export class ExerciseDetailPage implements OnInit {
 
   imageSrc(image: ExerciseImage): string | null {
     return exerciseImageSrc(image);
+  }
+
+  parameterLabels(flags: number): string {
+    const labels = trackedParamLabels(flags);
+    return labels.length ? labels.join(', ') : '—';
   }
 
   edit(): void {

@@ -4,7 +4,7 @@
   <h1>{{ exerciseId ? 'Edit exercise' : 'New custom exercise' }}</h1>
 
   <form [formGroup]="form" (ngSubmit)="save()" class="form">
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Name</mat-label>
       <input matInput formControlName="name" required />
     </mat-form-field>
@@ -40,18 +40,43 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Category</mat-label>
-      <input matInput formControlName="category" />
+      <mat-select formControlName="category">
+        <mat-option value="">—</mat-option>
+        @for (c of categories; track c) {
+          <mat-option [value]="c">{{ c }}</mat-option>
+        }
+      </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Force</mat-label>
-      <input matInput formControlName="force" />
+      <mat-select formControlName="force">
+        <mat-option value="">—</mat-option>
+        @for (f of forces; track f) {
+          <mat-option [value]="f">{{ f }}</mat-option>
+        }
+      </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Instructions (markdown)</mat-label>
       <textarea matInput formControlName="instructions" rows="6"></textarea>
     </mat-form-field>
+
+    <section class="tracked-params">
+      <h3>Tracked parameters</h3>
+      <p class="hint">Which fields appear when logging sets for this exercise.</p>
+      <div class="param-checks">
+        @for (opt of trackedParamOptions; track opt.flag) {
+          <mat-checkbox
+            [checked]="isTrackedParamOn(opt.flag)"
+            (change)="onTrackedParamChange(opt.flag, $event.checked)"
+          >
+            {{ opt.label }}
+          </mat-checkbox>
+        }
+      </div>
+    </section>
 
     <section class="muscles">
       <div class="section-header">

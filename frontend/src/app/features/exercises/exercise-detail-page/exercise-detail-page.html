@@ -34,6 +34,7 @@
         <div><dt>Equipment</dt><dd>{{ exercise.equipmentName || '—' }}</dd></div>
         <div><dt>Mechanic</dt><dd>{{ exercise.mechanic || '—' }}</dd></div>
         <div><dt>Force</dt><dd>{{ exercise.force || '—' }}</dd></div>
+        <div><dt>Tracked parameters</dt><dd>{{ parameterLabels(exercise.trackedParameters) }}</dd></div>
         <div><dt>Type</dt><dd>{{ exercise.custom ? 'Custom' : 'Catalog' }}</dd></div>
       </dl>
 

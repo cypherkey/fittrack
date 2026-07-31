@@ -3,14 +3,18 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   max-width: 900px;
+  align-items: flex-start;
 }
 
-.form mat-form-field {
-  flex: 1 1 200px;
+.form mat-form-field:not(.full-width) {
+  flex: 1 1 160px;
+  max-width: 200px;
+  min-width: 140px;
 }
 
 .full-width {
   flex: 1 1 100%;
+  max-width: none;
 }
 
 .loading {
@@ -19,8 +23,21 @@
   padding: 2rem;
 }
 
-.muscles {
+.muscles,
+.tracked-params {
   flex: 1 1 100%;
+}
+
+.tracked-params .hint {
+  margin: 0 0 0.5rem;
+  opacity: 0.75;
+  font-size: 0.875rem;
+}
+
+.param-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
 }
 
 .section-header {
