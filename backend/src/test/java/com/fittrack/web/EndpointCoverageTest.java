@@ -33,6 +33,8 @@ class EndpointCoverageTest {
 	static void registerProperties(DynamicPropertyRegistry registry) {
 		registry.add("spring.datasource.url", () -> "jdbc:sqlite:./target/endpoint-coverage.db?foreign_keys=true&journal_mode=WAL");
 		registry.add("fittrack.jwt.secret", () -> "fittrack-test-secret-change-me-must-be-at-least-256-bits!!");
+		registry.add("fittrack.seed.load-images", () -> "false");
+		registry.add("fittrack.seed.download-images", () -> "false");
 	}
 
 	@Autowired
@@ -140,9 +142,9 @@ class EndpointCoverageTest {
 		mockMvc.perform(get("/api/v1/exercises").header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content").isArray());
-		mockMvc.perform(get("/api/v1/exercises/Ab_Roller").header("Authorization", "Bearer " + adminToken))
+		mockMvc.perform(get("/api/v1/exercises/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac").header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id").value("Ab_Roller"));
+				.andExpect(jsonPath("$.id").value("51ababe0-e7cc-40d3-a3ef-7d6fb418fbac"));
 
 		MvcResult custom = mockMvc.perform(post("/api/v1/exercises")
 						.header("Authorization", "Bearer " + adminToken)
@@ -170,8 +172,8 @@ class EndpointCoverageTest {
 								  "name":"Coverage T",
 								  "visibility":"PRIVATE",
 								  "sets":[
-								    {"exerciseId":"Ab_Roller","setNumber":1,"reps":10,"weightKg":10.0},
-								    {"exerciseId":"Ab_Roller","setNumber":2,"reps":8,"weightKg":12.0}
+								    {"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":10,"weightKg":10.0},
+								    {"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":2,"reps":8,"weightKg":12.0}
 								  ]
 								}
 								"""))
@@ -200,7 +202,7 @@ class EndpointCoverageTest {
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"name":"Coverage T2","visibility":"PRIVATE","sets":[{"exerciseId":"Ab_Roller","setNumber":1,"reps":5}]}
+								{"name":"Coverage T2","visibility":"PRIVATE","sets":[{"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":5}]}
 								"""))
 				.andExpect(status().isOk());
 
@@ -228,8 +230,8 @@ class EndpointCoverageTest {
 								  "performedAt":"2026-07-27T13:00:00Z",
 								  "name":"Direct",
 								  "sets":[
-								    {"exerciseId":"Ab_Roller","setNumber":1,"reps":3,"weightKg":5.0},
-								    {"exerciseId":"Ab_Roller","setNumber":2,"reps":3,"weightKg":5.0}
+								    {"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":3,"weightKg":5.0},
+								    {"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":2,"reps":3,"weightKg":5.0}
 								  ]
 								}
 								"""))
@@ -262,7 +264,7 @@ class EndpointCoverageTest {
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"performedAt":"2026-07-27T13:00:00Z","name":"Direct2","sets":[{"exerciseId":"Ab_Roller","setNumber":1,"reps":1}]}
+								{"performedAt":"2026-07-27T13:00:00Z","name":"Direct2","sets":[{"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":1}]}
 								"""))
 				.andExpect(status().isOk());
 
@@ -276,7 +278,7 @@ class EndpointCoverageTest {
 				.andExpect(status().isNoContent());
 
 		// authz smoke: other cannot get admin-deleted resources; catalog update forbidden
-		mockMvc.perform(put("/api/v1/exercises/Ab_Roller")
+		mockMvc.perform(put("/api/v1/exercises/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac")
 						.header("Authorization", "Bearer " + otherToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
@@ -316,7 +318,7 @@ class EndpointCoverageTest {
 								{
 								  "name":"Private Only",
 								  "visibility":"PRIVATE",
-								  "sets":[{"exerciseId":"Ab_Roller","setNumber":1,"reps":1}]
+								  "sets":[{"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":1}]
 								}
 								"""))
 				.andExpect(status().isCreated())

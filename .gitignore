@@ -12,7 +12,7 @@ build/
 Thumbs.db
 
 # Runtime / secrets
-data/
+/backend/data/
 *.db
 *.db-journal
 *.db-wal
@@ -30,3 +30,7 @@ dist/
 
 # Logs
 *.log
+
+# Vendored free-exercise-db images (run scripts/fetch-exercise-images.ps1)
+backend/src/main/resources/data/exercise-images/
+

@@ -8,7 +8,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 |--|--|
 | **Stack** | Spring Boot 4.1 + Java 25 + SQLite (WAL) + JWT; Angular **21** SPA under `frontend/` |
 | **Done** | Phases 1–9 + deferred **#9** user management (admin API + Settings UI) |
-| **Next** | Deferred **#1** auth hardening; UX polish / E2E; optional exercise images |
+| **Next** | Deferred **#1** auth hardening; UX polish / E2E |
 | **Run** | Backend `backend/`: `.\mvnw.cmd spring-boot:run` -> `:8080`; Frontend `frontend/`: `npm start` -> `:4200` (proxies `/api` to `:8080`) |
 | **Key URLs** | Swagger `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login`, users (admin) `/api/v1/users` |
 | **Docker** | Root `docker-compose.yml` -> `docker compose up --build` (volume `fittrack-data` -> `/data`) |
@@ -51,7 +51,8 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - Same exercise may appear on multiple sets; uniqueness is `(template|workout, setNumber)` only
 - Set order is client-controlled; `PATCH /api/v1/workouts|templates/{id}/sets/reorder` updates `setNumber`
 - PUBLIC templates may only contain catalog exercises (`isCustom=false`)
-- Exercise catalog: vendored `data/exercises.json`; seeder skips if exercise table has rows
+- Exercise catalog: vendored `data/exercises.json` (UUID ids); images as base64 on `image` via `exercise_has_image`; local files under `data/exercise-images/` (gitignored) or GitHub download; seeder skips if exercise table has rows
+- Templates: no header `durationSeconds` / `totalWeightLifted` (workout / workout_set only for session totals and logged duration)
 - User admin: Flyway `V2__user_admin.sql`; seed `admin` is admin; Google JIT users are non-admin
 - OpenAPI / Swagger UI: `/v3/api-docs`, `/swagger-ui.html`; JWT bearer for Try it out
 - Actuator: only `health` exposed

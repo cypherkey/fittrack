@@ -34,7 +34,6 @@ export class TemplateFormPage implements OnInit {
 
   readonly form = this.fb.group({
     name: ['', Validators.required],
-    durationSeconds: [null as number | null],
     difficulty: [''],
     notes: [''],
     visibility: [TemplateVisibility.Private, Validators.required],
@@ -57,7 +56,6 @@ export class TemplateFormPage implements OnInit {
         next: (t) => {
           this.form.patchValue({
             name: t.name,
-            durationSeconds: t.durationSeconds,
             difficulty: t.difficulty ?? '',
             notes: t.notes ?? '',
             visibility: t.visibility,
@@ -96,7 +94,6 @@ export class TemplateFormPage implements OnInit {
     const v = this.form.value;
     const body: TemplateRequest = {
       name: v.name,
-      durationSeconds: v.durationSeconds,
       difficulty: (v.difficulty as TemplateRequest['difficulty']) || null,
       notes: v.notes || null,
       visibility: v.visibility!,

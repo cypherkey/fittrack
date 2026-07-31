@@ -22,7 +22,7 @@ Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIRE
 
 - Public self-registration (admins manage users in Settings; no public register)
 - Offline-first / PWA sync
-- Serving exercise images from free-exercise-db (paths may display later)
+- User-uploaded exercise media (catalog images come from seed/API as base64)
 - Native mobile shells
 - Matching Ryot's media/analytics product surface
 
@@ -126,12 +126,12 @@ apiBaseUrl: 'http://localhost:8080'
 - Optional "Continue with Google" when SSO is configured (can always show; backend fails if unset)
 
 ### Exercises
-- Paginated/filterable list (q, muscle, equipment, category) — Material table or list + filters
-- Detail view (instructions markdown render, sanitized)
+- Paginated/filterable list (q, muscle, equipment, category) — Material table or list + filters; show catalog image thumbnail from API `contentBase64`
+- Detail view (instructions markdown render, sanitized; gallery of seeded images as data URLs)
 - Custom exercise create/edit/delete (owner only); catalog read-only in UI
 
 ### Templates
-- List own templates; browse `visibility=PUBLIC`
+- List own templates; browse `visibility=PUBLIC` (no template-level duration or total weight)
 - Create/edit with sets editor (exercise picker, setNumber, reps/weight/duration/distance/RPE)
 - Enforce UI rule: PUBLIC templates cannot add custom exercises
 - Clone → dialog for `performedAt` + name → create workout → navigate to workout
@@ -140,7 +140,7 @@ apiBaseUrl: 'http://localhost:8080'
 - List with date range filter (Material datepicker)
 - Create/edit workout header (`performedAt`, name, difficulty, notes, duration)
 - Sets table: add/remove/reorder (CDK drag-drop when practical; else up/down calling `PATCH .../sets/reorder` or full PUT — prefer reorder endpoint when only order changes)
-- Show computed `totalWeightLifted` from API
+- Show computed `totalWeightLifted` from API (workout header; not on templates)
 
 ### Dashboard (light)
 - Recent workouts + shortcuts to log workout / open templates (avoid Ryot-style media widgets)
@@ -191,7 +191,7 @@ FitTrack does **not** auto-generate TypeScript from OpenAPI today. Typed clients
 | Controllers | `backend/.../web/*Controller.java` | Paths, HTTP methods, query params, status codes |
 | OpenAPI / Swagger | `http://localhost:8080/v3/api-docs` · UI `/swagger-ui.html` | Browse & verify after backend changes; Try it out with JWT |
 
-Jackson serializes Java records as **camelCase** JSON matching the record component names (`displayName`, `totalWeightLifted`, `custom`, …). Enums serialize as their **name** strings.
+Jackson serializes Java records as **camelCase** JSON matching the record component names (`displayName`, `totalWeightLifted`, `contentBase64`, `custom`, …). Enums serialize as their **name** strings. Exercise images include `contentType` + `contentBase64` for data-URL rendering.
 
 ### Frontend layout (typed clients)
 

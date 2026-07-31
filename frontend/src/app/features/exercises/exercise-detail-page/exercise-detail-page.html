@@ -16,6 +16,16 @@
 
   <h1>{{ exercise.name }}</h1>
 
+  @if (exercise.images.length) {
+    <div class="images">
+      @for (img of exercise.images; track img.imageId) {
+        @if (imageSrc(img); as src) {
+          <img [src]="src" [alt]="img.altText || exercise.name" />
+        }
+      }
+    </div>
+  }
+
   <mat-card>
     <mat-card-content>
       <dl class="meta">

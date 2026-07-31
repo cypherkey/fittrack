@@ -43,6 +43,7 @@ From `backend/`:
 - API base: `http://localhost:8080`
 - Default seed user: `admin` / `admin` (overridable; see env vars below)
 - SQLite DB: `./data/fittrack.db` (created on first run; gitignored). After schema changes, delete local `*.db` files and restart so Flyway can recreate.
+- Exercise catalog images: optional local files via `powershell -File scripts/fetch-exercise-images.ps1` into `backend/src/main/resources/data/exercise-images/` (gitignored). On first seed the API also downloads missing images from GitHub raw unless `FITTRACK_SEED_DOWNLOAD_IMAGES=false`. Bytes are stored as base64 on `image.content_base64`.
 
 ### Useful environment variables
 
@@ -60,6 +61,8 @@ From `backend/`:
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | _(empty)_ |
 | `FITTRACK_CORS_ORIGINS` | Allowed CORS origins | `http://localhost:4200` |
 | `FITTRACK_SPA_AUTH_CALLBACK_URL` | SPA OAuth JWT handoff base (hash `#token=<jwt>` appended) | `http://localhost:4200/auth/callback` |
+| `FITTRACK_SEED_LOAD_IMAGES` | Load image bytes into DB during catalog seed | `true` |
+| `FITTRACK_SEED_DOWNLOAD_IMAGES` | If a classpath image file is missing, download from GitHub raw | `true` |
 
 Google SSO enables automatically when both `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are non-empty (startup stays local-only if they are empty). Start login at `/oauth2/authorization/google`. After Google login, the backend redirects to `{FITTRACK_SPA_AUTH_CALLBACK_URL}#token=<jwt>` (no refresh tokens in v1). Local username/password + JWT always work.
 

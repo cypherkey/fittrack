@@ -11,6 +11,8 @@ export interface ExerciseImage {
   path: string;
   altText: string | null;
   sortOrder: number;
+  contentType: string | null;
+  contentBase64: string | null;
 }
 
 export interface Exercise {
@@ -55,4 +57,13 @@ export interface ExerciseListParams {
   customOnly?: boolean;
   page?: number;
   size?: number;
+}
+
+/** Build a data-URL for an API exercise image, or null if bytes are missing. */
+export function exerciseImageSrc(image: ExerciseImage | null | undefined): string | null {
+  if (!image?.contentBase64) {
+    return null;
+  }
+  const type = image.contentType || 'image/jpeg';
+  return `data:${type};base64,${image.contentBase64}`;
 }

@@ -33,12 +33,6 @@ public class WorkoutTemplate {
 
 	private String name;
 
-	@Column(name = "duration_seconds")
-	private Integer durationSeconds;
-
-	@Column(name = "total_weight_lifted")
-	private Double totalWeightLifted;
-
 	@Enumerated(EnumType.STRING)
 	private WorkoutDifficulty difficulty;
 
@@ -95,22 +89,6 @@ public class WorkoutTemplate {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public Integer getDurationSeconds() {
-		return durationSeconds;
-	}
-
-	public void setDurationSeconds(Integer durationSeconds) {
-		this.durationSeconds = durationSeconds;
-	}
-
-	public Double getTotalWeightLifted() {
-		return totalWeightLifted;
-	}
-
-	public void setTotalWeightLifted(Double totalWeightLifted) {
-		this.totalWeightLifted = totalWeightLifted;
 	}
 
 	public WorkoutDifficulty getDifficulty() {

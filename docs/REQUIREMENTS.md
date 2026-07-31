@@ -20,7 +20,7 @@ Build a personal fitness tracker where users can:
 ### Non-goals (v1)
 
 - Social feeds, comments, or follows beyond public templates
-- User-uploaded media (catalog images are seeded/referenced via the `Image` model)
+- User-uploaded media (catalog images are seeded into `Image.contentBase64` and returned by the API)
 - Nutrition, sleep, or media tracking (Ryot-style multi-domain tracking)
 - Native mobile apps
 - Multi-tenant orgs / teams
@@ -109,7 +109,7 @@ Exercises may be **catalog** (seeded from free-exercise-db, global) or **custom*
 
 | Field | Type | Notes |
 |-------|------|--------|
-| id | string | Catalog: free-exercise-db `id` (e.g. `Ab_Roller`). Custom: UUID string |
+| id | UUID string | Catalog and custom: UUID. Catalog ids are stable UUIDs derived from the upstream free-exercise-db slug at seed-prep time |
 | name | string | Display name |
 | force | string? | e.g. pull, push (nullable in source data) |
 | level | enum | `BEGINNER` \| `INTERMEDIATE` \| `EXPERT` |
@@ -159,8 +159,10 @@ Unique constraint on `(exerciseId, muscleId)` (one row per pair).
 | Field | Type | Notes |
 |-------|------|--------|
 | id | UUID | Primary key (string UUID) |
-| path | string | Unique storage key / relative path from free-exercise-db (e.g. `Ab_Roller/0.jpg`) |
-| altText | string? | Optional |
+| path | string | Unique storage key / relative path from free-exercise-db (e.g. `Ab_Roller/0.jpg`) — seed lookup key |
+| contentBase64 | string? | Base64-encoded image bytes loaded at seed time |
+| contentType | string? | e.g. `image/jpeg` |
+| altText | string? | Optional (defaults to exercise name on seed) |
 
 #### exerciseHasImage (M:N)
 
@@ -206,12 +208,12 @@ JPA entity name: `WorkoutTemplate`. Database table: **`workout_template`**.
 | id | UUID | |
 | userId | FK → User | Owner (same role as `Workout.userId`) |
 | name | string? | Optional title |
-| durationSeconds | int? | Planned session duration |
-| totalWeightLifted | decimal? | Optional planned/estimated total (kg); may be computed from sets |
 | difficulty | enum? | `EASY` \| `MEDIUM` \| `HARD` (same enum as workout) |
 | notes | string? | |
 | visibility | enum | `PRIVATE` \| `PUBLIC` — template-only |
 | createdAt / updatedAt | instant | |
+
+Templates do **not** store session `durationSeconds` or `totalWeightLifted` — those belong on **workouts** / **workout_set** when logging.
 
 #### TemplateSet (table `template_set`)
 
@@ -234,7 +236,7 @@ Same structure as `WorkoutSet`: one row per planned set; each set points at an e
 
 No `completed` flag on template sets (that is workout/logging-only).
 
-**Clone template → workout:** create a new `Workout` for the current user with chosen `performedAt`; copy template header fields that apply (`name`, `durationSeconds`, `difficulty`, `notes`, and optionally recompute `totalWeightLifted`); for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics, `rpe`, notes; `completed` default true); set `sourceTemplateId`; leave template unchanged.
+**Clone template → workout:** create a new `Workout` for the current user with chosen `performedAt`; copy template header fields that apply (`name`, `difficulty`, `notes`); recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`, `rpe`, notes; `completed` default true); set `sourceTemplateId`; leave template unchanged. Workout session `durationSeconds` starts unset unless the client sets it later.
 
 **Public templates:** any authenticated user may **read** and **clone**; only owner may **edit/delete**. No template search in v1. A **PUBLIC** template may only include **catalog** exercises (`isCustom=false`). Custom exercises are allowed only on **PRIVATE** templates owned by their creator. Reject create/update of a public template that references a custom exercise.
 
@@ -293,7 +295,7 @@ One row per set in a workout. Flat: each set points at an exercise directly. Mir
 
 Only parameters enabled on the exercise should be required/validated; others may be null.
 
-**Computed metadata:** on save, optionally recompute `totalWeightLifted` = Σ (reps × weightKg) for sets with both values; store on workout for fast list views. Same idea may apply to templates when sets change.
+**Computed metadata:** on workout save, recompute `totalWeightLifted` = Σ (reps × weightKg) for sets with both values; store on the workout header for fast list views. Templates do not store this aggregate.
 
 ---
 
@@ -402,18 +404,22 @@ On first start when no users exist (or via Flyway seed migration / ApplicationRu
 
 ### 8.2 Exercise seed import
 
-Source: [yuhonas/free-exercise-db](https://github.com/yuhonas/free-exercise-db) — `dist/exercises.json`.
+Source: [yuhonas/free-exercise-db](https://github.com/yuhonas/free-exercise-db) — `dist/exercises.json` (+ exercise image files).
+
+Vendored catalog: `backend/src/main/resources/data/exercises.json` with **UUID** `id` values (stable hashes of the upstream slug). Image relative paths in the JSON still match free-exercise-db folders (e.g. `Ab_Roller/0.jpg`).
+
+Optional local image files: `backend/src/main/resources/data/exercise-images/**` (gitignored; fetch with `scripts/fetch-exercise-images.ps1`). If a file is missing, the seeder may download from GitHub raw (`fittrack.seed.download-images`, default true).
 
 Import strategy (backend startup `ApplicationRunner`):
 
-1. Ship a copy under `backend/src/main/resources/data/exercises.json` **or** download at build time (prefer vendored file for reproducibility)
-2. **Skip entirely if the `exercise` table already has any rows** (idempotent; does not re-upsert on later startups)
-3. Otherwise upsert lookup rows first: distinct `equipment` → `Equipment`; union of `primaryMuscles` + `secondaryMuscles` → `Muscle`; distinct image paths → `Image`
-4. Insert `Exercise` by `id`; map `level` / `mechanic` to enums; set `equipmentId`; convert `instructions[]` to a single markdown `instructions` text field; set `trackedParameters` via category heuristic (§4.2); set `isCustom=false`, `addedBy=null`
-5. Insert join rows: `exerciseHasMuscle` with `isPrimary` from the two source lists (`primaryMuscles` → true, `secondaryMuscles` → false); `exerciseHasImage` with `sortOrder` from array index
-6. Serving image bytes is optional post-v1; store paths on `Image` regardless
+1. **Skip entirely if the `exercise` table already has any rows** (idempotent; does not re-upsert on later startups)
+2. Otherwise upsert lookup rows: distinct `equipment` → `Equipment`; union of muscles → `Muscle`
+3. For each distinct image path → `Image`: set `path`, load bytes → `contentBase64` + `contentType`, optional `altText`
+4. Insert `Exercise` by UUID `id`; map enums; set `equipmentId`; markdown `instructions`; `trackedParameters` heuristic; `isCustom=false`, `addedBy=null`
+5. Join rows: `exercise_has_muscle`, `exercise_has_image` (`sortOrder` = array index)
+6. API returns image metadata **and** `contentBase64` / `contentType` on exercise responses for the SPA to render as data URLs
 
-Do not mutate upstream exercise ids.
+Toggle image loading with `fittrack.seed.load-images` / `FITTRACK_SEED_LOAD_IMAGES` (tests typically disable this).
 
 ---
 
@@ -508,7 +514,7 @@ Deferred (tracked in STATUS): **#1** auth hardening. **#9** user management is d
 
 | Topic | Default for v1 | Change if needed |
 |-------|----------------|------------------|
-| ID type | **UUID** for app entities and lookup tables (`Equipment`/`Muscle`/`Image`); catalog `Exercise.id` = free-exercise-db string; custom `Exercise.id` = UUID string | Locked |
+| ID type | **UUID** for all entities including catalog `Exercise.id` (stable UUID derived from upstream slug at seed prep); lookups `Equipment`/`Muscle`/`Image` also UUID | Locked |
 | Weight unit | **Store kg** as SQLite REAL / Java `Double` (`weightKg`, `totalWeightLifted`); UI may convert for display | Locked |
 | Auth | **Local username/password + Google SSO**; both issue **JWT** Bearer tokens | Locked |
 | Google JWT handoff | Redirect to SPA `#token=<jwt>`; no refresh token in v1 | Locked |

@@ -1,0 +1,63 @@
+[
+  {
+    "id": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac",
+    "name": "Ab Roller",
+    "force": "pull",
+    "level": "intermediate",
+    "mechanic": "isolation",
+    "equipment": "other",
+    "primaryMuscles": [
+      "abdominals"
+    ],
+    "secondaryMuscles": [
+      "shoulders"
+    ],
+    "instructions": [
+      "Hold the ab roller with both hands.",
+      "Roll forward then back."
+    ],
+    "category": "strength",
+    "images": [
+      "Ab_Roller/0.jpg",
+      "Ab_Roller/1.jpg"
+    ]
+  },
+  {
+    "id": "35d6cf57-b624-4c81-b442-e40d8c6b1a84",
+    "name": "Jumping rope",
+    "force": null,
+    "level": "beginner",
+    "mechanic": null,
+    "equipment": "body only",
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "secondaryMuscles": [
+      "calves"
+    ],
+    "instructions": [
+      "Jump continuously over the rope."
+    ],
+    "category": "cardio",
+    "images": [
+      "Jumping_rope/0.jpg"
+    ]
+  },
+  {
+    "id": "de8ff5cc-372e-4f81-a5ef-5e2bb25c591b",
+    "name": "Hamstring Stretch",
+    "force": "static",
+    "level": "beginner",
+    "mechanic": null,
+    "equipment": "body only",
+    "primaryMuscles": [
+      "hamstrings"
+    ],
+    "secondaryMuscles": [],
+    "instructions": [
+      "Reach toward your toes and hold."
+    ],
+    "category": "stretching",
+    "images": []
+  }
+]

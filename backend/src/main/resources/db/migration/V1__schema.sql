@@ -25,9 +25,11 @@ CREATE TABLE muscle (
 );
 
 CREATE TABLE image (
-    id       TEXT PRIMARY KEY NOT NULL,
-    path     TEXT NOT NULL UNIQUE,
-    alt_text TEXT
+    id              TEXT PRIMARY KEY NOT NULL,
+    path            TEXT NOT NULL UNIQUE,
+    content_base64  TEXT,
+    content_type    TEXT,
+    alt_text        TEXT
 );
 
 CREATE TABLE exercise (
@@ -70,8 +72,6 @@ CREATE TABLE workout_template (
     id                   TEXT PRIMARY KEY NOT NULL,
     user_id              TEXT NOT NULL REFERENCES app_user(id),
     name                 TEXT,
-    duration_seconds     INTEGER,
-    total_weight_lifted  REAL,
     difficulty           TEXT,
     notes                TEXT,
     visibility           TEXT NOT NULL DEFAULT 'PRIVATE',

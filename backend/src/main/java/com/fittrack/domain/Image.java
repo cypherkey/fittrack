@@ -18,6 +18,12 @@ public class Image {
 	@Column(nullable = false, unique = true)
 	private String path;
 
+	@Column(name = "content_base64")
+	private String contentBase64;
+
+	@Column(name = "content_type")
+	private String contentType;
+
 	@Column(name = "alt_text")
 	private String altText;
 
@@ -42,6 +48,22 @@ public class Image {
 
 	public void setPath(String path) {
 		this.path = path;
+	}
+
+	public String getContentBase64() {
+		return contentBase64;
+	}
+
+	public void setContentBase64(String contentBase64) {
+		this.contentBase64 = contentBase64;
+	}
+
+	public String getContentType() {
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
 	}
 
 	public String getAltText() {

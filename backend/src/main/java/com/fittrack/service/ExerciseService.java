@@ -225,7 +225,9 @@ public class ExerciseService {
 						link.getImage().getId(),
 						link.getImage().getPath(),
 						link.getImage().getAltText(),
-						link.getSortOrder()
+						link.getSortOrder(),
+						link.getImage().getContentType(),
+						link.getImage().getContentBase64()
 				))
 				.toList();
 		Equipment equipment = exercise.getEquipment();

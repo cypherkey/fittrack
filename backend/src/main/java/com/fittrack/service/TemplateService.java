@@ -88,7 +88,6 @@ public class TemplateService {
 		workout.setUser(user);
 		workout.setPerformedAt(request.performedAt());
 		workout.setName(request.name() != null ? request.name() : template.getName());
-		workout.setDurationSeconds(template.getDurationSeconds());
 		workout.setDifficulty(template.getDifficulty());
 		workout.setNotes(template.getNotes());
 		workout.setSourceTemplate(template);
@@ -139,7 +138,6 @@ public class TemplateService {
 
 	private void applyMetadata(WorkoutTemplate template, TemplateRequest request) {
 		template.setName(request.name());
-		template.setDurationSeconds(request.durationSeconds());
 		template.setDifficulty(request.difficulty());
 		template.setNotes(request.notes());
 		template.setVisibility(request.visibility() != null ? request.visibility() : TemplateVisibility.PRIVATE);
@@ -149,7 +147,6 @@ public class TemplateService {
 		template.getSets().clear();
 		templateRepository.flush();
 		if (setRequests == null || setRequests.isEmpty()) {
-			template.setTotalWeightLifted(null);
 			return;
 		}
 		WorkoutService.assertUniqueSetNumbers(setRequests.stream().map(TemplateSetRequest::setNumber).toList());
@@ -171,19 +168,6 @@ public class TemplateService {
 			set.setNotes(req.notes());
 			template.getSets().add(set);
 		}
-		template.setTotalWeightLifted(SetWeightTotals.compute(template.getSets().stream()
-				.map(s -> (SetWeightTotals.WeightedSet) new SetWeightTotals.WeightedSet() {
-					@Override
-					public Integer reps() {
-						return s.getReps();
-					}
-
-					@Override
-					public Double weightKg() {
-						return s.getWeightKg();
-					}
-				})
-				.toList()));
 	}
 
 	private WorkoutTemplate requireOwned(User user, String id) {
@@ -217,8 +201,6 @@ public class TemplateService {
 				template.getId(),
 				template.getUser().getId(),
 				template.getName(),
-				template.getDurationSeconds(),
-				template.getTotalWeightLifted(),
 				template.getDifficulty(),
 				template.getNotes(),
 				template.getVisibility(),

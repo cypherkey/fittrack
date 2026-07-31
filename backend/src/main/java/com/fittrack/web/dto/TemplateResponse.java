@@ -9,8 +9,6 @@ public record TemplateResponse(
 		String id,
 		String userId,
 		String name,
-		Integer durationSeconds,
-		Double totalWeightLifted,
 		WorkoutDifficulty difficulty,
 		String notes,
 		TemplateVisibility visibility,

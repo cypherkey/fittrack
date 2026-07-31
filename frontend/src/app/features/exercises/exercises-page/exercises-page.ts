@@ -4,7 +4,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { LookupApi } from '../../../core/api/lookup-api.service';
-import { Exercise } from '../../../core/models/exercise';
+import { Exercise, exerciseImageSrc } from '../../../core/models/exercise';
 import { Equipment, Muscle } from '../../../core/models/lookup';
 import { NotificationService } from '../../../core/services/notification.service';
 import { errorMessage } from '../../../core/utils/http-error';
@@ -30,7 +30,7 @@ export class ExercisesPage implements OnInit {
     customOnly: [false],
   });
 
-  displayedColumns = ['name', 'category', 'equipment', 'level', 'custom', 'actions'];
+  displayedColumns = ['image', 'name', 'category', 'equipment', 'level', 'custom', 'actions'];
   readonly exercises = signal<Exercise[]>([]);
   readonly muscles = signal<Muscle[]>([]);
   readonly equipment = signal<Equipment[]>([]);
@@ -38,6 +38,10 @@ export class ExercisesPage implements OnInit {
   readonly totalElements = signal(0);
   readonly pageIndex = signal(0);
   readonly pageSize = signal(20);
+
+  thumbSrc(row: Exercise): string | null {
+    return exerciseImageSrc(row.images?.[0]);
+  }
 
   ngOnInit(): void {
     this.lookupApi.muscles().subscribe((m) => this.muscles.set(m));

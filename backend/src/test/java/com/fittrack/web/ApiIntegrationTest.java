@@ -29,6 +29,8 @@ class ApiIntegrationTest {
 		registry.add("FITTRACK_DB_PATH", () -> "file:./target/api-test-fittrack.db");
 		registry.add("spring.datasource.url", () -> "jdbc:sqlite:./target/api-test-fittrack.db?foreign_keys=true");
 		registry.add("fittrack.jwt.secret", () -> "fittrack-test-secret-change-me-must-be-at-least-256-bits!!");
+		registry.add("fittrack.seed.load-images", () -> "false");
+		registry.add("fittrack.seed.download-images", () -> "false");
 	}
 
 	@Autowired
@@ -57,7 +59,7 @@ class ApiIntegrationTest {
 		mockMvc.perform(get("/api/v1/exercises").header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.totalElements").value(org.hamcrest.Matchers.greaterThanOrEqualTo(3)))
-				.andExpect(jsonPath("$.content[?(@.id=='Ab_Roller')].custom").value(org.hamcrest.Matchers.contains(false)));
+				.andExpect(jsonPath("$.content[?(@.id=='51ababe0-e7cc-40d3-a3ef-7d6fb418fbac')].custom").value(org.hamcrest.Matchers.contains(false)));
 
 		mockMvc.perform(get("/api/v1/equipment").header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
@@ -110,14 +112,13 @@ class ApiIntegrationTest {
 								  "visibility": "PRIVATE",
 								  "difficulty": "MEDIUM",
 								  "sets": [
-								    {"exerciseId": "Ab_Roller", "setNumber": 10, "reps": 12, "weightKg": 20.0, "rpe": "EASY"},
-								    {"exerciseId": "Ab_Roller", "setNumber": 20, "reps": 10, "weightKg": 25.0, "rpe": "CHALLENGING"}
+								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 10, "reps": 12, "weightKg": 20.0, "rpe": "EASY"},
+								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 20, "reps": 10, "weightKg": 25.0, "rpe": "CHALLENGING"}
 								  ]
 								}
 								"""))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.sets.length()").value(2))
-				.andExpect(jsonPath("$.totalWeightLifted").value(490.0))
 				.andReturn();
 		String templateId = objectMapper.readTree(templateResult.getResponse().getContentAsString()).get("id").asText();
 
@@ -145,7 +146,7 @@ class ApiIntegrationTest {
 								  "performedAt": "2026-07-27T18:00:00Z",
 								  "name": "Push Day Live",
 								  "sets": [
-								    {"exerciseId": "Ab_Roller", "setNumber": 5, "reps": 8, "weightKg": 30.0, "completed": true}
+								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 5, "reps": 8, "weightKg": 30.0, "completed": true}
 								  ]
 								}
 								"""))

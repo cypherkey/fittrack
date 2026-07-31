@@ -25,8 +25,6 @@
       <dl class="meta">
         <div><dt>Visibility</dt><dd>{{ template.visibility }}</dd></div>
         <div><dt>Difficulty</dt><dd>{{ template.difficulty || '—' }}</dd></div>
-        <div><dt>Duration</dt><dd>{{ template.durationSeconds ? template.durationSeconds + 's' : '—' }}</dd></div>
-        <div><dt>Total weight</dt><dd>{{ template.totalWeightLifted ?? '—' }} kg</dd></div>
       </dl>
       @if (template.notes) {
         <p><strong>Notes:</strong> {{ template.notes }}</p>

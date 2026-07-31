@@ -17,8 +17,6 @@ export interface Template {
   id: string;
   userId: string;
   name: string;
-  durationSeconds: number | null;
-  totalWeightLifted: number | null;
   difficulty: WorkoutDifficulty | null;
   notes: string | null;
   visibility: TemplateVisibility;
@@ -40,7 +38,6 @@ export interface TemplateSetRequest {
 
 export interface TemplateRequest {
   name?: string | null;
-  durationSeconds?: number | null;
   difficulty?: WorkoutDifficulty | null;
   notes?: string | null;
   visibility: TemplateVisibility;

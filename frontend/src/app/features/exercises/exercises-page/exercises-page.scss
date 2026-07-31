@@ -40,6 +40,20 @@ table {
   width: 100%;
 }
 
+.thumb-cell {
+  width: 56px;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
 mat-paginator {
   margin-top: 0.5rem;
 }
