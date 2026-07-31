@@ -104,7 +104,6 @@ export class TemplateFormPage implements OnInit {
         weightKg: s.weightKg,
         durationSeconds: s.durationSeconds,
         distanceMeters: s.distanceMeters,
-        rpe: s.rpe,
         notes: s.notes || null,
       })),
     };

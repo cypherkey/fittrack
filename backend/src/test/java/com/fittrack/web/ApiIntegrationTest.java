@@ -112,8 +112,8 @@ class ApiIntegrationTest {
 								  "visibility": "PRIVATE",
 								  "difficulty": "MEDIUM",
 								  "sets": [
-								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 10, "reps": 12, "weightKg": 20.0, "rpe": "EASY"},
-								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 20, "reps": 10, "weightKg": 25.0, "rpe": "CHALLENGING"}
+								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 10, "reps": 12, "weightKg": 20.0},
+								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 20, "reps": 10, "weightKg": 25.0}
 								  ]
 								}
 								"""))

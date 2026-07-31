@@ -2,10 +2,6 @@
   <div class="sets-header">
     <h3>Sets</h3>
     <div class="header-actions">
-      <mat-form-field appearance="outline" class="exercise-filter">
-        <mat-label>Filter exercises</mat-label>
-        <input matInput [value]="exerciseSearch" (input)="onExerciseSearch($any($event.target).value)" />
-      </mat-form-field>
       <button mat-stroked-button type="button" (click)="addSet()">
         <mat-icon>add</mat-icon>
         Add set
@@ -25,14 +21,23 @@
 
           <mat-form-field appearance="outline" class="field-exercise">
             <mat-label>Exercise</mat-label>
-            <mat-select
-              formControlName="exerciseId"
-              (selectionChange)="onExerciseSelected(i, $event.value)"
+            <input
+              matInput
+              type="text"
+              autocomplete="off"
+              formControlName="exerciseName"
+              [matAutocomplete]="exerciseAuto"
+              (focus)="onExerciseFocus(i)"
+              (input)="onExerciseInput(i)"
+            />
+            <mat-autocomplete
+              #exerciseAuto="matAutocomplete"
+              (optionSelected)="onExerciseAutocompleteSelected(i, $event)"
             >
-              @for (ex of exercises(); track ex.id) {
-                <mat-option [value]="ex.id">{{ ex.name }}</mat-option>
+              @for (ex of exerciseOptions(); track ex.id) {
+                <mat-option [value]="ex.name">{{ ex.name }}</mat-option>
               }
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="field-num">
@@ -60,15 +65,17 @@
             <input matInput type="number" step="0.1" formControlName="distanceMeters" />
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="field-rpe">
-            <mat-label>RPE</mat-label>
-            <mat-select formControlName="rpe">
-              <mat-option [value]="null">—</mat-option>
-              @for (level of rpeLevels; track level) {
-                <mat-option [value]="level">{{ level }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+          @if (showRpe) {
+            <mat-form-field appearance="outline" class="field-rpe">
+              <mat-label>RPE</mat-label>
+              <mat-select formControlName="rpe">
+                <mat-option [value]="null">—</mat-option>
+                @for (level of rpeLevels; track level) {
+                  <mat-option [value]="level">{{ level }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
 
           @if (showCompleted) {
             <mat-checkbox formControlName="completed" class="field-completed">Done</mat-checkbox>

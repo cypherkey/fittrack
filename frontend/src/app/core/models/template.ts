@@ -1,4 +1,4 @@
-import { RpeLevel, TemplateVisibility, WorkoutDifficulty } from './enums';
+import { TemplateVisibility, WorkoutDifficulty } from './enums';
 
 export interface TemplateSet {
   id: string;
@@ -9,7 +9,6 @@ export interface TemplateSet {
   weightKg: number | null;
   durationSeconds: number | null;
   distanceMeters: number | null;
-  rpe: RpeLevel | null;
   notes: string | null;
 }
 
@@ -32,7 +31,6 @@ export interface TemplateSetRequest {
   weightKg?: number | null;
   durationSeconds?: number | null;
   distanceMeters?: number | null;
-  rpe?: RpeLevel | null;
   notes?: string | null;
 }
 

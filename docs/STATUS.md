@@ -47,7 +47,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 ## Implementation notes (agents)
 
 - Package root: `com.fittrack`; template JPA entity is `WorkoutTemplate` -> table `workout_template`
-- RPE on sets is enum `RpeLevel` (`EASY` | `CHALLENGING` | `HARD`), not decimal; distinct from session `WorkoutDifficulty`
+- RPE on **workout** sets is enum `RpeLevel` (`EASY` | `CHALLENGING` | `HARD`), not decimal; distinct from session `WorkoutDifficulty`. Template sets do not have RPE.
 - Same exercise may appear on multiple sets; uniqueness is `(template|workout, setNumber)` only
 - Set order is client-controlled; `PATCH /api/v1/workouts|templates/{id}/sets/reorder` updates `setNumber`
 - PUBLIC templates may only contain catalog exercises (`isCustom=false`)

@@ -1,6 +1,5 @@
 package com.fittrack.web.dto;
 
-import com.fittrack.domain.RpeLevel;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +11,6 @@ public record TemplateSetRequest(
 		Double weightKg,
 		Integer durationSeconds,
 		Double distanceMeters,
-		RpeLevel rpe,
 		String notes
 ) {
 }

@@ -133,7 +133,7 @@ apiBaseUrl: ''
 
 ### Templates
 - List own templates; browse `visibility=PUBLIC` (no template-level duration or total weight)
-- Create/edit with sets editor (exercise picker, setNumber, reps/weight/duration/distance/RPE)
+- Create/edit with sets editor (searchable exercise dropdown, setNumber, reps/weight/duration/distance; no RPE on templates)
 - Enforce UI rule: PUBLIC templates cannot add custom exercises
 - Clone → dialog for `performedAt` + name → create workout → navigate to workout
 

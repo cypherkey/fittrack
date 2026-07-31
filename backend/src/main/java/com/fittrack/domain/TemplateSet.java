@@ -2,8 +2,6 @@ package com.fittrack.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -42,9 +40,6 @@ public class TemplateSet {
 
 	@Column(name = "distance_meters")
 	private Double distanceMeters;
-
-	@Enumerated(EnumType.STRING)
-	private RpeLevel rpe;
 
 	private String notes;
 
@@ -117,14 +112,6 @@ public class TemplateSet {
 
 	public void setDistanceMeters(Double distanceMeters) {
 		this.distanceMeters = distanceMeters;
-	}
-
-	public RpeLevel getRpe() {
-		return rpe;
-	}
-
-	public void setRpe(RpeLevel rpe) {
-		this.rpe = rpe;
 	}
 
 	public String getNotes() {

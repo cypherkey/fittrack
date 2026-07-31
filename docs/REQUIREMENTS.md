@@ -231,14 +231,13 @@ Same structure as `WorkoutSet`: one row per planned set; each set points at an e
 | weightKg | decimal? | Planned |
 | durationSeconds | int? | Planned |
 | distanceMeters | decimal? | Planned |
-| rpe | enum? | `EASY` \| `CHALLENGING` \| `HARD` (extensible later) |
 | notes | string? | Optional per-set notes |
 
 **Unique constraint:** `(workoutTemplateId, setNumber)` — set numbers must be unique within a template. The API must support reordering: clients send explicit `setNumber` values; the server does **not** auto-rewrite to contiguous 1…N. When replacing/reordering sets, the client is responsible for sending a conflict-free set of numbers (unique within the template).
 
 No `completed` flag on template sets (that is workout/logging-only).
 
-**Clone template → workout:** create a new `Workout` for the current user with chosen `performedAt`; copy template header fields that apply (`name`, `difficulty`, `notes`); recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`, `rpe`, notes; `completed` default true); set `sourceTemplateId`; leave template unchanged. Workout session `durationSeconds` starts unset unless the client sets it later.
+**Clone template → workout:** create a new `Workout` for the current user with chosen `performedAt`; copy template header fields that apply (`name`, `difficulty`, `notes`); recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`, notes; `rpe` starts unset; `completed` default true); set `sourceTemplateId`; leave template unchanged. Workout session `durationSeconds` starts unset unless the client sets it later.
 
 **Public templates:** any authenticated user may **read** and **clone**; only owner may **edit/delete**. No template search in v1. A **PUBLIC** template may only include **catalog** exercises (`isCustom=false`). Custom exercises are allowed only on **PRIVATE** templates owned by their creator. Reject create/update of a public template that references a custom exercise.
 
@@ -526,7 +525,7 @@ Deferred (tracked in STATUS): **#1** auth hardening. **#9** user management is d
 | Docker | Root **`Dockerfile`** multi-stage (Angular + Boot single image); SQLite on a volume | Locked |
 | Public templates | Listed to all logged-in users; **no search**; **catalog exercises only** | Locked |
 | Difficulty | Enum `EASY` \| `MEDIUM` \| `HARD` (nullable, session-level) | Locked |
-| RPE (per set) | Enum `EASY` \| `CHALLENGING` \| `HARD` (nullable; more values later) | Locked |
+| RPE (per set) | Enum `EASY` \| `CHALLENGING` \| `HARD` on **workout sets only** (nullable; more values later). Not on template sets. | Locked |
 | Muscle on join | `exerciseHasMuscle.isPrimary` boolean (not an enum) | Locked |
 | Workout time | **`performedAt` datetime** (not date-only); multiple workouts per day allowed | Locked |
 | Custom exercises | Allowed: `isCustom` + `addedBy`; private templates only for customs | Locked |

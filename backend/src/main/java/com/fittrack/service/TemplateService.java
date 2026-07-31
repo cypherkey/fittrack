@@ -102,7 +102,7 @@ public class TemplateService {
 			set.setWeightKg(templateSet.getWeightKg());
 			set.setDurationSeconds(templateSet.getDurationSeconds());
 			set.setDistanceMeters(templateSet.getDistanceMeters());
-			set.setRpe(templateSet.getRpe());
+			set.setRpe(null);
 			set.setNotes(templateSet.getNotes());
 			set.setCompleted(true);
 			workout.getSets().add(set);
@@ -164,7 +164,6 @@ public class TemplateService {
 			set.setWeightKg(req.weightKg());
 			set.setDurationSeconds(req.durationSeconds());
 			set.setDistanceMeters(req.distanceMeters());
-			set.setRpe(req.rpe());
 			set.setNotes(req.notes());
 			template.getSets().add(set);
 		}
@@ -220,7 +219,6 @@ public class TemplateService {
 				set.getWeightKg(),
 				set.getDurationSeconds(),
 				set.getDistanceMeters(),
-				set.getRpe(),
 				set.getNotes()
 		);
 	}

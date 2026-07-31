@@ -5,15 +5,22 @@ import {
   Input,
   OnInit,
   Output,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { Exercise } from '../../../core/models/exercise';
 import { RPE_LEVELS } from '../../../core/models/enums';
 import { ReorderSetItem } from '../../../core/models/template';
 import { renumberSets } from '../../utils/set-form';
+
+interface ExerciseOption {
+  id: string;
+  name: string;
+}
 
 @Component({
   selector: 'app-sets-editor',
@@ -28,30 +35,82 @@ export class SetsEditor implements OnInit {
   @Input({ required: true }) sets!: FormArray<FormGroup>;
   @Input() catalogOnly = false;
   @Input() showCompleted = false;
+  /** When false (templates), RPE controls are hidden and omitted from new rows. */
+  @Input() showRpe = true;
   @Input() entityId: string | null = null;
   @Output() reorderPersisted = new EventEmitter<ReorderSetItem[]>();
 
   readonly rpeLevels = RPE_LEVELS;
-  readonly exercises = signal<Exercise[]>([]);
-  exerciseSearch = '';
+  private readonly searchResults = signal<Exercise[]>([]);
+  private readonly selectedOptions = signal<ExerciseOption[]>([]);
+
+  readonly exerciseOptions = computed(() => {
+    const byId = new Map<string, ExerciseOption>();
+    for (const ex of this.searchResults()) {
+      byId.set(ex.id, { id: ex.id, name: ex.name });
+    }
+    for (const ex of this.selectedOptions()) {
+      if (!byId.has(ex.id)) {
+        byId.set(ex.id, ex);
+      }
+    }
+    return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+  });
 
   ngOnInit(): void {
     this.loadExercises('');
+    const selected: ExerciseOption[] = [];
+    for (const group of this.sets.controls) {
+      const id = group.get('exerciseId')?.value as string | undefined;
+      const name = group.get('exerciseName')?.value as string | undefined;
+      if (id && name) {
+        selected.push({ id, name });
+      }
+    }
+    if (selected.length) {
+      this.selectedOptions.set(selected);
+    }
   }
 
   loadExercises(q: string): void {
     this.exerciseApi
       .list({ q, customOnly: this.catalogOnly ? false : undefined, size: 100 })
       .subscribe((page) => {
-        this.exercises.set(
-          this.catalogOnly ? page.content.filter((e) => !e.custom) : page.content,
-        );
+        const content = this.catalogOnly
+          ? page.content.filter((e) => !e.custom)
+          : page.content;
+        this.searchResults.set(content);
       });
   }
 
-  onExerciseSearch(value: string): void {
-    this.exerciseSearch = value;
+  onExerciseInput(index: number): void {
+    const group = this.sets.at(index);
+    const value = (group.get('exerciseName')?.value as string) || '';
+    // Require an explicit autocomplete pick for a valid exerciseId.
+    group.patchValue({ exerciseId: '' }, { emitEvent: false });
     this.loadExercises(value);
+  }
+
+  onExerciseFocus(index: number): void {
+    const name = (this.sets.at(index).get('exerciseName')?.value as string) || '';
+    this.loadExercises(name);
+  }
+
+  onExerciseAutocompleteSelected(index: number, event: MatAutocompleteSelectedEvent): void {
+    const name = String(event.option.value ?? '');
+    const exercise =
+      this.exerciseOptions().find((e) => e.name === name) ??
+      this.searchResults().find((e) => e.name === name);
+    const group = this.sets.at(index);
+    group.patchValue({
+      exerciseId: exercise?.id ?? '',
+      exerciseName: name,
+    });
+    if (exercise) {
+      const next = this.selectedOptions().filter((e) => e.id !== exercise.id);
+      next.push({ id: exercise.id, name: exercise.name });
+      this.selectedOptions.set(next);
+    }
   }
 
   addSet(): void {
@@ -71,6 +130,9 @@ export class SetsEditor implements OnInit {
     });
     if (!this.showCompleted) {
       group.removeControl('completed' as never);
+    }
+    if (!this.showRpe) {
+      group.removeControl('rpe' as never);
     }
     this.sets.push(group);
   }
@@ -108,15 +170,6 @@ export class SetsEditor implements OnInit {
     this.sets.clear();
     controls.forEach((c) => this.sets.push(c));
     this.afterReorder();
-  }
-
-  onExerciseSelected(index: number, exerciseId: string): void {
-    const exercise = this.exercises().find((e) => e.id === exerciseId);
-    const group = this.sets.at(index);
-    group.patchValue({
-      exerciseId,
-      exerciseName: exercise?.name ?? '',
-    });
   }
 
   private afterReorder(): void {

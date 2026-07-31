@@ -13,7 +13,6 @@ export function createTemplateSetGroup(fb: FormBuilder, set?: TemplateSet): Form
     weightKg: [set?.weightKg ?? null],
     durationSeconds: [set?.durationSeconds ?? null],
     distanceMeters: [set?.distanceMeters ?? null],
-    rpe: [set?.rpe ?? null as RpeLevel | null],
     notes: [set?.notes ?? ''],
   });
 }
