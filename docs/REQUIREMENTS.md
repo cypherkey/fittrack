@@ -417,7 +417,7 @@ Import strategy (backend startup `ApplicationRunner`):
 1. **Skip entirely if the `exercise` table already has any rows** (idempotent; does not re-upsert on later startups)
 2. Otherwise upsert lookup rows: distinct `equipment` → `Equipment`; union of muscles → `Muscle`
 3. For each distinct image path → `Image`: set `path`, load bytes → `contentBase64` + `contentType`, optional `altText`
-4. Insert `Exercise` by UUID `id`; map enums; set `equipmentId`; markdown `instructions`; `trackedParameters` heuristic; `isCustom=false`, `addedBy=null`
+4. Insert `Exercise` by UUID `id`; map enums; set `equipmentId`; markdown `instructions`; `trackedParameters` from seed (Ryot `lot` → bitmask; category heuristic only as fallback); `isCustom=false`, `addedBy=null`
 5. Join rows: `exercise_has_muscle`, `exercise_has_image` (`sortOrder` = array index)
 6. API returns image metadata **and** `contentBase64` / `contentType` on exercise responses for the SPA to render as data URLs
 

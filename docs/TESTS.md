@@ -23,7 +23,8 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 |--------|--------|
 | `mapsLevelAndMechanic` | Seed enum mapping |
 | `instructionsBecomeMarkdownList` | Instructions → markdown |
-| `trackedParametersFollowCategoryHeuristics` | Category → bitmasks |
+| `trackedParametersFollowCategoryHeuristicAsFallback` | Category → bitmasks (fallback) |
+| `mapsRyotLotToTrackedParameterBits` | Ryot lot → bitmask |
 
 ### `GoogleOAuthSuccessHandlerTest`
 

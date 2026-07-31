@@ -25,12 +25,25 @@ class ExerciseCatalogSeederTest {
 	}
 
 	@Test
-	void trackedParametersFollowCategoryHeuristic() {
+	void trackedParametersFollowCategoryHeuristicAsFallback() {
 		assertThat(ExerciseCatalogSeeder.trackedForCategory("cardio"))
 				.isEqualTo(TrackedParameters.DURATION | TrackedParameters.DISTANCE);
 		assertThat(ExerciseCatalogSeeder.trackedForCategory("stretching"))
 				.isEqualTo(TrackedParameters.DURATION | TrackedParameters.REPS);
 		assertThat(ExerciseCatalogSeeder.trackedForCategory("strength"))
 				.isEqualTo(TrackedParameters.REPS | TrackedParameters.WEIGHT);
+	}
+
+	@Test
+	void mapsRyotLotToTrackedParameterBits() {
+		assertThat(ExerciseCatalogSeeder.trackedFromRyotLot("reps_and_weight"))
+				.isEqualTo(TrackedParameters.REPS | TrackedParameters.WEIGHT);
+		assertThat(ExerciseCatalogSeeder.trackedFromRyotLot("duration"))
+				.isEqualTo(TrackedParameters.DURATION);
+		assertThat(ExerciseCatalogSeeder.trackedFromRyotLot("distance_and_duration"))
+				.isEqualTo(TrackedParameters.DURATION | TrackedParameters.DISTANCE);
+		assertThat(ExerciseCatalogSeeder.trackedFromRyotLot("reps"))
+				.isEqualTo(TrackedParameters.REPS);
+		assertThat(ExerciseCatalogSeeder.trackedFromRyotLot("unknown")).isNull();
 	}
 }

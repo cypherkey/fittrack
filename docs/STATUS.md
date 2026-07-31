@@ -51,7 +51,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - Same exercise may appear on multiple sets; uniqueness is `(template|workout, setNumber)` only
 - Set order is client-controlled; `PATCH /api/v1/workouts|templates/{id}/sets/reorder` updates `setNumber`
 - PUBLIC templates may only contain catalog exercises (`isCustom=false`)
-- Exercise catalog: vendored `data/exercises.json` (UUID ids); images as base64 on `image` via `exercise_has_image`; local files under `data/exercise-images/` (gitignored) or GitHub download; seeder skips if exercise table has rows
+- Exercise catalog: vendored `data/exercises.json` (UUID ids + `trackedParameters` bitmask from Ryot lots); images as base64 on `image` via `exercise_has_image`; local files under `data/exercise-images/` (gitignored) or GitHub download; seeder skips if exercise table has rows
 - Templates: no header `durationSeconds` / `totalWeightLifted` (workout / workout_set only for session totals and logged duration)
 - User admin: Flyway `V2__user_admin.sql`; seed `admin` is admin; Google JIT users are non-admin
 - OpenAPI / Swagger UI: `/v3/api-docs`, `/swagger-ui.html`; JWT bearer for Try it out

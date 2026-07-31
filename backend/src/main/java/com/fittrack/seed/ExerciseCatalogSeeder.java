@@ -140,7 +140,10 @@ public class ExerciseCatalogSeeder implements ApplicationRunner {
 			exercise.setEquipment(equipment);
 			exercise.setInstructions(toMarkdown(seed.instructions()));
 			exercise.setCategory(seed.category());
-			exercise.setTrackedParameters(trackedForCategory(seed.category()));
+			exercise.setTrackedParameters(
+					seed.trackedParameters() != null
+							? seed.trackedParameters()
+							: trackedForCategory(seed.category()));
 			exercise.setCustom(false);
 			exercise.setAddedBy(null);
 			exerciseRepository.save(exercise);
@@ -316,6 +319,20 @@ public class ExerciseCatalogSeeder implements ApplicationRunner {
 		};
 	}
 
+	/** Maps a Ryot exercise {@code lot} string to FitTrack bitmask, or {@code null} if unknown. */
+	static Integer trackedFromRyotLot(String lot) {
+		if (!StringUtils.hasText(lot)) {
+			return null;
+		}
+		return switch (lot.trim().toLowerCase(Locale.ROOT)) {
+			case "reps_and_weight" -> TrackedParameters.REPS | TrackedParameters.WEIGHT;
+			case "duration" -> TrackedParameters.DURATION;
+			case "distance_and_duration" -> TrackedParameters.DURATION | TrackedParameters.DISTANCE;
+			case "reps" -> TrackedParameters.REPS;
+			default -> null;
+		};
+	}
+
 	private record LoadedImage(byte[] bytes, String contentType) {
 	}
 
@@ -331,7 +348,8 @@ public class ExerciseCatalogSeeder implements ApplicationRunner {
 			List<String> secondaryMuscles,
 			List<String> instructions,
 			String category,
-			List<String> images
+			List<String> images,
+			Integer trackedParameters
 	) {
 	}
 }
