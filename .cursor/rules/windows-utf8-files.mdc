@@ -1,0 +1,22 @@
+---
+description: Create/edit files via shell as UTF-8 on Windows (avoid Write tool UTF-16)
+alwaysApply: true
+---
+
+# Windows file encoding
+
+On Windows, **do not use the Write tool** to create or overwrite files. It can save UTF-16 (null bytes between characters), which breaks Docker (`.dockerignore`), Java, TypeScript, and other tooling.
+
+## Required approach
+
+- **Create or replace files** with PowerShell (`New-Item`, `Set-Content -Encoding utf8NoBOM` if available, or `[IO.File]::WriteAllText(..., UTF8Encoding $false)` / `WriteAllBytes`).
+- Prefer **LF** for Docker-related files (`.dockerignore`, `Dockerfile`).
+- **Edits**: `StrReplace` is fine for existing UTF-8 files; for new files or full rewrites, use the shell.
+- After writing, smoke-check when suspicious: first bytes should not alternate with `00` (e.g. `.dockerignore` should start `2E 67 69 74` for `.git`, not `2E 00 67 00`).
+
+## Example (PowerShell)
+
+```powershell
+$utf8 = New-Object System.Text.UTF8Encoding $false
+[IO.File]::WriteAllText("$pwd\path\to\file.ext", $content, $utf8)
+```
