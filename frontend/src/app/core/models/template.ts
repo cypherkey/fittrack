@@ -43,7 +43,6 @@ export interface TemplateRequest {
 }
 
 export interface CloneTemplateRequest {
-  performedAt: string;
   name?: string | null;
 }
 

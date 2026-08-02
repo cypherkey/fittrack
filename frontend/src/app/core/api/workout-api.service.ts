@@ -40,4 +40,12 @@ export class WorkoutApi {
   reorderSets(id: string, body: ReorderSetsRequest): Observable<Workout> {
     return this.http.patch<Workout>(`${this.base}/${id}/sets/reorder`, body);
   }
+
+  start(id: string): Observable<Workout> {
+    return this.http.post<Workout>(`${this.base}/${id}/start`, {});
+  }
+
+  complete(id: string): Observable<Workout> {
+    return this.http.post<Workout>(`${this.base}/${id}/complete`, {});
+  }
 }

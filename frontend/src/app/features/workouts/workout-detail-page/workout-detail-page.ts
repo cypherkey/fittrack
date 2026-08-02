@@ -4,6 +4,7 @@ import { WorkoutApi } from '../../../core/api/workout-api.service';
 import { Workout } from '../../../core/models/workout';
 import { NotificationService } from '../../../core/services/notification.service';
 import { errorMessage } from '../../../core/utils/http-error';
+import { formatSessionDuration } from '../../../shared/utils/set-form';
 
 @Component({
   selector: 'app-workout-detail-page',
@@ -19,6 +20,7 @@ export class WorkoutDetailPage implements OnInit {
 
   readonly workout = signal<Workout | null>(null);
   readonly loading = signal(true);
+  readonly acting = signal(false);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -39,6 +41,44 @@ export class WorkoutDetailPage implements OnInit {
     });
   }
 
+  start(): void {
+    const w = this.workout();
+    if (!w || this.acting()) {
+      return;
+    }
+    this.acting.set(true);
+    this.workoutApi.start(w.id).subscribe({
+      next: (updated) => {
+        this.workout.set(updated);
+        this.acting.set(false);
+        this.notify.success('Workout started');
+      },
+      error: (err) => {
+        this.acting.set(false);
+        this.notify.error(errorMessage(err));
+      },
+    });
+  }
+
+  complete(): void {
+    const w = this.workout();
+    if (!w || this.acting()) {
+      return;
+    }
+    this.acting.set(true);
+    this.workoutApi.complete(w.id).subscribe({
+      next: (updated) => {
+        this.workout.set(updated);
+        this.acting.set(false);
+        this.notify.success('Workout completed');
+      },
+      error: (err) => {
+        this.acting.set(false);
+        this.notify.error(errorMessage(err));
+      },
+    });
+  }
+
   edit(): void {
     const w = this.workout();
     if (w) {
@@ -50,7 +90,15 @@ export class WorkoutDetailPage implements OnInit {
     void this.router.navigate(['/workouts']);
   }
 
-  formatDate(iso: string): string {
+  formatDate(iso: string | null | undefined): string {
+    if (!iso) {
+      return '—';
+    }
     return new Date(iso).toLocaleString();
   }
+
+  durationLabel(workout: Workout): string {
+    return formatSessionDuration(workout.startedAt, workout.endedAt);
+  }
 }
+

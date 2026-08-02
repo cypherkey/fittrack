@@ -14,11 +14,11 @@ public interface WorkoutRepository extends JpaRepository<Workout, String> {
 	@Query("""
 			SELECT w FROM Workout w
 			WHERE w.user.id = :userId
-			  AND (:from IS NULL OR w.performedAt >= :from)
-			  AND (:to IS NULL OR w.performedAt <= :to)
-			ORDER BY w.performedAt DESC
+			  AND (:from IS NULL OR w.startedAt >= :from)
+			  AND (:to IS NULL OR w.startedAt <= :to)
+			ORDER BY CASE WHEN w.startedAt IS NULL THEN 1 ELSE 0 END, w.startedAt DESC
 			""")
-	List<Workout> findByUserIdAndPerformedAtRange(
+	List<Workout> findByUserIdAndStartedAtRange(
 			@Param("userId") String userId,
 			@Param("from") Instant from,
 			@Param("to") Instant to

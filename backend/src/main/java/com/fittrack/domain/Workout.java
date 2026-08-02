@@ -31,13 +31,13 @@ public class Workout {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(name = "performed_at", nullable = false)
-	private Instant performedAt;
+	@Column(name = "started_at")
+	private Instant startedAt;
+
+	@Column(name = "ended_at")
+	private Instant endedAt;
 
 	private String name;
-
-	@Column(name = "duration_seconds")
-	private Integer durationSeconds;
 
 	@Column(name = "total_weight_lifted")
 	private Double totalWeightLifted;
@@ -46,6 +46,9 @@ public class Workout {
 	private WorkoutDifficulty difficulty;
 
 	private String notes;
+
+	@Column(nullable = false)
+	private boolean completed;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "source_template_id")
@@ -92,12 +95,20 @@ public class Workout {
 		this.user = user;
 	}
 
-	public Instant getPerformedAt() {
-		return performedAt;
+	public Instant getStartedAt() {
+		return startedAt;
 	}
 
-	public void setPerformedAt(Instant performedAt) {
-		this.performedAt = performedAt;
+	public void setStartedAt(Instant startedAt) {
+		this.startedAt = startedAt;
+	}
+
+	public Instant getEndedAt() {
+		return endedAt;
+	}
+
+	public void setEndedAt(Instant endedAt) {
+		this.endedAt = endedAt;
 	}
 
 	public String getName() {
@@ -106,14 +117,6 @@ public class Workout {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public Integer getDurationSeconds() {
-		return durationSeconds;
-	}
-
-	public void setDurationSeconds(Integer durationSeconds) {
-		this.durationSeconds = durationSeconds;
 	}
 
 	public Double getTotalWeightLifted() {
@@ -138,6 +141,14 @@ public class Workout {
 
 	public void setNotes(String notes) {
 		this.notes = notes;
+	}
+
+	public boolean isCompleted() {
+		return completed;
+	}
+
+	public void setCompleted(boolean completed) {
+		this.completed = completed;
 	}
 
 	public WorkoutTemplate getSourceTemplate() {

@@ -1,16 +1,15 @@
 package com.fittrack.web.dto;
 
-import com.fittrack.domain.RpeLevel;
 import com.fittrack.domain.WorkoutDifficulty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.List;
 
 public record WorkoutRequest(
-		@NotNull Instant performedAt,
+		Instant startedAt,
+		Instant endedAt,
 		String name,
-		Integer durationSeconds,
+		Boolean completed,
 		WorkoutDifficulty difficulty,
 		String notes,
 		String sourceTemplateId,

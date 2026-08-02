@@ -13,7 +13,7 @@ Build a personal fitness tracker where users can:
 - Sign in with **local username/password** or **Google SSO** (OAuth2 / OIDC)
 - Browse a seeded exercise library with typed tracking parameters
 - Create reusable workout templates (private or public)
-- Log workouts at a specific datetime (multiple per day allowed), optionally cloned from a template
+- Log workouts with optional `startedAt` / `endedAt` (multiple per day allowed), optionally cloned from a template
 - Persist everything in SQLite via a Spring Boot API, with an Angular SPA frontend
 - Run the full app (API + SPA) in Docker via a root Dockerfile
 
@@ -201,7 +201,7 @@ Mapping for seed import (v1 heuristic):
 
 ### 4.3 WorkoutTemplate (table `workout_template`)
 
-Same shape as a workout: header metadata plus a flat list of sets. Owned by a user; can be cloned into a workout. Differs from workout mainly by **visibility** (no `performedAt` / `sourceTemplateId`).
+Same shape as a workout: header metadata plus a flat list of sets. Owned by a user; can be cloned into a workout. Differs from workout mainly by **visibility** (no `startedAt` / `endedAt` / `completed` / `sourceTemplateId`).
 
 JPA entity name: `WorkoutTemplate`. Database table: **`workout_template`**.
 
@@ -215,7 +215,7 @@ JPA entity name: `WorkoutTemplate`. Database table: **`workout_template`**.
 | visibility | enum | `PRIVATE` \| `PUBLIC` — template-only |
 | createdAt / updatedAt | instant | |
 
-Templates do **not** store session `durationSeconds` or `totalWeightLifted` — those belong on **workouts** / **workout_set** when logging.
+Templates do **not** store session timing/`completed` or `totalWeightLifted` — those belong on **workouts** / **workout_set** when logging. Session length is derived in the UI from `endedAt − startedAt`.
 
 #### TemplateSet (table `template_set`)
 
@@ -237,7 +237,7 @@ Same structure as `WorkoutSet`: one row per planned set; each set points at an e
 
 No `completed` flag on template sets (that is workout/logging-only).
 
-**Clone template → workout:** create a new `Workout` for the current user with chosen `performedAt`; copy template header fields that apply (`name`, `difficulty`, `notes`); recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`, notes; `rpe` starts unset; `completed` default true); set `sourceTemplateId`; leave template unchanged. Workout session `durationSeconds` starts unset unless the client sets it later.
+**Clone template → workout:** create a new `Workout` for the current user with `startedAt`/`endedAt` unset and `completed=false`; copy template header fields that apply (`name`, `difficulty`, `notes`); recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`, notes; `rpe` starts unset; set `completed=false`); set `sourceTemplateId`; leave template unchanged.
 
 **Public templates:** any authenticated user may **read** and **clone**; only owner may **edit/delete**. No template search in v1. A **PUBLIC** template may only include **catalog** exercises (`isCustom=false`). Custom exercises are allowed only on **PRIVATE** templates owned by their creator. Reject create/update of a public template that references a custom exercise.
 
@@ -249,9 +249,10 @@ Tied to a specific user and a **datetime** (not date-only), so multiple workouts
 |-------|------|--------|
 | id | UUID | |
 | userId | FK → User | |
-| performedAt | datetime (instant) | When the workout occurred (UTC recommended; UI may display local) |
+| startedAt | datetime (instant)? | When the workout started (UTC recommended; UI may display local); nullable until logged |
+| endedAt | datetime (instant)? | When the workout ended; nullable; session duration = `endedAt − startedAt` in the UI |
 | name | string? | Optional title |
-| durationSeconds | int? | Total session duration |
+| completed | boolean | Whether the workout session is finished; default `false` |
 | totalWeightLifted | decimal? | Computed and/or stored metadata (kg) |
 | difficulty | enum? | `EASY` \| `MEDIUM` \| `HARD` |
 | notes | string? | |
@@ -288,7 +289,7 @@ One row per set in a workout. Flat: each set points at an exercise directly. Mir
 | weightKg | decimal? | |
 | durationSeconds | int? | |
 | distanceMeters | decimal? | |
-| completed | boolean | default true; workout-only |
+| completed | boolean | default false; workout-only |
 | rpe | enum? | `EASY` \| `CHALLENGING` \| `HARD` |
 | notes | string? | Optional per-set notes |
 
@@ -296,7 +297,7 @@ One row per set in a workout. Flat: each set points at an exercise directly. Mir
 
 Only parameters enabled on the exercise should be required/validated; others may be null.
 
-**Computed metadata:** on workout save, recompute `totalWeightLifted` = Σ (reps × weightKg) for sets with both values; store on the workout header for fast list views. Templates do not store this aggregate.
+**Computed metadata:** on workout save, recompute `totalWeightLifted` = Σ (reps × weightKg) for sets with both values; store on the workout header for fast list views. API responses also include **`setCount`** (number of sets) so list views do not need the nested `sets` array. Templates do not store these aggregates.
 
 ---
 
@@ -371,15 +372,17 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `PUT /api/v1/templates/{id}` - update metadata / replace sets (owner); client supplies `setNumber` for order/reorder (no server auto-renumber to 1…N)
 - `PATCH /api/v1/templates/{id}/sets/reorder` - body: `{ "items": [ { "setId", "setNumber" } ] }` — updates `setNumber` only; uniqueness rules apply, no forced contiguous rewrite
 - `DELETE /api/v1/templates/{id}` - delete (owner)
-- `POST /api/v1/templates/{id}/clone` — body: `{ "performedAt": "ISO-8601", "name": "..." }` → creates Workout
+- `POST /api/v1/templates/{id}/clone` — body: `{ "name": "..." }` (optional) → creates Workout with unset `startedAt`/`endedAt` and `completed=false`
 
 ### Workouts
 
-- `GET /api/v1/workouts` — list for current user (filter by `performedAt` range)
+- `GET /api/v1/workouts` — list for current user (filter by `startedAt` range)
 - `GET /api/v1/workouts/{id}` — detail with sets (each set includes `exerciseId`)
-- `POST /api/v1/workouts` — create (empty or with sets); include `performedAt`
+- `POST /api/v1/workouts` — create (empty or with sets); optional `startedAt` / `endedAt` / `completed`
 - `PUT /api/v1/workouts/{id}` - update metadata / replace structure; client supplies `setNumber` to support frontend reorder (no server auto-renumber to 1…N)
 - `PATCH /api/v1/workouts/{id}/sets/reorder` - body: `{ "items": [ { "setId", "setNumber" } ] }` — same client-owned `setNumber` rules as templates
+- `POST /api/v1/workouts/{id}/start` — set `startedAt` to now if unset (idempotent if already started)
+- `POST /api/v1/workouts/{id}/complete` — set `endedAt` to now, `completed=true`, recompute `totalWeightLifted` from sets (Σ reps × weightKg); session duration is `endedAt − startedAt` (not stored). If `startedAt` was unset, set it to now as well
 - `DELETE /api/v1/workouts/{id}` - delete
 
 Errors: problem+json or simple `{ "message", "code" }` with consistent HTTP status codes.
@@ -505,7 +508,7 @@ Track live progress in [`STATUS.md`](STATUS.md). Ordered phases:
 4. **Security** — local login + JWT + `/api/v1/me` + seed default local user; Google OAuth when credentials enabled
 5. **Exercise seed + read APIs + custom exercise CRUD**
 6. **Template CRUD + clone-to-workout** (public = catalog exercises only)
-7. **Workout CRUD + set logging + client-driven set reorder** (`performedAt` datetime; `PATCH …/sets/reorder`)
+7. **Workout CRUD + set logging + client-driven set reorder** (`startedAt`/`endedAt` datetimes + `completed`; `PATCH …/sets/reorder`)
 8. **Angular frontend** scaffold and wire to API
 9. **Polish** — validation, pagination, README runbook, Docker Compose usage, OpenAPI, sample data
 
@@ -527,7 +530,7 @@ Deferred (tracked in STATUS): **#1** auth hardening. **#9** user management is d
 | Difficulty | Enum `EASY` \| `MEDIUM` \| `HARD` (nullable, session-level) | Locked |
 | RPE (per set) | Enum `EASY` \| `CHALLENGING` \| `HARD` on **workout sets only** (nullable; more values later). Not on template sets. | Locked |
 | Muscle on join | `exerciseHasMuscle.isPrimary` boolean (not an enum) | Locked |
-| Workout time | **`performedAt` datetime** (not date-only); multiple workouts per day allowed | Locked |
+| Workout time | **`startedAt` / `endedAt` datetimes** (not date-only; both nullable); session duration derived in UI; **`completed`** boolean on workout; multiple workouts per day allowed | Locked |
 | Custom exercises | Allowed: `isCustom` + `addedBy`; private templates only for customs | Locked |
 | Template vs workout | Same shape: header + flat sets; table `workout_template` / entity `WorkoutTemplate` | Locked |
 | trackedParameters | INTEGER bitmask on Exercise | Locked |

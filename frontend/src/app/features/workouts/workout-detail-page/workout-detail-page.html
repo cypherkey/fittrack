@@ -6,10 +6,31 @@
       <mat-icon>arrow_back</mat-icon>
       Back
     </button>
-    <button mat-flat-button color="primary" type="button" (click)="edit()">
-      <mat-icon>edit</mat-icon>
-      Edit
-    </button>
+    <div class="header-actions">
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="start()"
+        [disabled]="acting() || !!workout.startedAt"
+      >
+        <mat-icon>play_arrow</mat-icon>
+        Start
+      </button>
+      <button
+        mat-flat-button
+        color="accent"
+        type="button"
+        (click)="complete()"
+        [disabled]="acting() || workout.completed"
+      >
+        <mat-icon>check</mat-icon>
+        Complete
+      </button>
+      <button mat-flat-button color="primary" type="button" (click)="edit()">
+        <mat-icon>edit</mat-icon>
+        Edit
+      </button>
+    </div>
   </div>
 
   <h1>{{ workout.name || 'Workout' }}</h1>
@@ -17,9 +38,11 @@
   <mat-card>
     <mat-card-content>
       <dl class="meta">
-        <div><dt>Performed</dt><dd>{{ formatDate(workout.performedAt) }}</dd></div>
+        <div><dt>Started</dt><dd>{{ formatDate(workout.startedAt) }}</dd></div>
+        <div><dt>Ended</dt><dd>{{ formatDate(workout.endedAt) }}</dd></div>
+        <div><dt>Completed</dt><dd>{{ workout.completed ? 'Yes' : 'No' }}</dd></div>
         <div><dt>Difficulty</dt><dd>{{ workout.difficulty || '—' }}</dd></div>
-        <div><dt>Duration</dt><dd>{{ workout.durationSeconds ? workout.durationSeconds + 's' : '—' }}</dd></div>
+        <div><dt>Duration</dt><dd>{{ durationLabel(workout) }}</dd></div>
         <div><dt>Total weight lifted</dt><dd>{{ workout.totalWeightLifted ?? '—' }} kg</dd></div>
       </dl>
       @if (workout.notes) {

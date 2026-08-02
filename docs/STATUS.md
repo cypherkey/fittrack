@@ -52,12 +52,12 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - Set order is client-controlled; `PATCH /api/v1/workouts|templates/{id}/sets/reorder` updates `setNumber`
 - PUBLIC templates may only contain catalog exercises (`isCustom=false`)
 - Exercise catalog: vendored `data/exercises.json` (UUID ids + `trackedParameters` bitmask from Ryot lots); images as base64 on `image` via `exercise_has_image`; local files under `data/exercise-images/` (gitignored) or GitHub download; seeder skips if exercise table has rows
-- Templates: no header `durationSeconds` / `totalWeightLifted` (workout / workout_set only for session totals and logged duration)
+- Templates: no header timing/`completed` / `totalWeightLifted` (workout stores `startedAt`/`endedAt`/`completed`; session duration derived in UI; per-set `durationSeconds` on sets only)
 - User admin: Flyway `V2__user_admin.sql`; seed `admin` is admin; Google JIT users are non-admin
 - OpenAPI / Swagger UI: `/v3/api-docs`, `/swagger-ui.html`; JWT bearer for Try it out
 - Actuator: only `health` exposed
 - SQLite: `foreign_keys=true&journal_mode=WAL`
-- Prefer additive Flyway `V3__*.sql` for future schema changes
+- Prefer additive Flyway `V4__*.sql` for future schema changes (V4: workout `started_at`/`ended_at`/`completed`, drop session `duration_seconds`)
 - Docker: root `Dockerfile` embeds Angular into Boot `static/`; compose mounts `/data`; SPA deep-link fallthrough via `SpaForwardController`
 - Git remote may be `github`; branch `main`
 - Frontend: `frontend/` Angular 21 NgModules + Material; see [`FRONTEND.md`](FRONTEND.md)

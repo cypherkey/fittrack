@@ -44,7 +44,7 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 | Method | Covers |
 |--------|--------|
 | `listsSeededCatalogExercisesAndSupportsCustomCrud` | `GET /exercises`, `GET /equipment`, custom exercise POST/PUT/DELETE |
-| `templatesAndWorkoutRoundTripWithClone` | Template create, clone → workout, workout GET/PUT |
+| `templatesAndWorkoutsRoundTripWithClone` | Template create, clone → workout, start/complete, workout GET/PUT |
 
 ### `EndpointCoverageTest`
 
@@ -85,6 +85,8 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 | `POST /api/v1/workouts` | `EndpointCoverageTest` |
 | `PUT /api/v1/workouts/{id}` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `PATCH /api/v1/workouts/{id}/sets/reorder` | `EndpointCoverageTest` |
+| `POST /api/v1/workouts/{id}/start` | `ApiIntegrationTest`, `EndpointCoverageTest` |
+| `POST /api/v1/workouts/{id}/complete` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `DELETE /api/v1/workouts/{id}` | `EndpointCoverageTest` |
 | `GET /actuator/health` | `EndpointCoverageTest` |
 | `GET /v3/api-docs` | `EndpointCoverageTest` |

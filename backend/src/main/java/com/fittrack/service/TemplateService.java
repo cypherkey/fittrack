@@ -86,7 +86,9 @@ public class TemplateService {
 		WorkoutTemplate template = requireReadable(user, id);
 		Workout workout = new Workout();
 		workout.setUser(user);
-		workout.setPerformedAt(request.performedAt());
+		workout.setStartedAt(null);
+		workout.setEndedAt(null);
+		workout.setCompleted(false);
 		workout.setName(request.name() != null ? request.name() : template.getName());
 		workout.setDifficulty(template.getDifficulty());
 		workout.setNotes(template.getNotes());
@@ -104,7 +106,7 @@ public class TemplateService {
 			set.setDistanceMeters(templateSet.getDistanceMeters());
 			set.setRpe(null);
 			set.setNotes(templateSet.getNotes());
-			set.setCompleted(true);
+			set.setCompleted(false);
 			workout.getSets().add(set);
 		}
 		workout.setTotalWeightLifted(WorkoutService.computeTotal(workout.getSets()));

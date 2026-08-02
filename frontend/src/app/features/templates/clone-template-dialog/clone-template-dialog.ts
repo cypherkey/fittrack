@@ -1,14 +1,12 @@
 import { Component, inject, Inject } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { fromDatetimeLocalValue, toDatetimeLocalValue } from '../../../shared/utils/set-form';
 
 export interface CloneTemplateDialogData {
   templateName: string;
 }
 
 export interface CloneTemplateDialogResult {
-  performedAt: string;
   name: string | null;
 }
 
@@ -22,7 +20,6 @@ export class CloneTemplateDialog {
   private readonly fb = inject(FormBuilder);
 
   readonly form = this.fb.group({
-    performedAt: [toDatetimeLocalValue(new Date().toISOString()), Validators.required],
     name: [''],
   });
 
@@ -34,12 +31,8 @@ export class CloneTemplateDialog {
   }
 
   submit(): void {
-    if (this.form.invalid) {
-      return;
-    }
     const v = this.form.value;
     this.dialogRef.close({
-      performedAt: fromDatetimeLocalValue(v.performedAt!),
       name: v.name?.trim() || null,
     });
   }

@@ -76,6 +76,16 @@ public class WorkoutController {
 		return workoutService.reorderSets(currentUserResolver.requireUser(jwt), id, request.items());
 	}
 
+	@PostMapping("/{id}/start")
+	public WorkoutResponse start(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+		return workoutService.start(currentUserResolver.requireUser(jwt), id);
+	}
+
+	@PostMapping("/{id}/complete")
+	public WorkoutResponse complete(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+		return workoutService.complete(currentUserResolver.requireUser(jwt), id);
+	}
+
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {

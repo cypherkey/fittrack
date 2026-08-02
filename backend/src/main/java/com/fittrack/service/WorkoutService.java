@@ -43,7 +43,7 @@ public class WorkoutService {
 
 	@Transactional(readOnly = true)
 	public List<WorkoutResponse> list(User user, Instant from, Instant to) {
-		return workoutRepository.findByUserIdAndPerformedAtRange(user.getId(), from, to).stream()
+		return workoutRepository.findByUserIdAndStartedAtRange(user.getId(), from, to).stream()
 				.map(w -> toResponse(w, false))
 				.toList();
 	}
@@ -109,10 +109,35 @@ public class WorkoutService {
 		return toResponse(workout, true);
 	}
 
+	@Transactional
+	public WorkoutResponse start(User user, String id) {
+		Workout workout = requireOwned(user, id);
+		if (workout.getStartedAt() == null) {
+			workout.setStartedAt(Instant.now());
+			workoutRepository.save(workout);
+		}
+		return toResponse(workout, true);
+	}
+
+	@Transactional
+	public WorkoutResponse complete(User user, String id) {
+		Workout workout = requireOwned(user, id);
+		Instant now = Instant.now();
+		if (workout.getStartedAt() == null) {
+			workout.setStartedAt(now);
+		}
+		workout.setEndedAt(now);
+		workout.setCompleted(true);
+		workout.setTotalWeightLifted(computeTotal(workout.getSets()));
+		workoutRepository.save(workout);
+		return toResponse(workout, true);
+	}
+
 	private void applyMetadata(User user, Workout workout, WorkoutRequest request) {
-		workout.setPerformedAt(request.performedAt());
+		workout.setStartedAt(request.startedAt());
+		workout.setEndedAt(request.endedAt());
 		workout.setName(request.name());
-		workout.setDurationSeconds(request.durationSeconds());
+		workout.setCompleted(request.completed() != null && request.completed());
 		workout.setDifficulty(request.difficulty());
 		workout.setNotes(request.notes());
 		if (StringUtils.hasText(request.sourceTemplateId())) {
@@ -191,6 +216,7 @@ public class WorkoutService {
 	}
 
 	WorkoutResponse toResponse(Workout workout, boolean includeSets) {
+		int setCount = workout.getSets().size();
 		List<WorkoutSetResponse> sets = includeSets
 				? workout.getSets().stream()
 						.sorted(Comparator.comparingInt(WorkoutSet::getSetNumber))
@@ -200,15 +226,17 @@ public class WorkoutService {
 		return new WorkoutResponse(
 				workout.getId(),
 				workout.getUser().getId(),
-				workout.getPerformedAt(),
+				workout.getStartedAt(),
+				workout.getEndedAt(),
 				workout.getName(),
-				workout.getDurationSeconds(),
+				workout.isCompleted(),
 				workout.getTotalWeightLifted(),
 				workout.getDifficulty(),
 				workout.getNotes(),
 				workout.getSourceTemplate() != null ? workout.getSourceTemplate().getId() : null,
 				workout.getCreatedAt(),
 				workout.getUpdatedAt(),
+				setCount,
 				sets
 		);
 	}

@@ -209,10 +209,38 @@ class EndpointCoverageTest {
 		MvcResult clone = mockMvc.perform(post("/api/v1/templates/" + templateId + "/clone")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"performedAt\":\"2026-07-27T12:00:00Z\",\"name\":\"Cloned\"}"))
+						.content("{\"name\":\"Cloned\"}"))
 				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.startedAt").isEmpty())
+				.andExpect(jsonPath("$.endedAt").isEmpty())
+				.andExpect(jsonPath("$.completed").value(false))
 				.andReturn();
 		String workoutId = objectMapper.readTree(clone.getResponse().getContentAsString()).get("id").asText();
+
+		mockMvc.perform(post("/api/v1/workouts/" + workoutId + "/start")
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.startedAt").isNotEmpty())
+				.andExpect(jsonPath("$.completed").value(false));
+
+		String startedAt = objectMapper.readTree(mockMvc.perform(get("/api/v1/workouts/" + workoutId)
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andReturn()
+				.getResponse()
+				.getContentAsString()).get("startedAt").asText();
+
+		mockMvc.perform(post("/api/v1/workouts/" + workoutId + "/start")
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.startedAt").value(startedAt));
+
+		mockMvc.perform(post("/api/v1/workouts/" + workoutId + "/complete")
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.endedAt").isNotEmpty())
+				.andExpect(jsonPath("$.completed").value(true))
+				.andExpect(jsonPath("$.startedAt").value(startedAt));
 
 		MvcResult workout = mockMvc.perform(get("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
@@ -227,7 +255,7 @@ class EndpointCoverageTest {
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
 								{
-								  "performedAt":"2026-07-27T13:00:00Z",
+								  "startedAt":"2026-07-27T13:00:00Z",
 								  "name":"Direct",
 								  "sets":[
 								    {"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":3,"weightKg":5.0},
@@ -264,7 +292,7 @@ class EndpointCoverageTest {
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"performedAt":"2026-07-27T13:00:00Z","name":"Direct2","sets":[{"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":1}]}
+								{"startedAt":"2026-07-27T13:00:00Z","name":"Direct2","sets":[{"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":1}]}
 								"""))
 				.andExpect(status().isOk());
 
@@ -332,7 +360,7 @@ class EndpointCoverageTest {
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"performedAt":"2026-07-28T10:00:00Z","name":"Admin W","sets":[]}
+								{"startedAt":"2026-07-28T10:00:00Z","name":"Admin W","sets":[]}
 								"""))
 				.andExpect(status().isCreated())
 				.andReturn();

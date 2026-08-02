@@ -1,5 +1,7 @@
 package com.fittrack.web;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -125,25 +127,71 @@ class ApiIntegrationTest {
 		MvcResult cloneResult = mockMvc.perform(post("/api/v1/templates/" + templateId + "/clone")
 						.header("Authorization", "Bearer " + token)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"performedAt\":\"2026-07-27T18:00:00Z\",\"name\":\"Push Day Live\"}"))
+						.content("{\"name\":\"Push Day Live\"}"))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.name").value("Push Day Live"))
+				.andExpect(jsonPath("$.startedAt").isEmpty())
+				.andExpect(jsonPath("$.endedAt").isEmpty())
+				.andExpect(jsonPath("$.completed").value(false))
 				.andExpect(jsonPath("$.sets.length()").value(2))
+				.andExpect(jsonPath("$.setCount").value(2))
 				.andExpect(jsonPath("$.sets[0].setNumber").value(10))
+				.andExpect(jsonPath("$.sets[0].completed").value(false))
 				.andExpect(jsonPath("$.sourceTemplateId").value(templateId))
 				.andReturn();
 		String workoutId = objectMapper.readTree(cloneResult.getResponse().getContentAsString()).get("id").asText();
 
+		MvcResult listResult = mockMvc.perform(get("/api/v1/workouts").header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andReturn();
+		JsonNode listed = objectMapper.readTree(listResult.getResponse().getContentAsString());
+		boolean foundInList = false;
+		for (JsonNode node : listed) {
+			if (workoutId.equals(node.get("id").asText())) {
+				assertEquals(2, node.get("setCount").asInt());
+				assertEquals(0, node.get("sets").size());
+				foundInList = true;
+			}
+		}
+		assertTrue(foundInList);
+
 		mockMvc.perform(get("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.sets[1].setNumber").value(20));
+				.andExpect(jsonPath("$.sets[1].setNumber").value(20))
+				.andExpect(jsonPath("$.setCount").value(2));
+
+		mockMvc.perform(post("/api/v1/workouts/" + workoutId + "/start")
+						.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.startedAt").isNotEmpty())
+				.andExpect(jsonPath("$.endedAt").isEmpty())
+				.andExpect(jsonPath("$.completed").value(false));
+
+		MvcResult beforeComplete = mockMvc.perform(get("/api/v1/workouts/" + workoutId)
+						.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andReturn();
+		JsonNode beforeNode = objectMapper.readTree(beforeComplete.getResponse().getContentAsString());
+		double expectedTotal = 0;
+		for (JsonNode set : beforeNode.get("sets")) {
+			if (!set.get("reps").isNull() && !set.get("weightKg").isNull()) {
+				expectedTotal += set.get("reps").asInt() * set.get("weightKg").asDouble();
+			}
+		}
+
+		mockMvc.perform(post("/api/v1/workouts/" + workoutId + "/complete")
+						.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.endedAt").isNotEmpty())
+				.andExpect(jsonPath("$.completed").value(true))
+				.andExpect(jsonPath("$.totalWeightLifted").value(expectedTotal));
 
 		mockMvc.perform(put("/api/v1/workouts/" + workoutId)
 						.header("Authorization", "Bearer " + token)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
 								{
-								  "performedAt": "2026-07-27T18:00:00Z",
+								  "startedAt": "2026-07-27T18:00:00Z",
 								  "name": "Push Day Live",
 								  "sets": [
 								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 5, "reps": 8, "weightKg": 30.0, "completed": true}
@@ -152,6 +200,7 @@ class ApiIntegrationTest {
 								"""))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.sets.length()").value(1))
+				.andExpect(jsonPath("$.setCount").value(1))
 				.andExpect(jsonPath("$.sets[0].setNumber").value(5))
 				.andExpect(jsonPath("$.totalWeightLifted").value(240.0));
 	}

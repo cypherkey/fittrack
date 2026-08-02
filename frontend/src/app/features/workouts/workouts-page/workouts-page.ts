@@ -73,7 +73,7 @@ export class WorkoutsPage implements OnInit {
   }
 
   delete(workout: Workout): void {
-    const label = workout.name || workout.performedAt;
+    const label = workout.name || workout.startedAt || workout.id;
     if (!confirm(`Delete workout "${label}"?`)) {
       return;
     }
@@ -86,7 +86,10 @@ export class WorkoutsPage implements OnInit {
     });
   }
 
-  formatDate(iso: string): string {
+  formatDate(iso: string | null | undefined): string {
+    if (!iso) {
+      return '—';
+    }
     return new Date(iso).toLocaleString();
   }
 }

@@ -24,3 +24,14 @@
   margin-top: 1rem;
   align-items: center;
 }
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.duration-label {
+  opacity: 0.8;
+  font-size: 0.9rem;
+}

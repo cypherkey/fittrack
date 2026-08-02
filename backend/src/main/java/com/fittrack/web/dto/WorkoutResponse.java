@@ -7,15 +7,17 @@ import java.util.List;
 public record WorkoutResponse(
 		String id,
 		String userId,
-		Instant performedAt,
+		Instant startedAt,
+		Instant endedAt,
 		String name,
-		Integer durationSeconds,
+		boolean completed,
 		Double totalWeightLifted,
 		WorkoutDifficulty difficulty,
 		String notes,
 		String sourceTemplateId,
 		Instant createdAt,
 		Instant updatedAt,
+		int setCount,
 		List<WorkoutSetResponse> sets
 ) {
 }

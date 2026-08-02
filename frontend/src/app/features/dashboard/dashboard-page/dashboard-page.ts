@@ -47,7 +47,10 @@ export class DashboardPage implements OnInit {
     void this.router.navigate([path]);
   }
 
-  formatDate(iso: string): string {
+  formatDate(iso: string | null | undefined): string {
+    if (!iso) {
+      return '—';
+    }
     return new Date(iso).toLocaleString();
   }
 }

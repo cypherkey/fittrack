@@ -27,7 +27,7 @@ export function createWorkoutSetGroup(fb: FormBuilder, set?: WorkoutSet): FormGr
     weightKg: [set?.weightKg ?? null],
     durationSeconds: [set?.durationSeconds ?? null],
     distanceMeters: [set?.distanceMeters ?? null],
-    completed: [set?.completed ?? true],
+    completed: [set?.completed ?? false],
     rpe: [set?.rpe ?? null as RpeLevel | null],
     notes: [set?.notes ?? ''],
   });
@@ -54,4 +54,33 @@ export function toDatetimeLocalValue(iso: string | null | undefined): string {
 
 export function fromDatetimeLocalValue(value: string): string {
   return new Date(value).toISOString();
+}
+
+export function fromDatetimeLocalValueOrNull(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  return fromDatetimeLocalValue(value);
+}
+
+/** Format session length from started/ended instants for display. */
+export function formatSessionDuration(startedAt: string | null | undefined, endedAt: string | null | undefined): string {
+  if (!startedAt || !endedAt) {
+    return '-';
+  }
+  const ms = new Date(endedAt).getTime() - new Date(startedAt).getTime();
+  if (!Number.isFinite(ms) || ms < 0) {
+    return '-';
+  }
+  const totalSeconds = Math.round(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+  return `${seconds}s`;
 }

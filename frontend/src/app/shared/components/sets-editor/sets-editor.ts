@@ -124,7 +124,7 @@ export class SetsEditor implements OnInit {
       weightKg: [null as number | null],
       durationSeconds: [null as number | null],
       distanceMeters: [null as number | null],
-      completed: [true],
+      completed: [false],
       rpe: [null],
       notes: [''],
     });

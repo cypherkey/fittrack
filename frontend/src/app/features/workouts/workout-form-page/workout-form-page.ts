@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormArray, FormBuilder, Validators } from '@angular/forms';
+import { FormArray, FormBuilder } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
 import { WORKOUT_DIFFICULTIES } from '../../../core/models/enums';
@@ -9,7 +9,8 @@ import { NotificationService } from '../../../core/services/notification.service
 import { errorMessage } from '../../../core/utils/http-error';
 import {
   createWorkoutSetGroup,
-  fromDatetimeLocalValue,
+  formatSessionDuration,
+  fromDatetimeLocalValueOrNull,
   toDatetimeLocalValue,
 } from '../../../shared/utils/set-form';
 
@@ -33,9 +34,10 @@ export class WorkoutFormPage implements OnInit {
   readonly saving = signal(false);
 
   readonly form = this.fb.group({
-    performedAt: [toDatetimeLocalValue(new Date().toISOString()), Validators.required],
+    startedAt: [''],
+    endedAt: [''],
     name: [''],
-    durationSeconds: [null as number | null],
+    completed: [false],
     difficulty: [''],
     notes: [''],
     sets: this.fb.array([] as ReturnType<typeof createWorkoutSetGroup>[]),
@@ -45,6 +47,13 @@ export class WorkoutFormPage implements OnInit {
     return this.form.get('sets') as FormArray;
   }
 
+  sessionDurationLabel(): string {
+    const v = this.form.value;
+    const started = v.startedAt ? new Date(v.startedAt).toISOString() : null;
+    const ended = v.endedAt ? new Date(v.endedAt).toISOString() : null;
+    return formatSessionDuration(started, ended);
+  }
+
   ngOnInit(): void {
     this.workoutId = this.route.snapshot.paramMap.get('id');
     if (this.workoutId) {
@@ -52,9 +61,10 @@ export class WorkoutFormPage implements OnInit {
       this.workoutApi.get(this.workoutId).subscribe({
         next: (w) => {
           this.form.patchValue({
-            performedAt: toDatetimeLocalValue(w.performedAt),
+            startedAt: toDatetimeLocalValue(w.startedAt),
+            endedAt: toDatetimeLocalValue(w.endedAt),
             name: w.name ?? '',
-            durationSeconds: w.durationSeconds,
+            completed: w.completed,
             difficulty: w.difficulty ?? '',
             notes: w.notes ?? '',
           });
@@ -91,9 +101,10 @@ export class WorkoutFormPage implements OnInit {
     }
     const v = this.form.value;
     const body: WorkoutRequest = {
-      performedAt: fromDatetimeLocalValue(v.performedAt!),
+      startedAt: fromDatetimeLocalValueOrNull(v.startedAt),
+      endedAt: fromDatetimeLocalValueOrNull(v.endedAt),
       name: v.name || null,
-      durationSeconds: v.durationSeconds,
+      completed: v.completed ?? false,
       difficulty: (v.difficulty as WorkoutRequest['difficulty']) || null,
       notes: v.notes || null,
       sets: (this.sets.value as WorkoutSetRequest[]).map((s) => ({
@@ -103,7 +114,7 @@ export class WorkoutFormPage implements OnInit {
         weightKg: s.weightKg,
         durationSeconds: s.durationSeconds,
         distanceMeters: s.distanceMeters,
-        completed: s.completed ?? true,
+        completed: s.completed ?? false,
         rpe: s.rpe,
         notes: s.notes || null,
       })),

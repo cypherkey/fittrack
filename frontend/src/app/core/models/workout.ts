@@ -17,15 +17,17 @@ export interface WorkoutSet {
 export interface Workout {
   id: string;
   userId: string;
-  performedAt: string;
+  startedAt: string | null;
+  endedAt: string | null;
   name: string | null;
-  durationSeconds: number | null;
+  completed: boolean;
   totalWeightLifted: number | null;
   difficulty: WorkoutDifficulty | null;
   notes: string | null;
   sourceTemplateId: string | null;
   createdAt: string;
   updatedAt: string;
+  setCount: number;
   sets: WorkoutSet[];
 }
 
@@ -42,9 +44,10 @@ export interface WorkoutSetRequest {
 }
 
 export interface WorkoutRequest {
-  performedAt: string;
+  startedAt?: string | null;
+  endedAt?: string | null;
   name?: string | null;
-  durationSeconds?: number | null;
+  completed?: boolean | null;
   difficulty?: WorkoutDifficulty | null;
   notes?: string | null;
   sourceTemplateId?: string | null;

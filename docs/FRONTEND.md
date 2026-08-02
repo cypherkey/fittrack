@@ -41,7 +41,7 @@ Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIRE
 | HTTP | `HttpClientModule` (or `provideHttpClient` only if forced by CLI — prefer module style) | Interceptor attaches JWT |
 | State | **Signals** for UI state + RxJS `HttpClient` Observables for API | **Zoneless** (Angular 21 default). No `zone.js` / no `provideZoneChangeDetection`. No NgRx. |
 | Forms | Reactive forms | Prefer `ReactiveFormsModule` |
-| Dates | Angular `DatePipe` / native `Date` / backend ISO-8601 instants | Align with `performedAt` Instant |
+| Dates | Angular `DatePipe` / native `Date` / backend ISO-8601 instants | Align with workout `startedAt` / `endedAt` |
 
 ### CLI / project conventions
 
@@ -135,11 +135,12 @@ apiBaseUrl: ''
 - List own templates; browse `visibility=PUBLIC` (no template-level duration or total weight)
 - Create/edit with sets editor (searchable exercise dropdown, setNumber, reps/weight/duration/distance; no RPE on templates)
 - Enforce UI rule: PUBLIC templates cannot add custom exercises
-- Clone → dialog for `performedAt` + name → create workout → navigate to workout
+- Clone → dialog for optional name → create workout (no start/end times; not completed) → navigate to workout
 
 ### Workouts
-- List with date range filter (Material datepicker)
-- Create/edit workout header (`performedAt`, name, difficulty, notes, duration)
+- List with date range filter (Material datepicker) on `startedAt`; show `setCount` from API (list omits nested sets)
+- Detail: Start / Complete actions (`POST …/start`, `POST …/complete`); show derived duration and totals
+- Create/edit workout header (`startedAt`, `endedAt`, `completed`, name, difficulty, notes); show derived duration
 - Sets table: add/remove/reorder (CDK drag-drop when practical; else up/down calling `PATCH .../sets/reorder` or full PUT — prefer reorder endpoint when only order changes)
 - Show computed `totalWeightLifted` from API (workout header; not on templates)
 
