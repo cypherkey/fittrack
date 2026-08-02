@@ -1,6 +1,7 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import {
   Component,
+  DestroyRef,
   EventEmitter,
   Input,
   OnChanges,
@@ -11,9 +12,18 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { forkJoin } from 'rxjs';
+import {
+  Observable,
+  Subject,
+  debounceTime,
+  distinctUntilChanged,
+  forkJoin,
+  map,
+  switchMap,
+} from 'rxjs';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { Exercise } from '../../../core/models/exercise';
 import { RPE_LEVELS } from '../../../core/models/enums';
@@ -34,6 +44,8 @@ interface ExerciseOption {
 export class SetsEditor implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly exerciseApi = inject(ExerciseApi);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly search$ = new Subject<{ q: string; catalogOnly: boolean }>();
 
   @Input({ required: true }) sets!: FormArray<FormGroup>;
   @Input() catalogOnly = false;
@@ -49,18 +61,21 @@ export class SetsEditor implements OnInit, OnChanges {
   private readonly lastQuery = signal('');
 
   readonly exerciseOptions = computed(() => {
-    const byId = new Map<string, ExerciseOption>();
-    for (const ex of this.searchResults()) {
-      byId.set(ex.id, { id: ex.id, name: ex.name });
+    const results: ExerciseOption[] = this.searchResults().map((ex) => ({
+      id: ex.id,
+      name: ex.name,
+    }));
+    const q = this.lastQuery().trim();
+    // Active search: API hits only (do not merge previously selected exercises).
+    if (q) {
+      return [...results].sort((a, b) => a.name.localeCompare(b.name));
     }
-    const q = this.lastQuery().trim().toLowerCase();
+    const byId = new Map<string, ExerciseOption>();
+    for (const ex of results) {
+      byId.set(ex.id, ex);
+    }
     for (const ex of this.selectedOptions()) {
-      if (byId.has(ex.id)) {
-        continue;
-      }
-      // Keep already-picked exercises visible only when they match the current query
-      // (or when the query is empty), so search results are not polluted.
-      if (!q || ex.name.toLowerCase().includes(q)) {
+      if (!byId.has(ex.id)) {
         byId.set(ex.id, ex);
       }
     }
@@ -68,7 +83,20 @@ export class SetsEditor implements OnInit, OnChanges {
   });
 
   ngOnInit(): void {
-    this.loadExercises('');
+    this.search$
+      .pipe(
+        debounceTime(200),
+        distinctUntilChanged((a, b) => a.q === b.q && a.catalogOnly === b.catalogOnly),
+        switchMap(({ q, catalogOnly }) => {
+          this.lastQuery.set(q);
+          return this.fetchExercises(q, catalogOnly);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((exercises) => {
+        this.searchResults.set(exercises);
+      });
+
     const selected: ExerciseOption[] = [];
     for (const group of this.sets.controls) {
       const id = group.get('exerciseId')?.value as string | undefined;
@@ -80,6 +108,7 @@ export class SetsEditor implements OnInit, OnChanges {
     if (selected.length) {
       this.selectedOptions.set(selected);
     }
+    this.loadExercises('');
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -90,29 +119,33 @@ export class SetsEditor implements OnInit, OnChanges {
 
   loadExercises(q: string): void {
     this.lastQuery.set(q);
-    if (this.catalogOnly) {
-      this.exerciseApi.list({ q, size: 100 }).subscribe((page) => {
-        this.searchResults.set(page.content.filter((e) => !e.custom));
-      });
-      return;
+    this.search$.next({ q, catalogOnly: this.catalogOnly });
+  }
+
+  private fetchExercises(q: string, catalogOnly: boolean): Observable<Exercise[]> {
+    if (catalogOnly) {
+      return this.exerciseApi.list({ q, size: 100 }).pipe(
+        map((page) => page.content.filter((e) => !e.custom)),
+      );
     }
 
-    forkJoin({
+    return forkJoin({
       normal: this.exerciseApi.list({ q, size: 100 }),
       customs: this.exerciseApi.list({ q, customOnly: true, size: 100 }),
-    }).subscribe(({ normal, customs }) => {
-      const byId = new Map<string, Exercise>();
-      for (const ex of customs.content) {
-        byId.set(ex.id, ex);
-      }
-      for (const ex of normal.content) {
-        if (!byId.has(ex.id)) {
+    }).pipe(
+      map(({ normal, customs }) => {
+        const byId = new Map<string, Exercise>();
+        for (const ex of customs.content) {
           byId.set(ex.id, ex);
         }
-      }
-      const merged = [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
-      this.searchResults.set(merged);
-    });
+        for (const ex of normal.content) {
+          if (!byId.has(ex.id)) {
+            byId.set(ex.id, ex);
+          }
+        }
+        return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+      }),
+    );
   }
 
   onExerciseInput(index: number): void {
