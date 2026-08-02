@@ -46,15 +46,21 @@ export class SetsEditor implements OnInit, OnChanges {
   readonly rpeLevels = RPE_LEVELS;
   private readonly searchResults = signal<Exercise[]>([]);
   private readonly selectedOptions = signal<ExerciseOption[]>([]);
-  private lastQuery = '';
+  private readonly lastQuery = signal('');
 
   readonly exerciseOptions = computed(() => {
     const byId = new Map<string, ExerciseOption>();
     for (const ex of this.searchResults()) {
       byId.set(ex.id, { id: ex.id, name: ex.name });
     }
+    const q = this.lastQuery().trim().toLowerCase();
     for (const ex of this.selectedOptions()) {
-      if (!byId.has(ex.id)) {
+      if (byId.has(ex.id)) {
+        continue;
+      }
+      // Keep already-picked exercises visible only when they match the current query
+      // (or when the query is empty), so search results are not polluted.
+      if (!q || ex.name.toLowerCase().includes(q)) {
         byId.set(ex.id, ex);
       }
     }
@@ -78,12 +84,12 @@ export class SetsEditor implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['catalogOnly'] && !changes['catalogOnly'].firstChange) {
-      this.loadExercises(this.lastQuery);
+      this.loadExercises(this.lastQuery());
     }
   }
 
   loadExercises(q: string): void {
-    this.lastQuery = q;
+    this.lastQuery.set(q);
     if (this.catalogOnly) {
       this.exerciseApi.list({ q, size: 100 }).subscribe((page) => {
         this.searchResults.set(page.content.filter((e) => !e.custom));
