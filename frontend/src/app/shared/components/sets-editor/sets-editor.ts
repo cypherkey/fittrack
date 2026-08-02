@@ -3,14 +3,17 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
   OnInit,
   Output,
+  SimpleChanges,
   computed,
   inject,
   signal,
 } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { forkJoin } from 'rxjs';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { Exercise } from '../../../core/models/exercise';
 import { RPE_LEVELS } from '../../../core/models/enums';
@@ -28,7 +31,7 @@ interface ExerciseOption {
   standalone: false,
   styleUrl: './sets-editor.scss',
 })
-export class SetsEditor implements OnInit {
+export class SetsEditor implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly exerciseApi = inject(ExerciseApi);
 
@@ -43,6 +46,7 @@ export class SetsEditor implements OnInit {
   readonly rpeLevels = RPE_LEVELS;
   private readonly searchResults = signal<Exercise[]>([]);
   private readonly selectedOptions = signal<ExerciseOption[]>([]);
+  private lastQuery = '';
 
   readonly exerciseOptions = computed(() => {
     const byId = new Map<string, ExerciseOption>();
@@ -72,15 +76,37 @@ export class SetsEditor implements OnInit {
     }
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['catalogOnly'] && !changes['catalogOnly'].firstChange) {
+      this.loadExercises(this.lastQuery);
+    }
+  }
+
   loadExercises(q: string): void {
-    this.exerciseApi
-      .list({ q, customOnly: this.catalogOnly ? false : undefined, size: 100 })
-      .subscribe((page) => {
-        const content = this.catalogOnly
-          ? page.content.filter((e) => !e.custom)
-          : page.content;
-        this.searchResults.set(content);
+    this.lastQuery = q;
+    if (this.catalogOnly) {
+      this.exerciseApi.list({ q, size: 100 }).subscribe((page) => {
+        this.searchResults.set(page.content.filter((e) => !e.custom));
       });
+      return;
+    }
+
+    forkJoin({
+      normal: this.exerciseApi.list({ q, size: 100 }),
+      customs: this.exerciseApi.list({ q, customOnly: true, size: 100 }),
+    }).subscribe(({ normal, customs }) => {
+      const byId = new Map<string, Exercise>();
+      for (const ex of customs.content) {
+        byId.set(ex.id, ex);
+      }
+      for (const ex of normal.content) {
+        if (!byId.has(ex.id)) {
+          byId.set(ex.id, ex);
+        }
+      }
+      const merged = [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+      this.searchResults.set(merged);
+    });
   }
 
   onExerciseInput(index: number): void {
@@ -146,7 +172,7 @@ export class SetsEditor implements OnInit {
     if (index <= 0) {
       return;
     }
-    const controls = this.sets.controls as FormGroup[];
+    const controls = [...this.sets.controls] as FormGroup[];
     [controls[index - 1], controls[index]] = [controls[index], controls[index - 1]];
     this.sets.clear();
     controls.forEach((c) => this.sets.push(c));
@@ -157,7 +183,7 @@ export class SetsEditor implements OnInit {
     if (index >= this.sets.length - 1) {
       return;
     }
-    const controls = this.sets.controls as FormGroup[];
+    const controls = [...this.sets.controls] as FormGroup[];
     [controls[index], controls[index + 1]] = [controls[index + 1], controls[index]];
     this.sets.clear();
     controls.forEach((c) => this.sets.push(c));
@@ -165,7 +191,7 @@ export class SetsEditor implements OnInit {
   }
 
   drop(event: CdkDragDrop<FormGroup[]>): void {
-    const controls = this.sets.controls as FormGroup[];
+    const controls = [...this.sets.controls] as FormGroup[];
     moveItemInArray(controls, event.previousIndex, event.currentIndex);
     this.sets.clear();
     controls.forEach((c) => this.sets.push(c));
