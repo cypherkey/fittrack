@@ -89,8 +89,18 @@ public class ExerciseCatalogSeeder implements ApplicationRunner {
 	@Override
 	@Transactional
 	public void run(ApplicationArguments args) throws Exception {
-		if (exerciseRepository.count() > 0) {
-			log.info("Exercise table already has data; skipping catalog seed");
+		log.info(
+				"ExerciseCatalogSeeder starting (resource={}, loadImages={}, downloadImages={})",
+				RESOURCE,
+				loadImages,
+				downloadImages
+		);
+		long existingCount = exerciseRepository.count();
+		if (existingCount > 0) {
+			log.info(
+					"Exercise table already has {} row(s); skipping catalog seed",
+					existingCount
+			);
 			return;
 		}
 		ClassPathResource resource = new ClassPathResource(RESOURCE);
@@ -103,6 +113,8 @@ public class ExerciseCatalogSeeder implements ApplicationRunner {
 			seeds = objectMapper.readValue(in, new TypeReference<>() {
 			});
 		}
+		int seedCount = seeds == null ? 0 : seeds.size();
+		log.info("Loaded {} exercise record(s) from classpath resource {}", seedCount, RESOURCE);
 		if (seeds == null || seeds.isEmpty()) {
 			log.info("Exercise catalog is empty; nothing to seed");
 			return;
