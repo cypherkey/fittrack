@@ -14,6 +14,7 @@ public record TemplateResponse(
 		TemplateVisibility visibility,
 		Instant createdAt,
 		Instant updatedAt,
+		int setCount,
 		List<TemplateSetResponse> sets
 ) {
 }

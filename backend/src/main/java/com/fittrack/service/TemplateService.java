@@ -187,6 +187,7 @@ public class TemplateService {
 	}
 
 	private TemplateResponse toResponse(WorkoutTemplate template, boolean includeSets) {
+		int setCount = template.getSets().size();
 		List<TemplateSetResponse> sets = includeSets
 				? template.getSets().stream()
 						.sorted(Comparator.comparingInt(TemplateSet::getSetNumber))
@@ -202,6 +203,7 @@ public class TemplateService {
 				template.getVisibility(),
 				template.getCreatedAt(),
 				template.getUpdatedAt(),
+				setCount,
 				sets
 		);
 	}

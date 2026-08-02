@@ -21,6 +21,7 @@ export interface Template {
   visibility: TemplateVisibility;
   createdAt: string;
   updatedAt: string;
+  setCount: number;
   sets: TemplateSet[];
 }
 

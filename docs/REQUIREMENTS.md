@@ -297,7 +297,7 @@ One row per set in a workout. Flat: each set points at an exercise directly. Mir
 
 Only parameters enabled on the exercise should be required/validated; others may be null.
 
-**Computed metadata:** on workout save, recompute `totalWeightLifted` = Σ (reps × weightKg) for sets with both values; store on the workout header for fast list views. API responses also include **`setCount`** (number of sets) so list views do not need the nested `sets` array. Templates do not store these aggregates.
+**Computed metadata:** on workout save, recompute `totalWeightLifted` = Σ (reps × weightKg) for sets with both values; store on the workout header for fast list views. API responses for workouts and templates also include **`setCount`** (number of sets) so list views do not need the nested `sets` array.
 
 ---
 

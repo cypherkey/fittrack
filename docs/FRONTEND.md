@@ -132,7 +132,7 @@ apiBaseUrl: ''
 - Create/edit form: `force` and `category` as selects (fixed catalog values); `trackedParameters` as Reps/Weight/Duration/Distance checkboxes (bitmask)
 
 ### Templates
-- List own templates; browse `visibility=PUBLIC` (no template-level duration or total weight)
+- List own templates; browse `visibility=PUBLIC` (no template-level duration or total weight); show `setCount` from API (list omits nested sets)
 - Create/edit with sets editor (searchable exercise dropdown, setNumber, reps/weight/duration/distance; no RPE on templates)
 - Clone → dialog for optional name → create workout (no start/end times; not completed) → navigate to workout
 

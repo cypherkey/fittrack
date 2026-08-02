@@ -121,8 +121,23 @@ class ApiIntegrationTest {
 								"""))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.sets.length()").value(2))
+				.andExpect(jsonPath("$.setCount").value(2))
 				.andReturn();
 		String templateId = objectMapper.readTree(templateResult.getResponse().getContentAsString()).get("id").asText();
+
+		MvcResult templateListResult = mockMvc.perform(get("/api/v1/templates").header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andReturn();
+		JsonNode listedTemplates = objectMapper.readTree(templateListResult.getResponse().getContentAsString());
+		boolean foundTemplate = false;
+		for (JsonNode node : listedTemplates) {
+			if (templateId.equals(node.get("id").asText())) {
+				assertEquals(2, node.get("setCount").asInt());
+				assertEquals(0, node.get("sets").size());
+				foundTemplate = true;
+			}
+		}
+		assertTrue(foundTemplate);
 
 		MvcResult cloneResult = mockMvc.perform(post("/api/v1/templates/" + templateId + "/clone")
 						.header("Authorization", "Bearer " + token)
