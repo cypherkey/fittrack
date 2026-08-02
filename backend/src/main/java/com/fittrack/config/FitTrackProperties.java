@@ -33,6 +33,15 @@ public record FitTrackProperties(
 		return stripTrailingSlash(primaryFrontendOrigin()) + "/auth/callback";
 	}
 
+	/**
+	 * Google OAuth login redirect URI template registered with Google.
+	 * Uses {@code FRONTEND_URL} so the scheme/host match the browser-facing origin
+	 * (required behind TLS terminators where the app itself may see {@code http}).
+	 */
+	public String oauth2LoginRedirectUriTemplate() {
+		return stripTrailingSlash(primaryFrontendOrigin()) + "/login/oauth2/code/{registrationId}";
+	}
+
 	/** CORS allowed origins from {@code FRONTEND_URL} (comma-separated supported). */
 	public List<String> corsAllowedOrigins() {
 		return Arrays.stream((frontendUrl == null ? "" : frontendUrl).split(","))

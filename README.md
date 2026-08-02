@@ -56,15 +56,15 @@ From `backend/`:
 | `DB_PATH` | SQLite file path | `./data/fittrack.db` |
 | `JWT_SECRET` | JWT signing secret (≥256 bits recommended) | dev default in `application.yml` |
 | `JWT_EXPIRATION_MINUTES` | Access token lifetime | `720` |
-| `FITTRACK_GOOGLE_OAUTH_ENABLED` | Optional flag only (credentials alone enable SSO; this flag alone does not) | `false` |
+| `GOOGLE_OAUTH_ENABLED` | Optional flag only (credentials alone enable SSO; this flag alone does not) | `false` |
 | `GOOGLE_CLIENT_ID` | Google OAuth client id (required with secret to enable SSO) | _(empty)_ |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | _(empty)_ |
-| `FRONTEND_URL` | SPA origin (CORS + OAuth callback `{FRONTEND_URL}/auth/callback`) | `http://localhost:4200` (compose/Docker: `http://localhost:8080`) |
+| `FRONTEND_URL` | Browser-facing SPA origin: CORS, JWT handoff `{FRONTEND_URL}/auth/callback`, and Google OAuth `redirect_uri` `{FRONTEND_URL}/login/oauth2/code/google` | `http://localhost:4200` (compose/Docker: `http://localhost:8080`) |
 | `LOG_LEVEL` | Console log level (`INFO`, `DEBUG`, `TRACE`, …) for root, `com.fittrack`, Spring Security, and Spring Web | `INFO` |
 | `FITTRACK_SEED_LOAD_IMAGES` | Load image bytes into DB during catalog seed | `true` |
 | `FITTRACK_SEED_DOWNLOAD_IMAGES` | If a classpath image file is missing, download from GitHub raw | `true` |
 
-Google SSO enables automatically when both `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are non-empty (startup stays local-only if they are empty). Start login at `/oauth2/authorization/google`. After Google login, the backend redirects to `{FRONTEND_URL}/auth/callback#token=<jwt>` (no refresh tokens in v1). Local username/password + JWT always work.
+Google SSO enables automatically when both `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are non-empty (startup stays local-only if they are empty). Start login at `/oauth2/authorization/google`. Register the Google Cloud redirect URI as **`{FRONTEND_URL}/login/oauth2/code/google`** (scheme and host must match `FRONTEND_URL`, including `https`). After Google login, the backend redirects to `{FRONTEND_URL}/auth/callback#token=<jwt>` (no refresh tokens in v1). Local username/password + JWT always work. Behind a TLS-terminating proxy, `server.forward-headers-strategy=framework` honors `X-Forwarded-*` headers.
 
 OpenAPI / Swagger UI (no auth required to view):
 
@@ -104,7 +104,7 @@ docker compose up --build
 
 Opens **http://localhost:8080** (Angular SPA + REST API, same origin). Login `admin` / `admin`.
 
-SQLite data is stored in the `fittrack-data` volume at `/data/fittrack.db`. Override secrets via environment or a `.env` file (not committed). For Google SSO against the container, register redirect `http://localhost:8080/login/oauth2/code/google` and set `FRONTEND_URL=http://localhost:8080` (compose default).
+SQLite data is stored in the `fittrack-data` volume at `/data/fittrack.db`. Override secrets via environment or a `.env` file (not committed). For Google SSO against the container, set `FRONTEND_URL` to the browser-facing origin (compose default `http://localhost:8080`, or `https://…` behind TLS) and register redirect `{FRONTEND_URL}/login/oauth2/code/google` in Google Cloud.
 
 Day-to-day frontend work can still use `npm start` on `:4200` against a local API on `:8080`.
 

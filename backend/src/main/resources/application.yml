@@ -29,6 +29,8 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  # Honor X-Forwarded-* when behind a TLS-terminating reverse proxy
+  forward-headers-strategy: framework
 
 management:
   endpoints:
@@ -62,11 +64,12 @@ fittrack:
     # Load image bytes into image.content_base64 (classpath data/exercise-images/, else GitHub raw)
     load-images: ${FITTRACK_SEED_LOAD_IMAGES:true}
     download-images: ${FITTRACK_SEED_DOWNLOAD_IMAGES:true}
-  # SPA origin(s); auth callback = {FRONTEND_URL}/auth/callback; CORS uses the same value(s)
+  # SPA origin(s); auth callback = {FRONTEND_URL}/auth/callback; Google OAuth redirect_uri =
+  # {FRONTEND_URL}/login/oauth2/code/google; CORS uses the same value(s)
   frontend-url: ${FRONTEND_URL:http://localhost:4200}
   oauth2:
     google:
-      enabled: ${FITTRACK_GOOGLE_OAUTH_ENABLED:false}
+      enabled: ${GOOGLE_OAUTH_ENABLED:false}
 
 logging:
   level:
