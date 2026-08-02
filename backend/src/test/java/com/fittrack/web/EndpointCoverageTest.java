@@ -316,7 +316,7 @@ class EndpointCoverageTest {
 	}
 
 	@Test
-	void authorizationEdgesForPrivateTemplatesAndPublicCatalogOnly() throws Exception {
+	void authorizationEdgesForPrivateTemplatesAndWorkouts() throws Exception {
 		MvcResult custom = mockMvc.perform(post("/api/v1/exercises")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
@@ -327,17 +327,19 @@ class EndpointCoverageTest {
 				.andReturn();
 		String customId = objectMapper.readTree(custom.getResponse().getContentAsString()).get("id").asText();
 
-		mockMvc.perform(post("/api/v1/templates")
+		MvcResult publicT = mockMvc.perform(post("/api/v1/templates")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
 								{
-								  "name":"Public Bad",
+								  "name":"Public With Custom",
 								  "visibility":"PUBLIC",
 								  "sets":[{"exerciseId":"%s","setNumber":1,"reps":1}]
 								}
 								""".formatted(customId)))
-				.andExpect(status().isBadRequest());
+				.andExpect(status().isCreated())
+				.andReturn();
+		String publicId = objectMapper.readTree(publicT.getResponse().getContentAsString()).get("id").asText();
 
 		MvcResult privateT = mockMvc.perform(post("/api/v1/templates")
 						.header("Authorization", "Bearer " + adminToken)
@@ -371,6 +373,8 @@ class EndpointCoverageTest {
 		mockMvc.perform(delete("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isNoContent());
 		mockMvc.perform(delete("/api/v1/templates/" + privateId).header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isNoContent());
+		mockMvc.perform(delete("/api/v1/templates/" + publicId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isNoContent());
 		mockMvc.perform(delete("/api/v1/exercises/" + customId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isNoContent());

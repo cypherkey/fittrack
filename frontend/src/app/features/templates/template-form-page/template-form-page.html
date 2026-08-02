@@ -33,13 +33,8 @@
       <textarea matInput formControlName="notes" rows="2"></textarea>
     </mat-form-field>
 
-    @if (catalogOnly) {
-      <p class="hint">Public templates may only use catalog exercises (no custom exercises).</p>
-    }
-
     <app-sets-editor
       [sets]="sets"
-      [catalogOnly]="catalogOnly"
       [showRpe]="false"
       [entityId]="templateId"
       (reorderPersisted)="onReorder($event)"

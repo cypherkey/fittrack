@@ -44,10 +44,6 @@ export class TemplateFormPage implements OnInit {
     return this.form.get('sets') as FormArray;
   }
 
-  get catalogOnly(): boolean {
-    return this.form.value.visibility === TemplateVisibility.Public;
-  }
-
   ngOnInit(): void {
     this.templateId = this.route.snapshot.paramMap.get('id');
     if (this.templateId) {

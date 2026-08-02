@@ -53,7 +53,7 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 | `authMeAndActuatorAndOpenApi` | Login, `GET /me` (incl. `admin`), health, info 401, OpenAPI |
 | `adminUserManagement` | Admin users CRUD (`/api/v1/users`); non-admin 403; cannot delete self |
 | `lookupsExercisesTemplatesWorkoutsAndReorder` | Equipment, muscles, exercise CRUD, template CRUD + reorder + clone, workout list/create/get/put/reorder/delete |
-| `authorizationEdgesForPrivateTemplatesAndPublicCatalogOnly` | PUBLIC rejects custom exercises; private template hidden from other; workout forbidden for non-owner; catalog PUT forbidden |
+| `authorizationEdgesForPrivateTemplatesAndWorkouts` | PUBLIC+custom create allowed; private template hidden from other; workout forbidden for non-owner |
 
 ## Endpoints vs tests (checklist)
 

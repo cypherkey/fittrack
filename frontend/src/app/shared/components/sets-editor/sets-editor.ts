@@ -4,30 +4,33 @@ import {
   DestroyRef,
   EventEmitter,
   Input,
-  OnChanges,
   OnInit,
   Output,
-  SimpleChanges,
+  QueryList,
+  ViewChildren,
   computed,
   inject,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import {
   Observable,
   Subject,
+  catchError,
   debounceTime,
   distinctUntilChanged,
   forkJoin,
   map,
+  of,
   switchMap,
 } from 'rxjs';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { Exercise } from '../../../core/models/exercise';
 import { RPE_LEVELS } from '../../../core/models/enums';
 import { ReorderSetItem } from '../../../core/models/template';
+import { devLog } from '../../../core/utils/dev-log';
 import { renumberSets } from '../../utils/set-form';
 
 interface ExerciseOption {
@@ -41,14 +44,15 @@ interface ExerciseOption {
   standalone: false,
   styleUrl: './sets-editor.scss',
 })
-export class SetsEditor implements OnInit, OnChanges {
+export class SetsEditor implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly exerciseApi = inject(ExerciseApi);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly search$ = new Subject<{ q: string; catalogOnly: boolean }>();
+  private readonly search$ = new Subject<string>();
+
+  @ViewChildren(MatAutocompleteTrigger) private readonly autocompleteTriggers!: QueryList<MatAutocompleteTrigger>;
 
   @Input({ required: true }) sets!: FormArray<FormGroup>;
-  @Input() catalogOnly = false;
   @Input() showCompleted = false;
   /** When false (templates), RPE controls are hidden and omitted from new rows. */
   @Input() showRpe = true;
@@ -86,15 +90,28 @@ export class SetsEditor implements OnInit, OnChanges {
     this.search$
       .pipe(
         debounceTime(200),
-        distinctUntilChanged((a, b) => a.q === b.q && a.catalogOnly === b.catalogOnly),
-        switchMap(({ q, catalogOnly }) => {
+        distinctUntilChanged(),
+        switchMap((q) => {
           this.lastQuery.set(q);
-          return this.fetchExercises(q, catalogOnly);
+          return this.fetchExercises(q);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((exercises) => {
         this.searchResults.set(exercises);
+        devLog('[SetsEditor] exercise search', {
+          q: this.lastQuery(),
+          count: exercises.length,
+          names: exercises.map((e) => e.name),
+          customs: exercises.filter((e) => e.custom).map((e) => e.name),
+        });
+        queueMicrotask(() => {
+          for (const trigger of this.autocompleteTriggers ?? []) {
+            if (trigger.panelOpen) {
+              trigger.openPanel();
+            }
+          }
+        });
       });
 
     const selected: ExerciseOption[] = [];
@@ -111,24 +128,13 @@ export class SetsEditor implements OnInit, OnChanges {
     this.loadExercises('');
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['catalogOnly'] && !changes['catalogOnly'].firstChange) {
-      this.loadExercises(this.lastQuery());
-    }
-  }
-
   loadExercises(q: string): void {
     this.lastQuery.set(q);
-    this.search$.next({ q, catalogOnly: this.catalogOnly });
+    devLog('[SetsEditor] queue search', { q });
+    this.search$.next(q);
   }
 
-  private fetchExercises(q: string, catalogOnly: boolean): Observable<Exercise[]> {
-    if (catalogOnly) {
-      return this.exerciseApi.list({ q, size: 100 }).pipe(
-        map((page) => page.content.filter((e) => !e.custom)),
-      );
-    }
-
+  private fetchExercises(q: string): Observable<Exercise[]> {
     return forkJoin({
       normal: this.exerciseApi.list({ q, size: 100 }),
       customs: this.exerciseApi.list({ q, customOnly: true, size: 100 }),
@@ -144,6 +150,11 @@ export class SetsEditor implements OnInit, OnChanges {
           }
         }
         return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+      }),
+      catchError((err) => {
+        devLog('[SetsEditor] fetchExercises failed', { q, err });
+        console.error('[SetsEditor] fetchExercises failed', err);
+        return of([] as Exercise[]);
       }),
     );
   }

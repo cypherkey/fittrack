@@ -95,10 +95,9 @@ public class TemplateService {
 		workout.setSourceTemplate(template);
 
 		for (TemplateSet templateSet : template.getSets()) {
-			Exercise exercise = exerciseService.requireUsableBy(user, templateSet.getExercise().getId());
 			WorkoutSet set = new WorkoutSet();
 			set.setWorkout(workout);
-			set.setExercise(exercise);
+			set.setExercise(templateSet.getExercise());
 			set.setSetNumber(templateSet.getSetNumber());
 			set.setReps(templateSet.getReps());
 			set.setWeightKg(templateSet.getWeightKg());
@@ -152,12 +151,8 @@ public class TemplateService {
 			return;
 		}
 		WorkoutService.assertUniqueSetNumbers(setRequests.stream().map(TemplateSetRequest::setNumber).toList());
-		boolean isPublic = template.getVisibility() == TemplateVisibility.PUBLIC;
 		for (TemplateSetRequest req : setRequests) {
 			Exercise exercise = exerciseService.requireUsableBy(user, req.exerciseId());
-			if (isPublic && exercise.isCustom()) {
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "PUBLIC templates may only include catalog exercises");
-			}
 			TemplateSet set = new TemplateSet();
 			set.setTemplate(template);
 			set.setExercise(exercise);
