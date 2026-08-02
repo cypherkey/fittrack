@@ -44,12 +44,20 @@
           <th mat-header-cell *matHeaderCellDef>Reps</th>
           <td mat-cell *matCellDef="let row">{{ row.reps ?? '—' }}</td>
         </ng-container>
+        <ng-container matColumnDef="duration">
+          <th mat-header-cell *matHeaderCellDef>Duration</th>
+          <td mat-cell *matCellDef="let row">{{ row.durationSeconds ?? '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="distance">
+          <th mat-header-cell *matHeaderCellDef>Distance</th>
+          <td mat-cell *matCellDef="let row">{{ row.distanceMeters ?? '—' }}</td>
+        </ng-container>
         <ng-container matColumnDef="weight">
           <th mat-header-cell *matHeaderCellDef>Weight</th>
           <td mat-cell *matCellDef="let row">{{ row.weightKg ?? '—' }}</td>
         </ng-container>
-        <tr mat-header-row *matHeaderRowDef="['setNumber', 'exercise', 'reps', 'weight']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['setNumber', 'exercise', 'reps', 'weight']"></tr>
+        <tr mat-header-row *matHeaderRowDef="['setNumber', 'exercise', 'reps', 'duration', 'distance', 'weight']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['setNumber', 'exercise', 'reps', 'duration', 'distance', 'weight']"></tr>
       </table>
     </mat-card-content>
   </mat-card>
