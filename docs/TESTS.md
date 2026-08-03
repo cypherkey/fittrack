@@ -86,6 +86,7 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 | `POST /api/v1/workouts` | `EndpointCoverageTest` |
 | `PUT /api/v1/workouts/{id}` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `PATCH /api/v1/workouts/{id}/sets/reorder` | `EndpointCoverageTest` |
+| `PATCH /api/v1/workouts/{id}/sets/{setId}` | `EndpointCoverageTest` |
 | `POST /api/v1/workouts/{id}/start` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `POST /api/v1/workouts/{id}/complete` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `DELETE /api/v1/workouts/{id}` | `EndpointCoverageTest` |

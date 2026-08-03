@@ -320,6 +320,46 @@ class EndpointCoverageTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.sets[0].setNumber").value(1));
 
+		mockMvc.perform(patch("/api/v1/workouts/" + directId + "/sets/" + d0)
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"completed\":false}"))
+				.andExpect(status().isOk());
+		JsonNode afterUnset = objectMapper.readTree(mockMvc.perform(get("/api/v1/workouts/" + directId)
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andReturn()
+				.getResponse()
+				.getContentAsString());
+		boolean unsetFound = false;
+		for (JsonNode set : afterUnset.get("sets")) {
+			if (d0.equals(set.get("id").asText())) {
+				org.junit.jupiter.api.Assertions.assertFalse(set.get("completed").asBoolean());
+				unsetFound = true;
+			}
+		}
+		org.junit.jupiter.api.Assertions.assertTrue(unsetFound);
+
+		mockMvc.perform(patch("/api/v1/workouts/" + directId + "/sets/" + d0)
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"completed\":true}"))
+				.andExpect(status().isOk());
+		JsonNode afterSet = objectMapper.readTree(mockMvc.perform(get("/api/v1/workouts/" + directId)
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andReturn()
+				.getResponse()
+				.getContentAsString());
+		boolean setFound = false;
+		for (JsonNode set : afterSet.get("sets")) {
+			if (d0.equals(set.get("id").asText())) {
+				org.junit.jupiter.api.Assertions.assertTrue(set.get("completed").asBoolean());
+				setFound = true;
+			}
+		}
+		org.junit.jupiter.api.Assertions.assertTrue(setFound);
+
 		mockMvc.perform(put("/api/v1/workouts/" + directId)
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)

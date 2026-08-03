@@ -104,6 +104,18 @@ public class WorkoutService {
 	}
 
 	@Transactional
+	public WorkoutResponse updateSetCompleted(User user, String workoutId, String setId, boolean completed) {
+		Workout workout = requireOwned(user, workoutId);
+		WorkoutSet set = workout.getSets().stream()
+				.filter(s -> s.getId().equals(setId))
+				.findFirst()
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Set not found"));
+		set.setCompleted(completed);
+		workoutRepository.save(workout);
+		return toResponse(workout, true);
+	}
+
+	@Transactional
 	public WorkoutResponse saveCloned(Workout workout) {
 		assertUniqueName(workout.getUser().getId(), workout.getName(), null);
 		workoutRepository.save(workout);

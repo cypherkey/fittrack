@@ -2,9 +2,10 @@ package com.fittrack.web;
 
 import com.fittrack.domain.User;
 import com.fittrack.service.WorkoutService;
+import com.fittrack.web.dto.ReorderSetsRequest;
 import com.fittrack.web.dto.WorkoutRequest;
 import com.fittrack.web.dto.WorkoutResponse;
-import com.fittrack.web.dto.ReorderSetsRequest;
+import com.fittrack.web.dto.WorkoutSetCompletedRequest;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
@@ -74,6 +75,21 @@ public class WorkoutController {
 			@Valid @RequestBody ReorderSetsRequest request
 	) {
 		return workoutService.reorderSets(currentUserResolver.requireUser(jwt), id, request.items());
+	}
+
+	@PatchMapping("/{id}/sets/{setId}")
+	public WorkoutResponse updateSetCompleted(
+			@AuthenticationPrincipal Jwt jwt,
+			@PathVariable String id,
+			@PathVariable String setId,
+			@Valid @RequestBody WorkoutSetCompletedRequest request
+	) {
+		return workoutService.updateSetCompleted(
+				currentUserResolver.requireUser(jwt),
+				id,
+				setId,
+				request.completed()
+		);
 	}
 
 	@PostMapping("/{id}/start")

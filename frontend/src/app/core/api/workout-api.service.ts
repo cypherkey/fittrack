@@ -41,6 +41,10 @@ export class WorkoutApi {
     return this.http.patch<Workout>(`${this.base}/${id}/sets/reorder`, body);
   }
 
+  updateSetCompleted(workoutId: string, setId: string, completed: boolean): Observable<Workout> {
+    return this.http.patch<Workout>(`${this.base}/${workoutId}/sets/${setId}`, { completed });
+  }
+
   start(id: string): Observable<Workout> {
     return this.http.post<Workout>(`${this.base}/${id}/start`, {});
   }

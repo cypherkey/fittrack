@@ -48,3 +48,13 @@ table {
   align-items: center;
   gap: 0.25rem;
 }
+
+::ng-deep .mat-checkbox-checked .mat-checkbox-background {
+  background-color: darkcyan !important;
+}
+
+/* Material MDC checkbox (Angular Material 15+) */
+:host ::ng-deep .set-done.mat-mdc-checkbox-checked .mdc-checkbox__background {
+  background-color: darkcyan !important;
+  border-color: darkcyan !important;
+}

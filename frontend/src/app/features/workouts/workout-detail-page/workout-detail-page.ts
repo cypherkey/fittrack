@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
-import { Workout } from '../../../core/models/workout';
+import { Workout, WorkoutSet } from '../../../core/models/workout';
 import { NotificationService } from '../../../core/services/notification.service';
 import { errorMessage } from '../../../core/utils/http-error';
 import {
@@ -31,6 +31,8 @@ export class WorkoutDetailPage implements OnInit {
   readonly workout = signal<Workout | null>(null);
   readonly loading = signal(true);
   readonly acting = signal(false);
+  readonly setActingIds = signal<ReadonlySet<string>>(new Set());
+  readonly setColumns = ['setNumber', 'exercise', 'reps', 'weight', 'rpe', 'completed'] as const;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -125,5 +127,39 @@ export class WorkoutDetailPage implements OnInit {
       maxWidth: '720px',
       width: '92vw',
     });
+  }
+
+  isSetActing(setId: string): boolean {
+    return this.setActingIds().has(setId);
+  }
+
+  toggleSetCompleted(row: WorkoutSet, completed: boolean): void {
+    const w = this.workout();
+    if (!w || this.isSetActing(row.id) || row.completed === completed) {
+      return;
+    }
+    const nextActing = new Set(this.setActingIds());
+    nextActing.add(row.id);
+    this.setActingIds.set(nextActing);
+
+    this.workoutApi.updateSetCompleted(w.id, row.id, completed).subscribe({
+      next: (updated) => {
+        this.workout.set(updated);
+        this.clearSetActing(row.id);
+      },
+      error: (err) => {
+        this.clearSetActing(row.id);
+        this.notify.error(errorMessage(err, 'Failed to update set'));
+        this.workoutApi.get(w.id).subscribe({
+          next: (fresh) => this.workout.set(fresh),
+        });
+      },
+    });
+  }
+
+  private clearSetActing(setId: string): void {
+    const nextActing = new Set(this.setActingIds());
+    nextActing.delete(setId);
+    this.setActingIds.set(nextActing);
   }
 }

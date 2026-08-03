@@ -87,16 +87,24 @@
           <th mat-header-cell *matHeaderCellDef>Weight</th>
           <td mat-cell *matCellDef="let row">{{ row.weightKg ?? '-' }}</td>
         </ng-container>
-        <ng-container matColumnDef="completed">
-          <th mat-header-cell *matHeaderCellDef>Done</th>
-          <td mat-cell *matCellDef="let row">{{ row.completed ? 'Yes' : 'No' }}</td>
-        </ng-container>
         <ng-container matColumnDef="rpe">
           <th mat-header-cell *matHeaderCellDef>RPE</th>
           <td mat-cell *matCellDef="let row">{{ row.rpe ?? '-' }}</td>
         </ng-container>
-        <tr mat-header-row *matHeaderRowDef="['setNumber', 'exercise', 'reps', 'weight', 'completed', 'rpe']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['setNumber', 'exercise', 'reps', 'weight', 'completed', 'rpe']"></tr>
+        <ng-container matColumnDef="completed">
+          <th mat-header-cell *matHeaderCellDef>Done</th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox
+              class="set-done"
+              [checked]="row.completed"
+              [disabled]="isSetActing(row.id)"
+              (change)="toggleSetCompleted(row, $event.checked)"
+              aria-label="Mark set done"
+            ></mat-checkbox>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="setColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: setColumns"></tr>
       </table>
     </mat-card-content>
   </mat-card>
