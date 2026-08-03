@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Exercise, ExerciseListParams, ExerciseRequest } from '../models/exercise';
+import { Exercise, ExerciseHistoryEntry, ExerciseListParams, ExerciseRequest } from '../models/exercise';
 import { PageResponse } from '../models/page-response';
 
 @Injectable({ providedIn: 'root' })
@@ -38,6 +38,10 @@ export class ExerciseApi {
 
   get(id: string): Observable<Exercise> {
     return this.http.get<Exercise>(`${this.base}/${id}`);
+  }
+
+  history(id: string): Observable<ExerciseHistoryEntry[]> {
+    return this.http.get<ExerciseHistoryEntry[]>(`${this.base}/${id}/history`);
   }
 
   create(body: ExerciseRequest): Observable<Exercise> {

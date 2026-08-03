@@ -1,0 +1,32 @@
+.title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.title-row h2 {
+  margin: 0;
+  flex: 1;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.error {
+  color: var(--mat-sys-error, #b3261e);
+  margin: 0.5rem 0;
+}
+
+.empty {
+  margin: 0.5rem 0;
+  opacity: 0.8;
+}
+
+.history-table {
+  width: 100%;
+}

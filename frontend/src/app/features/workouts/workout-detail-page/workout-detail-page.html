@@ -41,9 +41,9 @@
         <div><dt>Started</dt><dd>{{ formatDate(workout.startedAt) }}</dd></div>
         <div><dt>Ended</dt><dd>{{ formatDate(workout.endedAt) }}</dd></div>
         <div><dt>Completed</dt><dd>{{ workout.completed ? 'Yes' : 'No' }}</dd></div>
-        <div><dt>Difficulty</dt><dd>{{ workout.difficulty || '—' }}</dd></div>
+        <div><dt>Difficulty</dt><dd>{{ workout.difficulty || '-' }}</dd></div>
         <div><dt>Duration</dt><dd>{{ durationLabel(workout) }}</dd></div>
-        <div><dt>Total weight lifted</dt><dd>{{ workout.totalWeightLifted ?? '—' }} kg</dd></div>
+        <div><dt>Total weight lifted</dt><dd>{{ workout.totalWeightLifted ?? '-' }} kg</dd></div>
       </dl>
       @if (workout.notes) {
         <p><strong>Notes:</strong> {{ workout.notes }}</p>
@@ -68,16 +68,24 @@
               >
                 <mat-icon>info</mat-icon>
               </button>
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Exercise history"
+                (click)="showHistory(row.exerciseId, row.exerciseName)"
+              >
+                <mat-icon>history</mat-icon>
+              </button>
             </div>
           </td>
         </ng-container>
         <ng-container matColumnDef="reps">
           <th mat-header-cell *matHeaderCellDef>Reps</th>
-          <td mat-cell *matCellDef="let row">{{ row.reps ?? '—' }}</td>
+          <td mat-cell *matCellDef="let row">{{ row.reps ?? '-' }}</td>
         </ng-container>
         <ng-container matColumnDef="weight">
           <th mat-header-cell *matHeaderCellDef>Weight</th>
-          <td mat-cell *matCellDef="let row">{{ row.weightKg ?? '—' }}</td>
+          <td mat-cell *matCellDef="let row">{{ row.weightKg ?? '-' }}</td>
         </ng-container>
         <ng-container matColumnDef="completed">
           <th mat-header-cell *matHeaderCellDef>Done</th>
@@ -85,7 +93,7 @@
         </ng-container>
         <ng-container matColumnDef="rpe">
           <th mat-header-cell *matHeaderCellDef>RPE</th>
-          <td mat-cell *matCellDef="let row">{{ row.rpe ?? '—' }}</td>
+          <td mat-cell *matCellDef="let row">{{ row.rpe ?? '-' }}</td>
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="['setNumber', 'exercise', 'reps', 'weight', 'completed', 'rpe']"></tr>
         <tr mat-row *matRowDef="let row; columns: ['setNumber', 'exercise', 'reps', 'weight', 'completed', 'rpe']"></tr>

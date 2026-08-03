@@ -220,5 +220,34 @@ class ApiIntegrationTest {
 				.andExpect(jsonPath("$.setCount").value(1))
 				.andExpect(jsonPath("$.sets[0].setNumber").value(5))
 				.andExpect(jsonPath("$.totalWeightLifted").value(240.0));
+
+		MvcResult historyResult = mockMvc.perform(get("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/history")
+						.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andReturn();
+		JsonNode history = objectMapper.readTree(historyResult.getResponse().getContentAsString());
+		assertTrue(history.isArray());
+		boolean foundHistoryRow = false;
+		String previousStartedAt = null;
+		boolean seenNullStartedAt = false;
+		for (JsonNode row : history) {
+			String startedAt = row.get("startedAt").isNull() ? null : row.get("startedAt").asText();
+			if (startedAt == null) {
+				seenNullStartedAt = true;
+			} else {
+				assertTrue(!seenNullStartedAt);
+				if (previousStartedAt != null) {
+					assertTrue(startedAt.compareTo(previousStartedAt) <= 0);
+				}
+				previousStartedAt = startedAt;
+			}
+			if (row.get("setNumber").asInt() == 5
+					&& row.get("reps").asInt() == 8
+					&& row.get("weightKg").asDouble() == 30.0
+					&& "2026-07-27T18:00:00Z".equals(startedAt)) {
+				foundHistoryRow = true;
+			}
+		}
+		assertTrue(foundHistoryRow);
 	}
 }

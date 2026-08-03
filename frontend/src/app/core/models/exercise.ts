@@ -33,6 +33,13 @@ export interface Exercise {
   images: ExerciseImage[];
 }
 
+export interface ExerciseHistoryEntry {
+  startedAt: string | null;
+  setNumber: number;
+  reps: number | null;
+  weightKg: number | null;
+}
+
 export interface MuscleLink {
   muscleId: string;
   primary: boolean;

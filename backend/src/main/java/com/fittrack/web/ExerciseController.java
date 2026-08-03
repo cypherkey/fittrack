@@ -2,10 +2,12 @@ package com.fittrack.web;
 
 import com.fittrack.domain.User;
 import com.fittrack.service.ExerciseService;
+import com.fittrack.web.dto.ExerciseHistoryEntryResponse;
 import com.fittrack.web.dto.ExerciseRequest;
 import com.fittrack.web.dto.ExerciseResponse;
 import com.fittrack.web.dto.PageResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -52,6 +54,11 @@ public class ExerciseController {
 	@GetMapping("/{id}")
 	public ExerciseResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
 		return exerciseService.get(currentUserResolver.requireUser(jwt), id);
+	}
+
+	@GetMapping("/{id}/history")
+	public List<ExerciseHistoryEntryResponse> history(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+		return exerciseService.history(currentUserResolver.requireUser(jwt), id);
 	}
 
 	@PostMapping

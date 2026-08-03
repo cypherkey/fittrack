@@ -70,6 +70,7 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 | `GET /api/v1/muscles` | `EndpointCoverageTest` |
 | `GET /api/v1/exercise` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `GET /api/v1/exercise/{id}` | `EndpointCoverageTest` |
+| `GET /api/v1/exercise/{id}/history` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `POST /api/v1/exercise` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `PUT /api/v1/exercise/{id}` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `DELETE /api/v1/exercise/{id}` | `ApiIntegrationTest`, `EndpointCoverageTest` |

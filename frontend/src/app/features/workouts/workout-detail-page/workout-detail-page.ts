@@ -9,6 +9,10 @@ import {
   ExerciseDetailDialog,
   ExerciseDetailDialogData,
 } from '../../../shared/components/exercise-detail-dialog/exercise-detail-dialog';
+import {
+  ExerciseHistoryDialog,
+  ExerciseHistoryDialogData,
+} from '../../../shared/components/exercise-history-dialog/exercise-history-dialog';
 import { formatSessionDuration } from '../../../shared/utils/set-form';
 
 @Component({
@@ -98,7 +102,7 @@ export class WorkoutDetailPage implements OnInit {
 
   formatDate(iso: string | null | undefined): string {
     if (!iso) {
-      return '—';
+      return '-';
     }
     return new Date(iso).toLocaleString();
   }
@@ -111,6 +115,14 @@ export class WorkoutDetailPage implements OnInit {
     this.dialog.open<ExerciseDetailDialog, ExerciseDetailDialogData>(ExerciseDetailDialog, {
       data: { exerciseId },
       maxWidth: '640px',
+      width: '92vw',
+    });
+  }
+
+  showHistory(exerciseId: string, exerciseName?: string): void {
+    this.dialog.open<ExerciseHistoryDialog, ExerciseHistoryDialogData>(ExerciseHistoryDialog, {
+      data: { exerciseId, exerciseName },
+      maxWidth: '720px',
       width: '92vw',
     });
   }

@@ -250,6 +250,12 @@ class EndpointCoverageTest {
 		mockMvc.perform(get("/api/v1/workouts").header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk());
 
+		mockMvc.perform(get("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/history")
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].setNumber").exists())
+				.andExpect(jsonPath("$[0].reps").exists());
+
 		mockMvc.perform(post("/api/v1/workouts")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)

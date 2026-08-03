@@ -361,6 +361,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 
 - `GET /api/v1/exercise` — list/search catalog + current user's custom (query: `q`, `muscle`, `equipment`, `category`, `customOnly`, page)
 - `GET /api/v1/exercise/{id}` — detail for any existing exercise (catalog or custom)
+- `GET /api/v1/exercise/{id}/history` — current user's set history for the exercise (ordered by workout `startedAt` desc, then `setNumber` asc); each row: `startedAt`, `setNumber`, `reps`, `weightKg`
 - `POST /api/v1/exercise` — create custom exercise (`isCustom=true`, `addedBy` = current user)
 - `PUT /api/v1/exercise/{id}` — update own custom exercise only
 - `DELETE /api/v1/exercise/{id}` — delete own custom exercise only

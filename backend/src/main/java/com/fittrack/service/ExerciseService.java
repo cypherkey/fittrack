@@ -13,6 +13,8 @@ import com.fittrack.repository.ExerciseRepository;
 import com.fittrack.repository.MuscleRepository;
 import com.fittrack.repository.TemplateSetRepository;
 import com.fittrack.repository.WorkoutSetRepository;
+import com.fittrack.domain.WorkoutSet;
+import com.fittrack.web.dto.ExerciseHistoryEntryResponse;
 import com.fittrack.web.dto.ExerciseImageResponse;
 import com.fittrack.web.dto.ExerciseMuscleResponse;
 import com.fittrack.web.dto.ExerciseRequest;
@@ -23,6 +25,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -103,6 +106,25 @@ public class ExerciseService {
 		Exercise exercise = exerciseRepository.findById(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found"));
 		return toResponse(exercise);
+	}
+
+	@Transactional(readOnly = true)
+	public List<ExerciseHistoryEntryResponse> history(User user, String id) {
+		if (!exerciseRepository.existsById(id)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found");
+		}
+		List<WorkoutSet> sets = new ArrayList<>(workoutSetRepository.findByExerciseIdAndUserId(id, user.getId()));
+		sets.sort(Comparator
+				.comparing((WorkoutSet ws) -> ws.getWorkout().getStartedAt(), Comparator.nullsLast(Comparator.reverseOrder()))
+				.thenComparingInt(WorkoutSet::getSetNumber));
+		return sets.stream()
+				.map(ws -> new ExerciseHistoryEntryResponse(
+						ws.getWorkout().getStartedAt(),
+						ws.getSetNumber(),
+						ws.getReps(),
+						ws.getWeightKg()
+				))
+				.toList();
 	}
 
 	@Transactional
