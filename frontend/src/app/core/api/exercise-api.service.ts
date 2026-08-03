@@ -8,7 +8,7 @@ import { PageResponse } from '../models/page-response';
 @Injectable({ providedIn: 'root' })
 export class ExerciseApi {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apiBaseUrl}/api/v1/exercises`;
+  private readonly base = `${environment.apiBaseUrl}/api/v1/exercise`;
 
   list(params: ExerciseListParams = {}): Observable<PageResponse<Exercise>> {
     let httpParams = new HttpParams();

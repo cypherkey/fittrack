@@ -14,6 +14,7 @@ public record ExerciseRequest(
 		ExerciseMechanic mechanic,
 		String equipmentId,
 		String instructions,
+		String videoUrl,
 		String category,
 		Integer trackedParameters,
 		List<@Valid MuscleLinkRequest> muscles

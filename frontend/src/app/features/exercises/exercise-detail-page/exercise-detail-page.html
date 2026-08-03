@@ -26,6 +26,12 @@
     </div>
   }
 
+  @if (exercise.videoUrl) {
+    <p class="video-link">
+      <a [href]="exercise.videoUrl" target="_blank" rel="noopener noreferrer">Watch video</a>
+    </p>
+  }
+
   <mat-card>
     <mat-card-content>
       <dl class="meta">

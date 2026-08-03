@@ -58,7 +58,7 @@ class ApiIntegrationTest {
 
 	@Test
 	void listsSeededCatalogExercisesAndSupportsCustomCrud() throws Exception {
-		mockMvc.perform(get("/api/v1/exercises").header("Authorization", "Bearer " + token))
+		mockMvc.perform(get("/api/v1/exercise").header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.totalElements").value(org.hamcrest.Matchers.greaterThanOrEqualTo(3)))
 				.andExpect(jsonPath("$.content[?(@.id=='51ababe0-e7cc-40d3-a3ef-7d6fb418fbac')].custom").value(org.hamcrest.Matchers.contains(false)));
@@ -67,7 +67,7 @@ class ApiIntegrationTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[?(@.name=='other')]").exists());
 
-		MvcResult created = mockMvc.perform(post("/api/v1/exercises")
+		MvcResult created = mockMvc.perform(post("/api/v1/exercise")
 						.header("Authorization", "Bearer " + token)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
@@ -76,16 +76,18 @@ class ApiIntegrationTest {
 								  "level": "BEGINNER",
 								  "mechanic": "ISOLATION",
 								  "instructions": "Curl slowly",
+								  "videoUrl": "https://example.com/v",
 								  "category": "strength",
 								  "trackedParameters": 3
 								}
 								"""))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.custom").value(true))
+				.andExpect(jsonPath("$.videoUrl").value("https://example.com/v"))
 				.andReturn();
 		String customId = objectMapper.readTree(created.getResponse().getContentAsString()).get("id").asText();
 
-		mockMvc.perform(put("/api/v1/exercises/" + customId)
+		mockMvc.perform(put("/api/v1/exercise/" + customId)
 						.header("Authorization", "Bearer " + token)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
@@ -99,7 +101,7 @@ class ApiIntegrationTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.name").value("My Custom Curl Updated"));
 
-		mockMvc.perform(delete("/api/v1/exercises/" + customId).header("Authorization", "Bearer " + token))
+		mockMvc.perform(delete("/api/v1/exercise/" + customId).header("Authorization", "Bearer " + token))
 				.andExpect(status().isNoContent());
 	}
 

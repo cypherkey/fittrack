@@ -37,6 +37,9 @@ public class Exercise {
 	@Column(nullable = false, columnDefinition = "TEXT")
 	private String instructions = "";
 
+	@Column(name = "video_url", columnDefinition = "TEXT")
+	private String videoUrl;
+
 	private String category;
 
 	@Column(name = "tracked_parameters", nullable = false)
@@ -103,6 +106,14 @@ public class Exercise {
 
 	public void setInstructions(String instructions) {
 		this.instructions = instructions;
+	}
+
+	public String getVideoUrl() {
+		return videoUrl;
+	}
+
+	public void setVideoUrl(String videoUrl) {
+		this.videoUrl = videoUrl;
 	}
 
 	public String getCategory() {

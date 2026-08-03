@@ -56,7 +56,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - OpenAPI / Swagger UI: `/v3/api-docs`, `/swagger-ui.html`; JWT bearer for Try it out
 - Actuator: only `health` exposed
 - SQLite: `foreign_keys=true&journal_mode=WAL`
-- Prefer additive Flyway `V4__*.sql` for future schema changes (V4: workout `started_at`/`ended_at`/`completed`, drop session `duration_seconds`)
+- Prefer additive Flyway migrations for schema changes (V4: workout timing/`completed`; V5: exercise `video_url`)
 - Docker: root `Dockerfile` embeds Angular into Boot `static/`; compose mounts `/data`; SPA deep-link fallthrough via `SpaForwardController`
 - Git remote may be `github`; branch `main`
 - Frontend: `frontend/` Angular 21 NgModules + Material; see [`FRONTEND.md`](FRONTEND.md)

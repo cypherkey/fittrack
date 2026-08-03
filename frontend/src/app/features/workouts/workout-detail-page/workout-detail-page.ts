@@ -1,9 +1,14 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
 import { Workout } from '../../../core/models/workout';
 import { NotificationService } from '../../../core/services/notification.service';
 import { errorMessage } from '../../../core/utils/http-error';
+import {
+  ExerciseDetailDialog,
+  ExerciseDetailDialogData,
+} from '../../../shared/components/exercise-detail-dialog/exercise-detail-dialog';
 import { formatSessionDuration } from '../../../shared/utils/set-form';
 
 @Component({
@@ -17,6 +22,7 @@ export class WorkoutDetailPage implements OnInit {
   private readonly router = inject(Router);
   private readonly workoutApi = inject(WorkoutApi);
   private readonly notify = inject(NotificationService);
+  private readonly dialog = inject(MatDialog);
 
   readonly workout = signal<Workout | null>(null);
   readonly loading = signal(true);
@@ -100,5 +106,12 @@ export class WorkoutDetailPage implements OnInit {
   durationLabel(workout: Workout): string {
     return formatSessionDuration(workout.startedAt, workout.endedAt);
   }
-}
 
+  showExercise(exerciseId: string): void {
+    this.dialog.open<ExerciseDetailDialog, ExerciseDetailDialogData>(ExerciseDetailDialog, {
+      data: { exerciseId },
+      maxWidth: '640px',
+      width: '92vw',
+    });
+  }
+}

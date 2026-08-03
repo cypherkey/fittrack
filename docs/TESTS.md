@@ -68,11 +68,11 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 | `GET /oauth2/authorization/google` | Manual / enabled only with credentials; condition + success handler unit-tested |
 | `GET /api/v1/equipment` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `GET /api/v1/muscles` | `EndpointCoverageTest` |
-| `GET /api/v1/exercises` | `ApiIntegrationTest`, `EndpointCoverageTest` |
-| `GET /api/v1/exercises/{id}` | `EndpointCoverageTest` |
-| `POST /api/v1/exercises` | `ApiIntegrationTest`, `EndpointCoverageTest` |
-| `PUT /api/v1/exercises/{id}` | `ApiIntegrationTest`, `EndpointCoverageTest` |
-| `DELETE /api/v1/exercises/{id}` | `ApiIntegrationTest`, `EndpointCoverageTest` |
+| `GET /api/v1/exercise` | `ApiIntegrationTest`, `EndpointCoverageTest` |
+| `GET /api/v1/exercise/{id}` | `EndpointCoverageTest` |
+| `POST /api/v1/exercise` | `ApiIntegrationTest`, `EndpointCoverageTest` |
+| `PUT /api/v1/exercise/{id}` | `ApiIntegrationTest`, `EndpointCoverageTest` |
+| `DELETE /api/v1/exercise/{id}` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `GET /api/v1/templates` | `EndpointCoverageTest` |
 | `GET /api/v1/templates/{id}` | `EndpointCoverageTest`, authz edge |
 | `POST /api/v1/templates` | `ApiIntegrationTest`, `EndpointCoverageTest` |

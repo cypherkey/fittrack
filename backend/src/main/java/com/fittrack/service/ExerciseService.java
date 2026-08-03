@@ -100,7 +100,9 @@ public class ExerciseService {
 
 	@Transactional(readOnly = true)
 	public ExerciseResponse get(User user, String id) {
-		return toResponse(requireVisible(user, id));
+		Exercise exercise = exerciseRepository.findById(id)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found"));
+		return toResponse(exercise);
 	}
 
 	@Transactional
@@ -135,17 +137,14 @@ public class ExerciseService {
 		exerciseRepository.delete(exercise);
 	}
 
+	/**
+	 * Resolves an exercise for use on a template or workout set.
+	 * Any existing exercise (catalog or custom) may be referenced.
+	 */
 	@Transactional(readOnly = true)
 	public Exercise requireUsableBy(User user, String exerciseId) {
-		Exercise exercise = exerciseRepository.findById(exerciseId)
+		return exerciseRepository.findById(exerciseId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exercise not found: " + exerciseId));
-		if (!exercise.isCustom()) {
-			return exercise;
-		}
-		if (exercise.getAddedBy() == null || !exercise.getAddedBy().getId().equals(user.getId())) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Custom exercise not owned by current user");
-		}
-		return exercise;
 	}
 
 	private void applyRequest(Exercise exercise, ExerciseRequest request) {
@@ -154,6 +153,7 @@ public class ExerciseService {
 		exercise.setLevel(request.level());
 		exercise.setMechanic(request.mechanic());
 		exercise.setInstructions(request.instructions() != null ? request.instructions() : "");
+		exercise.setVideoUrl(StringUtils.hasText(request.videoUrl()) ? request.videoUrl().trim() : null);
 		exercise.setCategory(request.category());
 		exercise.setTrackedParameters(
 				request.trackedParameters() != null
@@ -186,18 +186,6 @@ public class ExerciseService {
 			links.add(row);
 		}
 		exerciseHasMuscleRepository.saveAll(links);
-	}
-
-	private Exercise requireVisible(User user, String id) {
-		Exercise exercise = exerciseRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found"));
-		if (!exercise.isCustom()) {
-			return exercise;
-		}
-		if (exercise.getAddedBy() == null || !exercise.getAddedBy().getId().equals(user.getId())) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found");
-		}
-		return exercise;
 	}
 
 	private Exercise requireOwnedCustom(User user, String id) {
@@ -240,6 +228,7 @@ public class ExerciseService {
 				equipment != null ? equipment.getId() : null,
 				equipment != null ? equipment.getName() : null,
 				exercise.getInstructions(),
+				exercise.getVideoUrl(),
 				exercise.getCategory(),
 				exercise.getTrackedParameters(),
 				exercise.isCustom(),

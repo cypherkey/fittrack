@@ -1,0 +1,54 @@
+<div class="title-row">
+  <h2 mat-dialog-title>{{ exercise()?.name || 'Exercise' }}</h2>
+  <button mat-icon-button type="button" aria-label="Close" (click)="close()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content>
+  @if (loading()) {
+    <div class="loading"><mat-spinner diameter="40" /></div>
+  } @else if (error(); as err) {
+    <p class="error">{{ err }}</p>
+  } @else if (exercise(); as exercise) {
+    @if (exercise.images.length) {
+      <div class="images">
+        @for (img of exercise.images; track img.imageId) {
+          @if (imageSrc(img); as src) {
+            <img [src]="src" [alt]="img.altText || exercise.name" />
+          }
+        }
+      </div>
+    }
+
+    @if (exercise.videoUrl) {
+      <p class="video-link">
+        <a [href]="exercise.videoUrl" target="_blank" rel="noopener noreferrer">Watch video</a>
+      </p>
+    }
+
+    <dl class="meta">
+      <div><dt>Level</dt><dd>{{ exercise.level }}</dd></div>
+      <div><dt>Category</dt><dd>{{ exercise.category || '—' }}</dd></div>
+      <div><dt>Equipment</dt><dd>{{ exercise.equipmentName || '—' }}</dd></div>
+      <div><dt>Mechanic</dt><dd>{{ exercise.mechanic || '—' }}</dd></div>
+      <div><dt>Force</dt><dd>{{ exercise.force || '—' }}</dd></div>
+      <div><dt>Tracked parameters</dt><dd>{{ parameterLabels(exercise.trackedParameters) }}</dd></div>
+      <div><dt>Type</dt><dd>{{ exercise.custom ? 'Custom' : 'Catalog' }}</dd></div>
+    </dl>
+
+    @if (exercise.muscles.length) {
+      <h3>Muscles</h3>
+      <mat-chip-set>
+        @for (m of exercise.muscles; track m.muscleId) {
+          <mat-chip>{{ m.name }}{{ m.primary ? ' (primary)' : '' }}</mat-chip>
+        }
+      </mat-chip-set>
+    }
+
+    @if (exercise.instructions) {
+      <h3>Instructions</h3>
+      <div class="instructions" [innerHTML]="exercise.instructions | markdown"></div>
+    }
+  }
+</mat-dialog-content>

@@ -57,7 +57,19 @@
         </ng-container>
         <ng-container matColumnDef="exercise">
           <th mat-header-cell *matHeaderCellDef>Exercise</th>
-          <td mat-cell *matCellDef="let row">{{ row.exerciseName }}</td>
+          <td mat-cell *matCellDef="let row">
+            <div class="exercise-cell">
+              <span>{{ row.exerciseName }}</span>
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Exercise info"
+                (click)="showExercise(row.exerciseId)"
+              >
+                <mat-icon>info</mat-icon>
+              </button>
+            </div>
+          </td>
         </ng-container>
         <ng-container matColumnDef="reps">
           <th mat-header-cell *matHeaderCellDef>Reps</th>

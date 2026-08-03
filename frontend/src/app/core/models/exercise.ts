@@ -24,6 +24,7 @@ export interface Exercise {
   equipmentId: string | null;
   equipmentName: string | null;
   instructions: string | null;
+  videoUrl: string | null;
   category: string | null;
   trackedParameters: number;
   custom: boolean;
@@ -44,6 +45,7 @@ export interface ExerciseRequest {
   mechanic?: ExerciseMechanic | null;
   equipmentId?: string | null;
   instructions?: string | null;
+  videoUrl?: string | null;
   category?: string | null;
   trackedParameters?: number | null;
   muscles?: MuscleLink[];

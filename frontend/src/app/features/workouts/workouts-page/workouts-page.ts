@@ -68,6 +68,16 @@ export class WorkoutsPage implements OnInit {
     void this.router.navigate(['/workouts', id]);
   }
 
+  start(id: string): void {
+    this.workoutApi.start(id).subscribe({
+      next: () => {
+        this.notify.success('Workout started');
+        void this.router.navigate(['/workouts', id]);
+      },
+      error: (err) => this.notify.error(errorMessage(err, 'Failed to start workout')),
+    });
+  }
+
   edit(id: string): void {
     void this.router.navigate(['/workouts', id, 'edit']);
   }

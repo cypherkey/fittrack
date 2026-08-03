@@ -13,6 +13,7 @@ public record ExerciseResponse(
 		String equipmentId,
 		String equipmentName,
 		String instructions,
+		String videoUrl,
 		String category,
 		int trackedParameters,
 		boolean custom,

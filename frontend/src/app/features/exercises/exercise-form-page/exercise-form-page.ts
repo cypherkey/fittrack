@@ -52,6 +52,7 @@ export class ExerciseFormPage implements OnInit {
     mechanic: [''],
     equipmentId: [''],
     instructions: [''],
+    videoUrl: [''],
     category: [''],
     trackedParameters: [DEFAULT_TRACKED_PARAMETERS as number],
     muscles: this.fb.array([]),
@@ -82,6 +83,7 @@ export class ExerciseFormPage implements OnInit {
             mechanic: ex.mechanic ?? '',
             equipmentId: ex.equipmentId ?? '',
             instructions: ex.instructions ?? '',
+            videoUrl: ex.videoUrl ?? '',
             category: ex.category ?? '',
             trackedParameters: ex.trackedParameters,
           });
@@ -139,6 +141,7 @@ export class ExerciseFormPage implements OnInit {
       mechanic: (v.mechanic as ExerciseRequest['mechanic']) || null,
       equipmentId: v.equipmentId || null,
       instructions: v.instructions || null,
+      videoUrl: v.videoUrl?.trim() || null,
       category: v.category || null,
       trackedParameters: v.trackedParameters ?? DEFAULT_TRACKED_PARAMETERS,
       muscles: this.muscleLinks.value,

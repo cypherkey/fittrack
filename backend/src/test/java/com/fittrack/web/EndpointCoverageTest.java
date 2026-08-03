@@ -139,14 +139,14 @@ class EndpointCoverageTest {
 		mockMvc.perform(get("/api/v1/muscles").header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk());
 
-		mockMvc.perform(get("/api/v1/exercises").header("Authorization", "Bearer " + adminToken))
+		mockMvc.perform(get("/api/v1/exercise").header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content").isArray());
-		mockMvc.perform(get("/api/v1/exercises/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac").header("Authorization", "Bearer " + adminToken))
+		mockMvc.perform(get("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac").header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value("51ababe0-e7cc-40d3-a3ef-7d6fb418fbac"));
 
-		MvcResult custom = mockMvc.perform(post("/api/v1/exercises")
+		MvcResult custom = mockMvc.perform(post("/api/v1/exercise")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
@@ -156,7 +156,7 @@ class EndpointCoverageTest {
 				.andReturn();
 		String customId = objectMapper.readTree(custom.getResponse().getContentAsString()).get("id").asText();
 
-		mockMvc.perform(put("/api/v1/exercises/" + customId)
+		mockMvc.perform(put("/api/v1/exercise/" + customId)
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
@@ -302,11 +302,11 @@ class EndpointCoverageTest {
 				.andExpect(status().isNoContent());
 		mockMvc.perform(delete("/api/v1/templates/" + templateId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isNoContent());
-		mockMvc.perform(delete("/api/v1/exercises/" + customId).header("Authorization", "Bearer " + adminToken))
+		mockMvc.perform(delete("/api/v1/exercise/" + customId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isNoContent());
 
 		// authz smoke: other cannot get admin-deleted resources; catalog update forbidden
-		mockMvc.perform(put("/api/v1/exercises/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac")
+		mockMvc.perform(put("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac")
 						.header("Authorization", "Bearer " + otherToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
@@ -317,7 +317,7 @@ class EndpointCoverageTest {
 
 	@Test
 	void authorizationEdgesForPrivateTemplatesAndWorkouts() throws Exception {
-		MvcResult custom = mockMvc.perform(post("/api/v1/exercises")
+		MvcResult custom = mockMvc.perform(post("/api/v1/exercise")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
@@ -376,7 +376,7 @@ class EndpointCoverageTest {
 				.andExpect(status().isNoContent());
 		mockMvc.perform(delete("/api/v1/templates/" + publicId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isNoContent());
-		mockMvc.perform(delete("/api/v1/exercises/" + customId).header("Authorization", "Bearer " + adminToken))
+		mockMvc.perform(delete("/api/v1/exercise/" + customId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isNoContent());
 	}
 }

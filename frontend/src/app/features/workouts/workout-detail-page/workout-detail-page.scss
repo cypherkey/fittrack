@@ -42,3 +42,9 @@
 table {
   width: 100%;
 }
+
+.exercise-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}

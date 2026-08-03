@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/api/v1/exercises")
+@RequestMapping("/api/v1/exercise")
 @Tag(name = "Exercises", description = "Catalog and custom exercises")
 public class ExerciseController {
 
