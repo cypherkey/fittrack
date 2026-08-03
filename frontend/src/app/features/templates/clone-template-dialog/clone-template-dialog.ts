@@ -10,6 +10,14 @@ export interface CloneTemplateDialogResult {
   name: string | null;
 }
 
+/** Local calendar date as Workout YYYY-MM-DD. */
+export function defaultCloneWorkoutName(date = new Date()): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `Workout ${yyyy}-${mm}-${dd}`;
+}
+
 @Component({
   selector: 'app-clone-template-dialog',
   templateUrl: './clone-template-dialog.html',
@@ -27,7 +35,7 @@ export class CloneTemplateDialog {
     private readonly dialogRef: MatDialogRef<CloneTemplateDialog, CloneTemplateDialogResult>,
     @Inject(MAT_DIALOG_DATA) public data: CloneTemplateDialogData,
   ) {
-    this.form.patchValue({ name: data.templateName });
+    this.form.patchValue({ name: defaultCloneWorkoutName() });
   }
 
   submit(): void {

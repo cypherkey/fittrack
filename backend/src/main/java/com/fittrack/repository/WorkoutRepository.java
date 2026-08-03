@@ -27,4 +27,8 @@ public interface WorkoutRepository extends JpaRepository<Workout, String> {
 	@EntityGraph(attributePaths = { "sets", "sets.exercise", "sourceTemplate" })
 	@Query("SELECT w FROM Workout w WHERE w.id = :id")
 	Optional<Workout> findWithSetsById(@Param("id") String id);
+
+	boolean existsByUser_IdAndName(String userId, String name);
+
+	boolean existsByUser_IdAndNameAndIdNot(String userId, String name, String id);
 }

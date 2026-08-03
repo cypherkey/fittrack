@@ -238,7 +238,7 @@ Same structure as `WorkoutSet`: one row per planned set; each set points at an e
 
 No `completed` flag on template sets (that is workout/logging-only).
 
-**Clone template → workout:** create a new `Workout` for the current user with `startedAt`/`endedAt` unset and `completed=false`; copy template header fields that apply (`name`, `difficulty`, `notes`); recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`, notes; `rpe` starts unset; set `completed=false`); set `sourceTemplateId`; leave template unchanged.
+**Clone template → workout:** create a new `Workout` for the current user with `startedAt`/`endedAt` unset and `completed=false`; default workout `name` to `Workout YYYY-MM-DD` (current local date) unless the clone request supplies a non-blank name; copy template `difficulty` and `notes`; recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`, notes; `rpe` starts unset; set `completed=false`); set `sourceTemplateId`; leave template unchanged.
 
 **Public templates:** any authenticated user may **read** and **clone**; only owner may **edit/delete**. No template search in v1. Both **PRIVATE** and **PUBLIC** templates may include any exercise the owner can use (catalog + their own custom exercises). Cloning a public template copies its exercise references as-is (including the owner's custom exercises) onto the new workout.
 
@@ -252,7 +252,7 @@ Tied to a specific user and a **datetime** (not date-only), so multiple workouts
 | userId | FK → User | |
 | startedAt | datetime (instant)? | When the workout started (UTC recommended; UI may display local); nullable until logged |
 | endedAt | datetime (instant)? | When the workout ended; nullable; session duration = `endedAt − startedAt` in the UI |
-| name | string? | Optional title |
+| name | string? | Optional title; **unique per user** when set (trimmed); blank stored as null; different users may reuse the same name |
 | completed | boolean | Whether the workout session is finished; default `false` |
 | totalWeightLifted | decimal? | Computed and/or stored metadata (kg) |
 | difficulty | enum? | `EASY` \| `MEDIUM` \| `HARD` |
@@ -361,7 +361,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 
 - `GET /api/v1/exercise` — list/search catalog + current user's custom (query: `q`, `muscle`, `equipment`, `category`, `customOnly`, page)
 - `GET /api/v1/exercise/{id}` — detail for any existing exercise (catalog or custom)
-- `GET /api/v1/exercise/{id}/history` — current user's set history for the exercise (ordered by workout `startedAt` desc, then `setNumber` asc); each row: `startedAt`, `setNumber`, `reps`, `weightKg`
+- `GET /api/v1/exercise/{id}/history` — current user's set history for the exercise from **completed** workouts only (ordered by workout `startedAt` desc, then `setNumber` asc); each row: `startedAt`, `setNumber`, `reps`, `weightKg`
 - `POST /api/v1/exercise` — create custom exercise (`isCustom=true`, `addedBy` = current user)
 - `PUT /api/v1/exercise/{id}` — update own custom exercise only
 - `DELETE /api/v1/exercise/{id}` — delete own custom exercise only
@@ -374,7 +374,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `PUT /api/v1/templates/{id}` - update metadata / replace sets (owner); client supplies `setNumber` for order/reorder (no server auto-renumber to 1…N)
 - `PATCH /api/v1/templates/{id}/sets/reorder` - body: `{ "items": [ { "setId", "setNumber" } ] }` — updates `setNumber` only; uniqueness rules apply, no forced contiguous rewrite
 - `DELETE /api/v1/templates/{id}` - delete (owner)
-- `POST /api/v1/templates/{id}/clone` — body: `{ "name": "..." }` (optional) → creates Workout with unset `startedAt`/`endedAt` and `completed=false`
+- `POST /api/v1/templates/{id}/clone` — body: `{ "name": "..." }` (optional; default `Workout YYYY-MM-DD`) → creates Workout with unset `startedAt`/`endedAt` and `completed=false`
 
 ### Workouts
 

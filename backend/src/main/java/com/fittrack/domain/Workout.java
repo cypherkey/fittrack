@@ -14,13 +14,14 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "workout")
+@Table(name = "workout", uniqueConstraints = @UniqueConstraint(columnNames = { "user_id", "name" }))
 public class Workout {
 
 	@Id

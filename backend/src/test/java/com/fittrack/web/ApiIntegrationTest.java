@@ -141,12 +141,13 @@ class ApiIntegrationTest {
 		}
 		assertTrue(foundTemplate);
 
+		String liveName = "Push Day Live " + java.util.UUID.randomUUID();
 		MvcResult cloneResult = mockMvc.perform(post("/api/v1/templates/" + templateId + "/clone")
 						.header("Authorization", "Bearer " + token)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"name\":\"Push Day Live\"}"))
+						.content("{\"name\":\"" + liveName + "\"}"))
 				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.name").value("Push Day Live"))
+				.andExpect(jsonPath("$.name").value(liveName))
 				.andExpect(jsonPath("$.startedAt").isEmpty())
 				.andExpect(jsonPath("$.endedAt").isEmpty())
 				.andExpect(jsonPath("$.completed").value(false))
@@ -209,17 +210,49 @@ class ApiIntegrationTest {
 						.content("""
 								{
 								  "startedAt": "2026-07-27T18:00:00Z",
-								  "name": "Push Day Live",
+								  "name": "%s",
+								  "completed": true,
 								  "sets": [
 								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 5, "reps": 8, "weightKg": 30.0, "completed": true}
 								  ]
 								}
-								"""))
+								""".formatted(liveName)))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.sets.length()").value(1))
 				.andExpect(jsonPath("$.setCount").value(1))
 				.andExpect(jsonPath("$.sets[0].setNumber").value(5))
+				.andExpect(jsonPath("$.completed").value(true))
 				.andExpect(jsonPath("$.totalWeightLifted").value(240.0));
+
+		mockMvc.perform(post("/api/v1/workouts")
+						.header("Authorization", "Bearer " + token)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "startedAt": "2026-07-28T12:00:00Z",
+								  "name": "Incomplete history exclude %s",
+								  "completed": false,
+								  "sets": [
+								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 1, "reps": 99, "weightKg": 1.0, "completed": true}
+								  ]
+								}
+								""".formatted(java.util.UUID.randomUUID())))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.completed").value(false));
+
+		mockMvc.perform(post("/api/v1/workouts")
+						.header("Authorization", "Bearer " + token)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "startedAt": "2026-07-28T16:00:00Z",
+								  "name": "%s",
+								  "sets": [
+								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 1, "reps": 1}
+								  ]
+								}
+								""".formatted(liveName)))
+				.andExpect(status().isConflict());
 
 		MvcResult historyResult = mockMvc.perform(get("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/history")
 						.header("Authorization", "Bearer " + token))
@@ -241,6 +274,9 @@ class ApiIntegrationTest {
 				}
 				previousStartedAt = startedAt;
 			}
+			assertTrue(!(row.get("setNumber").asInt() == 1
+					&& row.get("reps").asInt() == 99
+					&& row.get("weightKg").asDouble() == 1.0));
 			if (row.get("setNumber").asInt() == 5
 					&& row.get("reps").asInt() == 8
 					&& row.get("weightKg").asDouble() == 30.0

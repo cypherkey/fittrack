@@ -209,13 +209,24 @@ class EndpointCoverageTest {
 		MvcResult clone = mockMvc.perform(post("/api/v1/templates/" + templateId + "/clone")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"name\":\"Cloned\"}"))
+						.content("{\"name\":\"Coverage Clone " + java.util.UUID.randomUUID() + "\"}"))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.startedAt").isEmpty())
 				.andExpect(jsonPath("$.endedAt").isEmpty())
 				.andExpect(jsonPath("$.completed").value(false))
 				.andReturn();
 		String workoutId = objectMapper.readTree(clone.getResponse().getContentAsString()).get("id").asText();
+
+		String defaultName = "Workout " + java.time.LocalDate.now();
+		mockMvc.perform(post("/api/v1/templates/" + templateId + "/clone")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"name\":\"" + defaultName + "\"}"));
+		mockMvc.perform(post("/api/v1/templates/" + templateId + "/clone")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"name\":\"" + defaultName + "\"}"))
+				.andExpect(status().isConflict());
 
 		mockMvc.perform(post("/api/v1/workouts/" + workoutId + "/start")
 						.header("Authorization", "Bearer " + adminToken))
@@ -256,20 +267,35 @@ class EndpointCoverageTest {
 				.andExpect(jsonPath("$[0].setNumber").exists())
 				.andExpect(jsonPath("$[0].reps").exists());
 
+		String directName = "Direct " + java.util.UUID.randomUUID();
 		mockMvc.perform(post("/api/v1/workouts")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
 								{
 								  "startedAt":"2026-07-27T13:00:00Z",
-								  "name":"Direct",
+								  "name":"%s",
 								  "sets":[
 								    {"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":3,"weightKg":5.0},
 								    {"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":2,"reps":3,"weightKg":5.0}
 								  ]
 								}
-								"""))
+								""".formatted(directName)))
 				.andExpect(status().isCreated());
+
+		mockMvc.perform(post("/api/v1/workouts")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "startedAt":"2026-07-27T15:00:00Z",
+								  "name":"%s",
+								  "sets":[
+								    {"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":1}
+								  ]
+								}
+								""".formatted(directName)))
+				.andExpect(status().isConflict());
 
 		MvcResult createdW = mockMvc.perform(get("/api/v1/workouts")
 						.header("Authorization", "Bearer " + adminToken)
@@ -298,8 +324,8 @@ class EndpointCoverageTest {
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"startedAt":"2026-07-27T13:00:00Z","name":"Direct2","sets":[{"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":1}]}
-								"""))
+								{"startedAt":"2026-07-27T13:00:00Z","name":"Direct2 %s","sets":[{"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":1}]}
+								""".formatted(java.util.UUID.randomUUID())))
 				.andExpect(status().isOk());
 
 		mockMvc.perform(delete("/api/v1/workouts/" + directId).header("Authorization", "Bearer " + adminToken))
@@ -368,8 +394,8 @@ class EndpointCoverageTest {
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"startedAt":"2026-07-28T10:00:00Z","name":"Admin W","sets":[]}
-								"""))
+								{"startedAt":"2026-07-28T10:00:00Z","name":"Admin W %s","sets":[]}
+								""".formatted(java.util.UUID.randomUUID())))
 				.andExpect(status().isCreated())
 				.andReturn();
 		String workoutId = objectMapper.readTree(workout.getResponse().getContentAsString()).get("id").asText();

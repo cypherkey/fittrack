@@ -105,6 +105,7 @@ public class WorkoutService {
 
 	@Transactional
 	public WorkoutResponse saveCloned(Workout workout) {
+		assertUniqueName(workout.getUser().getId(), workout.getName(), null);
 		workoutRepository.save(workout);
 		return toResponse(workout, true);
 	}
@@ -136,7 +137,8 @@ public class WorkoutService {
 	private void applyMetadata(User user, Workout workout, WorkoutRequest request) {
 		workout.setStartedAt(request.startedAt());
 		workout.setEndedAt(request.endedAt());
-		workout.setName(request.name());
+		workout.setName(StringUtils.hasText(request.name()) ? request.name().trim() : null);
+		assertUniqueName(user.getId(), workout.getName(), workout.getId());
 		workout.setCompleted(request.completed() != null && request.completed());
 		workout.setDifficulty(request.difficulty());
 		workout.setNotes(request.notes());
@@ -152,6 +154,18 @@ public class WorkoutService {
 		}
 		else {
 			workout.setSourceTemplate(null);
+		}
+	}
+
+	private void assertUniqueName(String userId, String name, String excludeWorkoutId) {
+		if (!StringUtils.hasText(name)) {
+			return;
+		}
+		boolean taken = excludeWorkoutId == null
+				? workoutRepository.existsByUser_IdAndName(userId, name)
+				: workoutRepository.existsByUser_IdAndNameAndIdNot(userId, name, excludeWorkoutId);
+		if (taken) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Workout name already in use");
 		}
 	}
 

@@ -14,6 +14,7 @@ import com.fittrack.web.dto.TemplateResponse;
 import com.fittrack.web.dto.TemplateSetRequest;
 import com.fittrack.web.dto.TemplateSetResponse;
 import com.fittrack.web.dto.WorkoutResponse;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -89,7 +91,7 @@ public class TemplateService {
 		workout.setStartedAt(null);
 		workout.setEndedAt(null);
 		workout.setCompleted(false);
-		workout.setName(request.name() != null ? request.name() : template.getName());
+		workout.setName(StringUtils.hasText(request.name()) ? request.name().trim() : defaultCloneWorkoutName());
 		workout.setDifficulty(template.getDifficulty());
 		workout.setNotes(template.getNotes());
 		workout.setSourceTemplate(template);
@@ -220,5 +222,9 @@ public class TemplateService {
 				set.getDistanceMeters(),
 				set.getNotes()
 		);
+	}
+
+	static String defaultCloneWorkoutName() {
+		return "Workout " + LocalDate.now();
 	}
 }

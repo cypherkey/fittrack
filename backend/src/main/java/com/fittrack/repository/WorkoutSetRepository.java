@@ -15,7 +15,7 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, String> 
 	@Query("""
 			SELECT ws FROM WorkoutSet ws
 			JOIN FETCH ws.workout w
-			WHERE ws.exercise.id = :exerciseId AND w.user.id = :userId
+			WHERE ws.exercise.id = :exerciseId AND w.user.id = :userId AND w.completed = true
 			""")
 	List<WorkoutSet> findByExerciseIdAndUserId(
 			@Param("exerciseId") String exerciseId,
