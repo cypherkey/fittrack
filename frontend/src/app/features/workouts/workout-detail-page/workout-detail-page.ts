@@ -143,6 +143,14 @@ export class WorkoutDetailPage implements OnInit {
     return this.setActingIds().has(setId);
   }
 
+  setsReadOnly(): boolean {
+    return this.workout()?.completed === true;
+  }
+
+  isSetDisabled(setId: string): boolean {
+    return this.setsReadOnly() || this.isSetActing(setId);
+  }
+
   metricFields(row: WorkoutSet): TrackedMetricField[] {
     const flags = row.trackedParameters ?? 0;
     const useMetric = this.workout()?.useMetric ?? true;
@@ -215,7 +223,7 @@ export class WorkoutDetailPage implements OnInit {
 
   private patchSet(row: WorkoutSet, body: WorkoutSetPatchRequest): void {
     const w = this.workout();
-    if (!w || this.isSetActing(row.id)) {
+    if (!w || w.completed || this.isSetActing(row.id)) {
       return;
     }
     const nextActing = new Set(this.setActingIds());

@@ -98,7 +98,8 @@ table {
 }
 
 .metric-control:disabled {
-  opacity: 0.55;
+  opacity: 0.7;
+  border-bottom-style: dotted;
 }
 
 .metric-control::-webkit-outer-spin-button,
@@ -170,6 +171,10 @@ table {
 .rpe-chip:disabled {
   cursor: default;
   opacity: 0.45;
+}
+
+.rpe-chips.read-only .rpe-chip.selected:disabled {
+  opacity: 1;
 }
 
 ::ng-deep .mat-checkbox-checked .mat-checkbox-background {
