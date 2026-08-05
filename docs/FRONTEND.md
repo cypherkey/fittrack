@@ -140,7 +140,8 @@ apiBaseUrl: ''
 
 ### Workouts
 - List with date range filter (Material datepicker) on `startedAt`; show `setCount` from API (list omits nested sets)
-- Detail: Start / Complete actions (`POST …/start`, `POST …/complete`); show derived duration and totals
+- Detail: Start / Complete actions (`POST …/start`, `POST …/complete`); show derived duration and totals; sets table uses bare bottom-border metric inputs (per exercise `trackedParameters`, max 2), RPE pill chips (tap again to clear), and Done checkbox — each patches `PATCH …/sets/{setId}` immediately
+- Workout detail UI backlog (not tried yet): (1) Material fill + density form fields; (4) unit suffix adornment inside the control; (5) −/+ steppers for reps/duration
 - Create/edit workout header (`startedAt`, `endedAt`, `completed`, `useMetric`, name, difficulty, notes); show derived duration; new workouts default `useMetric` from the signed-in user preference
 - Sets table: add/remove/reorder (CDK drag-drop when practical; else up/down calling `PATCH .../sets/reorder` or full PUT — prefer reorder endpoint when only order changes)
 - Show computed `totalWeightLifted` from API (workout header; not on templates)

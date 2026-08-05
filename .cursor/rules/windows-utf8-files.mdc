@@ -3,20 +3,42 @@ description: Create/edit files via shell as UTF-8 on Windows (avoid Write tool U
 alwaysApply: true
 ---
 
-# Windows file encoding
+# Windows file encoding (HARD)
 
-On Windows, **do not use the Write tool** to create or overwrite files. It can save UTF-16 (null bytes between characters), which breaks Docker (`.dockerignore`), Java, TypeScript, and other tooling.
+On Windows, agents repeatedly create **UTF-16 LE** files. That breaks Docker (`.dockerignore`), Java, TypeScript, and other tooling.
+
+## Why the previous rule failed
+
+- Cursor rules are **advisory**; agents still call the **Write** tool.
+- Windows PowerShell defaults (`Out-File`, `>`, `>>`, `Set-Content` without an explicit UTF-8 encoding) write **UTF-16 LE**.
+- When Shell writes fail or feel awkward, agents fall back to **Write**, which often saves UTF-16 on Windows.
+
+## HARD bans
+
+Do **not**:
+
+1. Use the Cursor **Write** tool to **create** or **fully rewrite** any file.
+2. Use `Out-File`.
+3. Use `>` or `>>` redirection to write file contents.
+4. Use `Set-Content` without `-Encoding utf8NoBOM` (Windows PowerShell 5.1) or `-Encoding utf8` on PowerShell 7+ where that means no BOM.
 
 ## Required approach
 
-- **Create or replace files** with PowerShell (`New-Item`, `Set-Content -Encoding utf8NoBOM` if available, or `[IO.File]::WriteAllText(..., UTF8Encoding $false)` / `WriteAllBytes`).
-- Prefer **LF** for Docker-related files (`.dockerignore`, `Dockerfile`).
-- **Edits**: `StrReplace` is fine for existing UTF-8 files; for new files or full rewrites, use the shell.
-- After writing, smoke-check when suspicious: first bytes should not alternate with `00` (e.g. `.dockerignore` should start `2E 67 69 74` for `.git`, not `2E 00 67 00`).
-
-## Example (PowerShell)
+**Create or replace files** only via:
 
 ```powershell
 $utf8 = New-Object System.Text.UTF8Encoding $false
 [IO.File]::WriteAllText("$pwd\path\to\file.ext", $content, $utf8)
 ```
+
+Prefer **LF** for Docker-related files (`.dockerignore`, `Dockerfile`) and for scripts/JSON where reasonable.
+
+**Edits**: `StrReplace` is fine for **existing UTF-8** files only. For new files or full rewrites, use the shell + `WriteAllText` above.
+
+## Safety net (not a license to create UTF-16)
+
+Project hook `.cursor/hooks/fix-utf8.ps1` runs on `afterFileEdit` and auto-converts UTF-16 LE → UTF-8 no BOM. **Still avoid creating UTF-16** — the hook is a backup, not the primary path.
+
+## Smoke-check
+
+When suspicious, inspect first bytes: they must **not** alternate with `00` (e.g. `.dockerignore` should start `2E 67 69 74` for `.git`, not `2E 00 67 00`).

@@ -30,15 +30,11 @@
 
     <div class="form-row meta-row">
       <mat-checkbox formControlName="completed">Completed</mat-checkbox>
-      <span class="duration-label">Duration: {{ sessionDurationLabel() }}</span>
+      <mat-checkbox formControlName="useMetric">Use metric</mat-checkbox>
     </div>
 
-    <div class="form-row meta-row units-row">
-      <div class="units-copy">
-        <div class="units-label">Units for this workout</div>
-        <div class="units-hint">{{ unitsHint() }}</div>
-      </div>
-      <mat-slide-toggle formControlName="useMetric">Use metric</mat-slide-toggle>
+    <div class="form-row meta-row">
+      <span class="duration-label">Duration: {{ sessionDurationLabel() }}</span>
     </div>
 
     <mat-form-field appearance="outline" class="full-width">

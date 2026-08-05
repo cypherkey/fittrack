@@ -49,6 +49,129 @@ table {
   gap: 0.25rem;
 }
 
+.metrics-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: flex-end;
+  padding: 0.25rem 0;
+}
+
+.metric-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 3.5rem;
+  max-width: 4.75rem;
+}
+
+.metric-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  line-height: 1;
+}
+
+.metric-control {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  padding: 0.2rem 0.1rem 0.25rem;
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.metric-control:hover:not(:disabled) {
+  border-bottom-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.metric-control:focus {
+  border-bottom-color: var(--mat-sys-primary, #3f51b5);
+}
+
+.metric-control:disabled {
+  opacity: 0.55;
+}
+
+.metric-control::-webkit-outer-spin-button,
+.metric-control::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.metric-control[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.rpe-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+  padding: 0.2rem 0;
+}
+
+.rpe-chip {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 0.4rem 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.78;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease,
+    color 0.15s ease;
+}
+
+.rpe-chip:hover:not(:disabled) {
+  opacity: 1;
+  border-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+.rpe-chip.rpe-easy.selected {
+  opacity: 1;
+  color: #fff;
+  background: #2e7d32;
+  border-color: #2e7d32;
+}
+
+.rpe-chip.rpe-challenging.selected {
+  opacity: 1;
+  color: #1a1a1a;
+  background: #f9a825;
+  border-color: #f9a825;
+}
+
+.rpe-chip.rpe-hard.selected {
+  opacity: 1;
+  color: #fff;
+  background: #c62828;
+  border-color: #c62828;
+}
+
+.rpe-chip:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
 ::ng-deep .mat-checkbox-checked .mat-checkbox-background {
   background-color: darkcyan !important;
 }

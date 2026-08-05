@@ -2,7 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
-import { Workout, WorkoutSet } from '../../../core/models/workout';
+import { RPE_LEVELS, RpeLevel, TRACKED_PARAM, hasTrackedParam } from '../../../core/models/enums';
+import { Workout, WorkoutSet, WorkoutSetPatchRequest } from '../../../core/models/workout';
 import { NotificationService } from '../../../core/services/notification.service';
 import { errorMessage } from '../../../core/utils/http-error';
 import {
@@ -14,6 +15,14 @@ import {
   ExerciseHistoryDialogData,
 } from '../../../shared/components/exercise-history-dialog/exercise-history-dialog';
 import { formatSessionDuration } from '../../../shared/utils/set-form';
+
+export type TrackedMetricKey = 'reps' | 'weightKg' | 'durationSeconds' | 'distanceMeters';
+
+export interface TrackedMetricField {
+  key: TrackedMetricKey;
+  label: string;
+  step: string | null;
+}
 
 @Component({
   selector: 'app-workout-detail-page',
@@ -32,7 +41,8 @@ export class WorkoutDetailPage implements OnInit {
   readonly loading = signal(true);
   readonly acting = signal(false);
   readonly setActingIds = signal<ReadonlySet<string>>(new Set());
-  readonly setColumns = ['setNumber', 'exercise', 'reps', 'weight', 'rpe', 'completed'] as const;
+  readonly setColumns = ['setNumber', 'exercise', 'metrics', 'rpe', 'completed'] as const;
+  readonly rpeLevels = RPE_LEVELS;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -133,16 +143,86 @@ export class WorkoutDetailPage implements OnInit {
     return this.setActingIds().has(setId);
   }
 
+  metricFields(row: WorkoutSet): TrackedMetricField[] {
+    const flags = row.trackedParameters ?? 0;
+    const useMetric = this.workout()?.useMetric ?? true;
+    const fields: TrackedMetricField[] = [];
+    if (hasTrackedParam(flags, TRACKED_PARAM.REPS)) {
+      fields.push({ key: 'reps', label: 'Reps', step: null });
+    }
+    if (hasTrackedParam(flags, TRACKED_PARAM.WEIGHT)) {
+      fields.push({ key: 'weightKg', label: useMetric ? 'kg' : 'lb', step: '0.5' });
+    }
+    if (hasTrackedParam(flags, TRACKED_PARAM.DURATION)) {
+      fields.push({ key: 'durationSeconds', label: 'sec', step: null });
+    }
+    if (hasTrackedParam(flags, TRACKED_PARAM.DISTANCE)) {
+      fields.push({
+        key: 'distanceMeters',
+        label: useMetric ? 'm' : 'mi',
+        step: '0.1',
+      });
+    }
+    return fields.slice(0, 2);
+  }
+
+  metricValue(row: WorkoutSet, key: TrackedMetricKey): number | null {
+    return row[key];
+  }
+
+  rpeShort(level: RpeLevel): string {
+    switch (level) {
+      case RpeLevel.Easy:
+        return 'Easy';
+      case RpeLevel.Challenging:
+        return 'Chall.';
+      case RpeLevel.Hard:
+        return 'Hard';
+      default:
+        return level;
+    }
+  }
+
   toggleSetCompleted(row: WorkoutSet, completed: boolean): void {
+    if (row.completed === completed) {
+      return;
+    }
+    this.patchSet(row, { completed });
+  }
+
+  onRpeChipToggle(row: WorkoutSet, level: RpeLevel): void {
+    this.onRpeChange(row, row.rpe === level ? null : level);
+  }
+
+  onRpeChange(row: WorkoutSet, rpe: RpeLevel | null): void {
+    if (row.rpe === rpe) {
+      return;
+    }
+    this.patchSet(row, { rpe });
+  }
+
+  onMetricChange(row: WorkoutSet, key: TrackedMetricKey, raw: string): void {
+    const parsed = raw.trim() === '' ? null : Number(raw);
+    if (parsed !== null && Number.isNaN(parsed)) {
+      return;
+    }
+    const current = row[key];
+    if (current === parsed || (current == null && parsed == null)) {
+      return;
+    }
+    this.patchSet(row, { [key]: parsed });
+  }
+
+  private patchSet(row: WorkoutSet, body: WorkoutSetPatchRequest): void {
     const w = this.workout();
-    if (!w || this.isSetActing(row.id) || row.completed === completed) {
+    if (!w || this.isSetActing(row.id)) {
       return;
     }
     const nextActing = new Set(this.setActingIds());
     nextActing.add(row.id);
     this.setActingIds.set(nextActing);
 
-    this.workoutApi.updateSetCompleted(w.id, row.id, completed).subscribe({
+    this.workoutApi.patchSet(w.id, row.id, body).subscribe({
       next: (updated) => {
         this.workout.set(updated);
         this.clearSetActing(row.id);

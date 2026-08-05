@@ -4,6 +4,7 @@ export interface WorkoutSet {
   id: string;
   exerciseId: string;
   exerciseName: string;
+  trackedParameters: number;
   setNumber: number;
   reps: number | null;
   weightKg: number | null;
@@ -12,6 +13,15 @@ export interface WorkoutSet {
   completed: boolean;
   rpe: RpeLevel | null;
   notes: string | null;
+}
+
+export interface WorkoutSetPatchRequest {
+  completed?: boolean | null;
+  reps?: number | null;
+  weightKg?: number | null;
+  durationSeconds?: number | null;
+  distanceMeters?: number | null;
+  rpe?: RpeLevel | null;
 }
 
 export interface Workout {

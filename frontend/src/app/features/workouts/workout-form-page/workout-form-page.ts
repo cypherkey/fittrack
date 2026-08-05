@@ -57,10 +57,6 @@ export class WorkoutFormPage implements OnInit {
     return formatSessionDuration(started, ended);
   }
 
-  unitsHint(): string {
-    return this.form.value.useMetric ? 'Metric (kg, m)' : 'Imperial (lb, mi)';
-  }
-
   ngOnInit(): void {
     this.workoutId = this.route.snapshot.paramMap.get('id');
     if (this.workoutId) {

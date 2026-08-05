@@ -9,6 +9,7 @@ import com.fittrack.repository.WorkoutRepository;
 import com.fittrack.repository.WorkoutTemplateRepository;
 import com.fittrack.web.dto.WorkoutRequest;
 import com.fittrack.web.dto.WorkoutResponse;
+import com.fittrack.web.dto.WorkoutSetPatchRequest;
 import com.fittrack.web.dto.WorkoutSetRequest;
 import com.fittrack.web.dto.WorkoutSetResponse;
 import java.time.Instant;
@@ -104,13 +105,36 @@ public class WorkoutService {
 	}
 
 	@Transactional
-	public WorkoutResponse updateSetCompleted(User user, String workoutId, String setId, boolean completed) {
+	public WorkoutResponse updateSet(User user, String workoutId, String setId, WorkoutSetPatchRequest request) {
 		Workout workout = requireOwned(user, workoutId);
 		WorkoutSet set = workout.getSets().stream()
 				.filter(s -> s.getId().equals(setId))
 				.findFirst()
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Set not found"));
-		set.setCompleted(completed);
+		boolean metricsChanged = false;
+		if (request.isCompletedPresent()) {
+			set.setCompleted(Boolean.TRUE.equals(request.getCompleted()));
+		}
+		if (request.isRepsPresent()) {
+			set.setReps(request.getReps());
+			metricsChanged = true;
+		}
+		if (request.isWeightKgPresent()) {
+			set.setWeightKg(request.getWeightKg());
+			metricsChanged = true;
+		}
+		if (request.isDurationSecondsPresent()) {
+			set.setDurationSeconds(request.getDurationSeconds());
+		}
+		if (request.isDistanceMetersPresent()) {
+			set.setDistanceMeters(request.getDistanceMeters());
+		}
+		if (request.isRpePresent()) {
+			set.setRpe(request.getRpe());
+		}
+		if (metricsChanged) {
+			workout.setTotalWeightLifted(computeTotal(workout.getSets()));
+		}
 		workoutRepository.save(workout);
 		return toResponse(workout, true);
 	}
@@ -279,6 +303,7 @@ public class WorkoutService {
 				set.getId(),
 				set.getExercise().getId(),
 				set.getExercise().getName(),
+				set.getExercise().getTrackedParameters(),
 				set.getSetNumber(),
 				set.getReps(),
 				set.getWeightKg(),

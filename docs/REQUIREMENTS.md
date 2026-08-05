@@ -387,7 +387,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `POST /api/v1/workouts` — create (empty or with sets); optional `startedAt` / `endedAt` / `completed` / `useMetric` (defaults to the user's preference when omitted)
 - `PUT /api/v1/workouts/{id}` - update metadata / replace structure; client supplies `setNumber` to support frontend reorder (no server auto-renumber to 1…N)
 - `PATCH /api/v1/workouts/{id}/sets/reorder` - body: `{ "items": [ { "setId", "setNumber" } ] }` — same client-owned `setNumber` rules as templates
-- `PATCH /api/v1/workouts/{id}/sets/{setId}` — body: `{ "completed": true|false }` — update one set's done flag immediately (owner)
+- `PATCH /api/v1/workouts/{id}/sets/{setId}` — partial update of one set (owner): any of `completed`, `reps`, `weightKg`, `durationSeconds`, `distanceMeters`, `rpe` (explicit `null` clears nullable fields); recomputes workout `totalWeightLifted` when reps/weight change
 - `POST /api/v1/workouts/{id}/start` — set `startedAt` to now if unset (idempotent if already started)
 - `POST /api/v1/workouts/{id}/complete` — set `endedAt` to now, `completed=true`, recompute `totalWeightLifted` from sets (Σ reps × weightKg); session duration is `endedAt − startedAt` (not stored). If `startedAt` was unset, set it to now as well
 - `DELETE /api/v1/workouts/{id}` - delete

@@ -5,7 +5,7 @@ import com.fittrack.service.WorkoutService;
 import com.fittrack.web.dto.ReorderSetsRequest;
 import com.fittrack.web.dto.WorkoutRequest;
 import com.fittrack.web.dto.WorkoutResponse;
-import com.fittrack.web.dto.WorkoutSetCompletedRequest;
+import com.fittrack.web.dto.WorkoutSetPatchRequest;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
@@ -78,17 +78,17 @@ public class WorkoutController {
 	}
 
 	@PatchMapping("/{id}/sets/{setId}")
-	public WorkoutResponse updateSetCompleted(
+	public WorkoutResponse updateSet(
 			@AuthenticationPrincipal Jwt jwt,
 			@PathVariable String id,
 			@PathVariable String setId,
-			@Valid @RequestBody WorkoutSetCompletedRequest request
+			@RequestBody WorkoutSetPatchRequest request
 	) {
-		return workoutService.updateSetCompleted(
+		return workoutService.updateSet(
 				currentUserResolver.requireUser(jwt),
 				id,
 				setId,
-				request.completed()
+				request
 		);
 	}
 

@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ReorderSetsRequest } from '../models/template';
-import { Workout, WorkoutListParams, WorkoutRequest } from '../models/workout';
+import { Workout, WorkoutListParams, WorkoutRequest, WorkoutSetPatchRequest } from '../models/workout';
 
 @Injectable({ providedIn: 'root' })
 export class WorkoutApi {
@@ -41,8 +41,8 @@ export class WorkoutApi {
     return this.http.patch<Workout>(`${this.base}/${id}/sets/reorder`, body);
   }
 
-  updateSetCompleted(workoutId: string, setId: string, completed: boolean): Observable<Workout> {
-    return this.http.patch<Workout>(`${this.base}/${workoutId}/sets/${setId}`, { completed });
+  patchSet(workoutId: string, setId: string, body: WorkoutSetPatchRequest): Observable<Workout> {
+    return this.http.patch<Workout>(`${this.base}/${workoutId}/sets/${setId}`, body);
   }
 
   start(id: string): Observable<Workout> {

@@ -359,7 +359,7 @@ class EndpointCoverageTest {
 		mockMvc.perform(patch("/api/v1/workouts/" + directId + "/sets/" + d0)
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"completed\":true}"))
+						.content("{\"completed\":true,\"rpe\":\"EASY\",\"reps\":5}"))
 				.andExpect(status().isOk());
 		JsonNode afterSet = objectMapper.readTree(mockMvc.perform(get("/api/v1/workouts/" + directId)
 						.header("Authorization", "Bearer " + adminToken))
@@ -371,6 +371,9 @@ class EndpointCoverageTest {
 		for (JsonNode set : afterSet.get("sets")) {
 			if (d0.equals(set.get("id").asText())) {
 				org.junit.jupiter.api.Assertions.assertTrue(set.get("completed").asBoolean());
+				org.junit.jupiter.api.Assertions.assertEquals("EASY", set.get("rpe").asText());
+				org.junit.jupiter.api.Assertions.assertEquals(5, set.get("reps").asInt());
+				org.junit.jupiter.api.Assertions.assertTrue(set.has("trackedParameters"));
 				setFound = true;
 			}
 		}

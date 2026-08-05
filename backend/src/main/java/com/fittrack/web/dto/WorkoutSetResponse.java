@@ -6,6 +6,7 @@ public record WorkoutSetResponse(
 		String id,
 		String exerciseId,
 		String exerciseName,
+		int trackedParameters,
 		int setNumber,
 		Integer reps,
 		Double weightKg,
