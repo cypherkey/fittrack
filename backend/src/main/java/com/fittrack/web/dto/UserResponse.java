@@ -6,6 +6,7 @@ public record UserResponse(
 		String email,
 		String displayName,
 		String avatarUrl,
-		boolean admin
+		boolean admin,
+		boolean useMetric
 ) {
 }

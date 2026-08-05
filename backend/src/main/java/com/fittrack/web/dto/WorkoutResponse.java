@@ -11,6 +11,7 @@ public record WorkoutResponse(
 		Instant endedAt,
 		String name,
 		boolean completed,
+		boolean useMetric,
 		Double totalWeightLifted,
 		WorkoutDifficulty difficulty,
 		String notes,

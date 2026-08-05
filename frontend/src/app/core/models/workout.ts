@@ -21,6 +21,7 @@ export interface Workout {
   endedAt: string | null;
   name: string | null;
   completed: boolean;
+  useMetric: boolean;
   totalWeightLifted: number | null;
   difficulty: WorkoutDifficulty | null;
   notes: string | null;
@@ -48,6 +49,7 @@ export interface WorkoutRequest {
   endedAt?: string | null;
   name?: string | null;
   completed?: boolean | null;
+  useMetric?: boolean | null;
   difficulty?: WorkoutDifficulty | null;
   notes?: string | null;
   sourceTemplateId?: string | null;

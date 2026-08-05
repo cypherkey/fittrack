@@ -91,7 +91,8 @@ Install Material: `ng add @angular/material` (pick a theme; support light/dark i
 | Workouts | `/workouts` | `GET/POST/PUT/DELETE /api/v1/workouts`, reorder |
 | Templates | `/templates` | Templates CRUD + clone |
 | Exercises | `/exercises` | Catalog + custom CRUD |
-| Settings | `/settings` | Display me + API base; **admin user management** (#9) |
+| Users | `/users` | **Admin only** — user management CRUD (`/api/v1/users`); hidden from nav + `adminGuard` for non-admins |
+| Settings | `/settings` | Display me + API base; unit preference (`useMetric` toggle saves immediately via `PATCH /me`) |
 
 Unauthenticated: `/login`, `/auth/callback` (Google JWT hash handoff).
 
@@ -105,7 +106,8 @@ Out of scope vs Ryot: Media, Measurements, Collections, Discord links, Ryot Anal
 2. **Google** — link/button to `{apiBase}/oauth2/authorization/google` (full page redirect). Callback route `/auth/callback` reads `#token=…`, stores JWT in **`localStorage`**, clears hash, navigates home
 3. **HTTP interceptor** — `Authorization: Bearer <token>` on API calls; on 401 clear token and redirect to login
 4. **Auth guard** — protect app routes; login page redirects away if already authenticated
-5. **CORS** — needed when the SPA origin differs from the API (e.g. `ng serve` `:4200`). **Docker single-image** and **local proxy** use same-origin `apiBaseUrl: ''` so browser CORS is usually irrelevant for `/api`.
+5. **Admin guard** — `/users` requires `user.admin`; others redirected home
+6. **CORS** — needed when the SPA origin differs from the API (e.g. `ng serve` `:4200`). **Docker single-image** and **local proxy** use same-origin `apiBaseUrl: ''` so browser CORS is usually irrelevant for `/api`.
 
 Environment:
 
@@ -139,7 +141,7 @@ apiBaseUrl: ''
 ### Workouts
 - List with date range filter (Material datepicker) on `startedAt`; show `setCount` from API (list omits nested sets)
 - Detail: Start / Complete actions (`POST …/start`, `POST …/complete`); show derived duration and totals
-- Create/edit workout header (`startedAt`, `endedAt`, `completed`, name, difficulty, notes); show derived duration
+- Create/edit workout header (`startedAt`, `endedAt`, `completed`, `useMetric`, name, difficulty, notes); show derived duration; new workouts default `useMetric` from the signed-in user preference
 - Sets table: add/remove/reorder (CDK drag-drop when practical; else up/down calling `PATCH .../sets/reorder` or full PUT — prefer reorder endpoint when only order changes)
 - Show computed `totalWeightLifted` from API (workout header; not on templates)
 

@@ -38,6 +38,9 @@ public class User {
 	@Column(name = "admin", nullable = false)
 	private boolean admin;
 
+	@Column(name = "use_metric", nullable = false)
+	private boolean useMetric = true;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
@@ -121,6 +124,14 @@ public class User {
 
 	public void setAdmin(boolean admin) {
 		this.admin = admin;
+	}
+
+	public boolean isUseMetric() {
+		return useMetric;
+	}
+
+	public void setUseMetric(boolean useMetric) {
+		this.useMetric = useMetric;
 	}
 
 	public Instant getCreatedAt() {

@@ -61,6 +61,7 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 |----------|--------------|
 | `POST /api/v1/auth/login` | All MockMvc tests (setup) |
 | `GET /api/v1/me` | `EndpointCoverageTest.authMeAndActuatorAndOpenApi` |
+| `PATCH /api/v1/me` | `EndpointCoverageTest.authMeAndActuatorAndOpenApi` |
 | `GET /api/v1/users` | `EndpointCoverageTest.adminUserManagement` |
 | `POST /api/v1/users` | `EndpointCoverageTest.adminUserManagement` |
 | `PUT /api/v1/users/{id}` | `EndpointCoverageTest.adminUserManagement` |

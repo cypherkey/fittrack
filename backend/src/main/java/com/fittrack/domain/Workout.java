@@ -51,6 +51,9 @@ public class Workout {
 	@Column(nullable = false)
 	private boolean completed;
 
+	@Column(name = "use_metric", nullable = false)
+	private boolean useMetric = true;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "source_template_id")
 	private WorkoutTemplate sourceTemplate;
@@ -150,6 +153,14 @@ public class Workout {
 
 	public void setCompleted(boolean completed) {
 		this.completed = completed;
+	}
+
+	public boolean isUseMetric() {
+		return useMetric;
+	}
+
+	public void setUseMetric(boolean useMetric) {
+		this.useMetric = useMetric;
 	}
 
 	public WorkoutTemplate getSourceTemplate() {

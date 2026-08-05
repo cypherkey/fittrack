@@ -79,7 +79,22 @@ class EndpointCoverageTest {
 		mockMvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.username").value("admin"))
-				.andExpect(jsonPath("$.admin").value(true));
+				.andExpect(jsonPath("$.admin").value(true))
+				.andExpect(jsonPath("$.useMetric").value(true));
+
+		mockMvc.perform(patch("/api/v1/me")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"useMetric\":false}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.useMetric").value(false));
+
+		mockMvc.perform(patch("/api/v1/me")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"useMetric\":true}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.useMetric").value(true));
 
 		mockMvc.perform(get("/actuator/health")).andExpect(status().isOk());
 		mockMvc.perform(get("/actuator/info")).andExpect(status().isUnauthorized());
@@ -281,7 +296,8 @@ class EndpointCoverageTest {
 								  ]
 								}
 								""".formatted(directName)))
-				.andExpect(status().isCreated());
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.useMetric").value(true));
 
 		mockMvc.perform(post("/api/v1/workouts")
 						.header("Authorization", "Bearer " + adminToken)
@@ -364,9 +380,10 @@ class EndpointCoverageTest {
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
-								{"startedAt":"2026-07-27T13:00:00Z","name":"Direct2 %s","sets":[{"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":1}]}
+								{"startedAt":"2026-07-27T13:00:00Z","name":"Direct2 %s","useMetric":false,"sets":[{"exerciseId":"51ababe0-e7cc-40d3-a3ef-7d6fb418fbac","setNumber":1,"reps":1}]}
 								""".formatted(java.util.UUID.randomUUID())))
-				.andExpect(status().isOk());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.useMetric").value(false));
 
 		mockMvc.perform(delete("/api/v1/workouts/" + directId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isNoContent());

@@ -90,6 +90,8 @@ One git repository holds frontend and backend.
 | displayName | string | From Google `name` or local profile |
 | googleSubject | string? | Unique OIDC `sub` when linked to Google; null for local-only |
 | avatarUrl | string? | Optional picture URL |
+| admin | boolean | `ROLE_ADMIN` when true |
+| useMetric | boolean | Unit preference; `true` = metric, `false` = imperial; default `true` |
 | createdAt / updatedAt | instant | Audit |
 
 **Account types:**
@@ -238,7 +240,7 @@ Same structure as `WorkoutSet`: one row per planned set; each set points at an e
 
 No `completed` flag on template sets (that is workout/logging-only).
 
-**Clone template → workout:** create a new `Workout` for the current user with `startedAt`/`endedAt` unset and `completed=false`; default workout `name` to `Workout YYYY-MM-DD` (current local date) unless the clone request supplies a non-blank name; copy template `difficulty` and `notes`; recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`, notes; `rpe` starts unset; set `completed=false`); set `sourceTemplateId`; leave template unchanged.
+**Clone template → workout:** create a new `Workout` for the current user with `startedAt`/`endedAt` unset and `completed=false`; default workout `name` to `Workout YYYY-MM-DD` (current local date) unless the clone request supplies a non-blank name; set `useMetric` from the current user's preference; copy template `difficulty` and `notes`; recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`, notes; `rpe` starts unset; set `completed=false`); set `sourceTemplateId`; leave template unchanged.
 
 **Public templates:** any authenticated user may **read** and **clone**; only owner may **edit/delete**. No template search in v1. Both **PRIVATE** and **PUBLIC** templates may include any exercise the owner can use (catalog + their own custom exercises). Cloning a public template copies its exercise references as-is (including the owner's custom exercises) onto the new workout.
 
@@ -254,6 +256,7 @@ Tied to a specific user and a **datetime** (not date-only), so multiple workouts
 | endedAt | datetime (instant)? | When the workout ended; nullable; session duration = `endedAt − startedAt` in the UI |
 | name | string? | Optional title; **unique per user** when set (trimmed); blank stored as null; different users may reuse the same name |
 | completed | boolean | Whether the workout session is finished; default `false` |
+| useMetric | boolean | Unit system for this workout; default = owner's `User.useMetric` at create/clone; editable on update |
 | totalWeightLifted | decimal? | Computed and/or stored metadata (kg) |
 | difficulty | enum? | `EASY` \| `MEDIUM` \| `HARD` |
 | notes | string? | |
@@ -326,7 +329,7 @@ Dual authentication; both issue the same **JWT** for `/api/v1`.
 
 - Spring Security form or JSON login endpoint (e.g. `POST /api/v1/auth/login` with `{ "username", "password" }`) → returns JWT
 - Passwords stored as hashes only (`passwordHash`)
-- Local user creation via **admin user management** (`/api/v1/users`, Settings UI for `ROLE_ADMIN`). Not a public self-serve `POST /auth/register`.
+- Local user creation via **admin user management** (`/api/v1/users`, Users page for `ROLE_ADMIN`). Not a public self-serve `POST /auth/register`.
 
 ### Google SSO
 
@@ -356,6 +359,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `POST /api/v1/auth/login` — local `{ "username", "password" }` → `{ "token", "user" }`
 - Google OAuth via Spring Security endpoints (`/oauth2/authorization/google`, callback) → redirect SPA with JWT in URL hash (§6)
 - `GET /api/v1/me` — current user profile
+- `PATCH /api/v1/me` — update current user preferences (`{ "useMetric": true|false }`)
 
 ### Exercises
 
@@ -380,7 +384,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 
 - `GET /api/v1/workouts` — list for current user (filter by `startedAt` range)
 - `GET /api/v1/workouts/{id}` — detail with sets (each set includes `exerciseId`)
-- `POST /api/v1/workouts` — create (empty or with sets); optional `startedAt` / `endedAt` / `completed`
+- `POST /api/v1/workouts` — create (empty or with sets); optional `startedAt` / `endedAt` / `completed` / `useMetric` (defaults to the user's preference when omitted)
 - `PUT /api/v1/workouts/{id}` - update metadata / replace structure; client supplies `setNumber` to support frontend reorder (no server auto-renumber to 1…N)
 - `PATCH /api/v1/workouts/{id}/sets/reorder` - body: `{ "items": [ { "setId", "setNumber" } ] }` — same client-owned `setNumber` rules as templates
 - `PATCH /api/v1/workouts/{id}/sets/{setId}` — body: `{ "completed": true|false }` — update one set's done flag immediately (owner)
@@ -515,7 +519,7 @@ Track live progress in [`STATUS.md`](STATUS.md). Ordered phases:
 8. **Angular frontend** scaffold and wire to API
 9. **Polish** — validation, pagination, README runbook, Docker Compose usage, OpenAPI, sample data
 
-Deferred (tracked in STATUS): **#1** auth hardening. **#9** user management is done (admin API + Settings UI; no public self-register).
+Deferred (tracked in STATUS): **#1** auth hardening. **#9** user management is done (admin API + Users page; no public self-register).
 
 ---
 

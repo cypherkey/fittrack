@@ -5,6 +5,7 @@ export interface User {
   displayName: string | null;
   avatarUrl: string | null;
   admin: boolean;
+  useMetric: boolean;
 }
 
 export interface LoginRequest {
@@ -30,4 +31,8 @@ export interface UpdateUserRequest {
   email?: string | null;
   password?: string | null;
   admin?: boolean | null;
+}
+
+export interface UpdateMeRequest {
+  useMetric: boolean;
 }

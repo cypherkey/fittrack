@@ -152,6 +152,12 @@ public class WorkoutService {
 		workout.setName(StringUtils.hasText(request.name()) ? request.name().trim() : null);
 		assertUniqueName(user.getId(), workout.getName(), workout.getId());
 		workout.setCompleted(request.completed() != null && request.completed());
+		if (request.useMetric() != null) {
+			workout.setUseMetric(request.useMetric());
+		}
+		else if (workout.getId() == null) {
+			workout.setUseMetric(user.isUseMetric());
+		}
 		workout.setDifficulty(request.difficulty());
 		workout.setNotes(request.notes());
 		if (StringUtils.hasText(request.sourceTemplateId())) {
@@ -256,6 +262,7 @@ public class WorkoutService {
 				workout.getEndedAt(),
 				workout.getName(),
 				workout.isCompleted(),
+				workout.isUseMetric(),
 				workout.getTotalWeightLifted(),
 				workout.getDifficulty(),
 				workout.getNotes(),

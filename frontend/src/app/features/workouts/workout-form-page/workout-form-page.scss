@@ -35,3 +35,18 @@
   opacity: 0.8;
   font-size: 0.9rem;
 }
+
+.units-row {
+  justify-content: space-between;
+  max-width: 32rem;
+}
+
+.units-label {
+  font-weight: 500;
+}
+
+.units-hint {
+  font-size: 0.875rem;
+  opacity: 0.75;
+  margin-top: 0.15rem;
+}

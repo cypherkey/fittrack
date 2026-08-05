@@ -1,12 +1,8 @@
-import { Component, effect, inject, signal, untracked } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { Component, inject, signal } from '@angular/core';
 import { environment } from '../../../../environments/environment';
-import { UserApi } from '../../../core/api/user-api.service';
 import { AuthService } from '../../../core/auth.service';
-import { CreateUserRequest, UpdateUserRequest, User } from '../../../core/models/user';
 import { NotificationService } from '../../../core/services/notification.service';
 import { errorMessage } from '../../../core/utils/http-error';
-import { UserFormDialog, UserFormDialogData } from '../user-form-dialog/user-form-dialog';
 
 @Component({
   selector: 'app-settings-page',
@@ -16,87 +12,29 @@ import { UserFormDialog, UserFormDialogData } from '../user-form-dialog/user-for
 })
 export class SettingsPage {
   readonly auth = inject(AuthService);
-  private readonly userApi = inject(UserApi);
-  private readonly dialog = inject(MatDialog);
   private readonly notify = inject(NotificationService);
 
   readonly apiBaseUrl =
     environment.apiBaseUrl || '(dev proxy → http://localhost:8080)';
 
-  readonly users = signal<User[]>([]);
-  readonly usersLoading = signal(false);
+  readonly savingPreference = signal(false);
 
-  constructor() {
-    effect(() => {
-      const user = this.auth.user();
-      if (user?.admin) {
-        untracked(() => this.loadUsers());
-      }
-    });
-  }
-
-  loadUsers(): void {
-    this.usersLoading.set(true);
-    this.userApi.list().subscribe({
-      next: (items) => {
-        this.users.set(items);
-        this.usersLoading.set(false);
-      },
-      error: (err) => {
-        this.usersLoading.set(false);
-        this.notify.error(errorMessage(err, 'Failed to load users'));
-      },
-    });
-  }
-
-  createUser(): void {
-    const ref = this.dialog.open<UserFormDialog, UserFormDialogData>(UserFormDialog, {
-      width: '420px',
-    });
-    ref.afterClosed().subscribe((body) => {
-      if (!body) {
-        return;
-      }
-      this.userApi.create(body as CreateUserRequest).subscribe({
-        next: () => {
-          this.notify.success('User created');
-          this.loadUsers();
-        },
-        error: (err) => this.notify.error(errorMessage(err, 'Failed to create user')),
-      });
-    });
-  }
-
-  editUser(user: User): void {
-    const ref = this.dialog.open<UserFormDialog, UserFormDialogData>(UserFormDialog, {
-      width: '420px',
-      data: { user },
-    });
-    ref.afterClosed().subscribe((body) => {
-      if (!body) {
-        return;
-      }
-      this.userApi.update(user.id, body as UpdateUserRequest).subscribe({
-        next: () => {
-          this.notify.success('User updated');
-          this.loadUsers();
-        },
-        error: (err) => this.notify.error(errorMessage(err, 'Failed to update user')),
-      });
-    });
-  }
-
-  deleteUser(user: User): void {
-    const label = user.displayName || user.username || user.id;
-    if (!confirm(`Delete user "${label}"?`)) {
+  setUseMetric(useMetric: boolean): void {
+    const user = this.auth.user();
+    if (!user || this.savingPreference() || user.useMetric === useMetric) {
       return;
     }
-    this.userApi.delete(user.id).subscribe({
+    this.savingPreference.set(true);
+    this.auth.updateMe({ useMetric }).subscribe({
       next: () => {
-        this.notify.success('User deleted');
-        this.loadUsers();
+        this.savingPreference.set(false);
+        this.notify.success(useMetric ? 'Using metric units' : 'Using imperial units');
       },
-      error: (err) => this.notify.error(errorMessage(err, 'Failed to delete user')),
+      error: (err) => {
+        this.savingPreference.set(false);
+        this.notify.error(errorMessage(err, 'Failed to update preference'));
+        void this.auth.loadMe().subscribe();
+      },
     });
   }
 }

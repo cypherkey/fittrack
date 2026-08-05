@@ -10,6 +10,7 @@ public record WorkoutRequest(
 		Instant endedAt,
 		String name,
 		Boolean completed,
+		Boolean useMetric,
 		WorkoutDifficulty difficulty,
 		String notes,
 		String sourceTemplateId,

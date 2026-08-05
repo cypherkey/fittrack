@@ -9,12 +9,20 @@ mat-card-header {
   margin-bottom: 0.5rem;
 }
 
-.loading {
+.preference-row {
   display: flex;
-  justify-content: center;
-  padding: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-table {
-  width: 100%;
+.preference-label {
+  font-weight: 500;
+}
+
+.preference-hint {
+  font-size: 0.875rem;
+  opacity: 0.75;
+  margin-top: 0.15rem;
 }

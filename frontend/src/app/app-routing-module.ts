@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { adminGuard } from './core/admin.guard';
 import { authGuard } from './core/auth.guard';
 import { Shell } from './layout/shell/shell';
 
@@ -28,6 +29,12 @@ const routes: Routes = [
         path: 'exercises',
         loadChildren: () =>
           import('./features/exercises/exercises-module').then((m) => m.ExercisesModule),
+      },
+      {
+        path: 'users',
+        canActivate: [adminGuard],
+        loadChildren: () =>
+          import('./features/users/users-module').then((m) => m.UsersModule),
       },
       {
         path: 'settings',

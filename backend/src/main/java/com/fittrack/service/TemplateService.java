@@ -91,6 +91,7 @@ public class TemplateService {
 		workout.setStartedAt(null);
 		workout.setEndedAt(null);
 		workout.setCompleted(false);
+		workout.setUseMetric(user.isUseMetric());
 		workout.setName(StringUtils.hasText(request.name()) ? request.name().trim() : defaultCloneWorkoutName());
 		workout.setDifficulty(template.getDifficulty());
 		workout.setNotes(template.getNotes());

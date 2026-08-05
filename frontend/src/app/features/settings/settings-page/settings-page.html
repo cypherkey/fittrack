@@ -17,52 +17,24 @@
 </mat-card>
 
 @if (auth.user(); as user) {
-  @if (user.admin) {
-    <mat-card class="section">
-      <mat-card-header>
-        <mat-card-title>User management</mat-card-title>
-        <button mat-flat-button color="primary" type="button" (click)="createUser()">
-          <mat-icon>person_add</mat-icon>
-          Add user
-        </button>
-      </mat-card-header>
-      <mat-card-content>
-        @if (usersLoading()) {
-          <div class="loading"><mat-spinner diameter="32" /></div>
-        } @else {
-          <table mat-table [dataSource]="users()" class="mat-elevation-z1">
-            <ng-container matColumnDef="username">
-              <th mat-header-cell *matHeaderCellDef>Username</th>
-              <td mat-cell *matCellDef="let row">{{ row.username }}</td>
-            </ng-container>
-            <ng-container matColumnDef="displayName">
-              <th mat-header-cell *matHeaderCellDef>Display name</th>
-              <td mat-cell *matCellDef="let row">{{ row.displayName || '—' }}</td>
-            </ng-container>
-            <ng-container matColumnDef="email">
-              <th mat-header-cell *matHeaderCellDef>Email</th>
-              <td mat-cell *matCellDef="let row">{{ row.email || '—' }}</td>
-            </ng-container>
-            <ng-container matColumnDef="admin">
-              <th mat-header-cell *matHeaderCellDef>Admin</th>
-              <td mat-cell *matCellDef="let row">{{ row.admin ? 'Yes' : 'No' }}</td>
-            </ng-container>
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let row">
-                <button mat-icon-button type="button" (click)="editUser(row)" aria-label="Edit user">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button type="button" color="warn" (click)="deleteUser(row)" aria-label="Delete user">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="['username', 'displayName', 'email', 'admin', 'actions']"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['username', 'displayName', 'email', 'admin', 'actions']"></tr>
-          </table>
-        }
-      </mat-card-content>
-    </mat-card>
-  }
+  <mat-card class="section">
+    <mat-card-header>
+      <mat-card-title>Units</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="preference-row">
+        <div class="preference-copy">
+          <div class="preference-label">Measurement system</div>
+          <div class="preference-hint">{{ user.useMetric ? 'Metric (kg, m)' : 'Imperial (lb, mi)' }}</div>
+        </div>
+        <mat-slide-toggle
+          [checked]="user.useMetric"
+          [disabled]="savingPreference()"
+          (change)="setUseMetric($event.checked)"
+        >
+          Use metric
+        </mat-slide-toggle>
+      </div>
+    </mat-card-content>
+  </mat-card>
 }

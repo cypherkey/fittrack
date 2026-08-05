@@ -7,7 +7,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 | | |
 |--|--|
 | **Stack** | Spring Boot 4.1 + Java 25 + SQLite (WAL) + JWT; Angular **21** SPA under `frontend/` |
-| **Done** | Phases 1–9 + deferred **#9** user management (admin API + Settings UI) |
+| **Done** | Phases 1–9 + deferred **#9** user management (admin API + Users page) |
 | **Next** | Deferred **#1** auth hardening; UX polish / E2E |
 | **Run** | Backend `backend/`: `.\mvnw.cmd spring-boot:run` -> `:8080`; Frontend `frontend/`: `npm start` -> `:4200` (proxies `/api` to `:8080`) |
 | **Key URLs** | Swagger `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login`, users (admin) `/api/v1/users` |
@@ -42,7 +42,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 | ID | Item | Notes |
 |----|------|--------|
 | **#1** | Auth hardening | JWT refresh / shorter access tokens; rate-limit `/auth/login`; fail-fast if `JWT_SECRET` is still the dev default outside local. |
-| ~~**#9**~~ | User management | **Done** — `app_user.admin`, `ROLE_ADMIN`, `/api/v1/users` CRUD, Settings UI for admins. Not public self-register. |
+| ~~**#9**~~ | User management | **Done** — `app_user.admin`, `ROLE_ADMIN`, `/api/v1/users` CRUD, admin-only Users page (`/users`). Not public self-register. |
 
 ## Implementation notes (agents)
 
@@ -56,7 +56,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - OpenAPI / Swagger UI: `/v3/api-docs`, `/swagger-ui.html`; JWT bearer for Try it out
 - Actuator: only `health` exposed
 - SQLite: `foreign_keys=true&journal_mode=WAL`
-- Prefer additive Flyway migrations for schema changes (V4: workout timing/`completed`; V5: exercise `video_url`; V6: unique `(user_id, name)` on workout)
+- Prefer additive Flyway migrations for schema changes (V4: workout timing/`completed`; V5: exercise `video_url`; V6: unique `(user_id, name)` on workout; V7: `app_user.use_metric`; V8: `workout.use_metric`)
 - Docker: root `Dockerfile` embeds Angular into Boot `static/`; compose mounts `/data`; SPA deep-link fallthrough via `SpaForwardController`
 - Git remote may be `github`; branch `main`
 - Frontend: `frontend/` Angular 21 NgModules + Material; see [`FRONTEND.md`](FRONTEND.md)

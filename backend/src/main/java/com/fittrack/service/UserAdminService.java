@@ -107,7 +107,8 @@ public class UserAdminService {
 				user.getEmail(),
 				user.getDisplayName(),
 				user.getAvatarUrl(),
-				user.isAdmin()
+				user.isAdmin(),
+				user.isUseMetric()
 		);
 	}
 
