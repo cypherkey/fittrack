@@ -8,19 +8,19 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 |--|--|
 | **Stack** | Spring Boot 4.1 + Java 25 + SQLite (WAL) + JWT; Angular **21** SPA under `frontend/` |
 | **Done** | Phases 1–9 + deferred **#9** user management (admin API + Users page) |
-| **Next** | Deferred **#1** auth hardening; UX polish / E2E |
+| **Next** | Deferred **#1** auth hardening; **#2** Farmer walk tracked params; **#3** history incomplete sets; UX polish / E2E |
 | **Run** | Backend `backend/`: `.\mvnw.cmd spring-boot:run` -> `:8080`; Frontend `frontend/`: `npm start` -> `:4200` (proxies `/api` to `:8080`) |
 | **Key URLs** | Swagger `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login`, users (admin) `/api/v1/users` |
 | **Docker** | Root `Dockerfile` (SPA+API) via `docker compose up --build` → `:8080` (volume `fittrack-data` → `/data`) |
 | **Seed user** | `admin` / `admin` (**ROLE_ADMIN**); env-overridable |
 | **Google SSO** | On when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` non-empty; handoff `{SPA_CALLBACK}#token=<jwt>` |
 | **Frontend prefs** | Angular **21 LTS**, Node **24 LTS**, **NgModules**, **Material**, **npm**; JWT in **localStorage**; home `/`; **dev proxy** `/api`→`:8080` |
-| **Deferred** | **#1** auth hardening only |
+| **Deferred** | **#1** auth hardening; **#2** Farmer walk tracked params; **#3** history incomplete sets |
 | **Tests** | [`TESTS.md`](TESTS.md) — `.\mvnw.cmd test` from `backend/`; frontend `ng build` |
 
 ## Current focus
 
-**v1 complete** for Phases 1–9. SPA covers auth, exercises, templates, workouts, dashboard, settings, and admin user management. Remaining product debt: **#1** auth hardening.
+**v1 complete** for Phases 1–9. SPA covers auth, exercises, templates, workouts, dashboard, settings, and admin user management. Remaining product debt: **#1** auth hardening; **#2** Farmer walk tracked params; **#3** history incomplete sets.
 
 ## Phase checklist
 
@@ -42,6 +42,8 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 | ID | Item | Notes |
 |----|------|--------|
 | **#1** | Auth hardening | JWT refresh / shorter access tokens; rate-limit `/auth/login`; fail-fast if `JWT_SECRET` is still the dev default outside local. |
+| **#2** | Farmer walk tracked params | Farmer walk should not have reps as a tracked parameter. |
+| **#3** | History incomplete sets | History should not include a set in a completed workout that is not marked as done. |
 | ~~**#9**~~ | User management | **Done** — `app_user.admin`, `ROLE_ADMIN`, `/api/v1/users` CRUD, admin-only Users page (`/users`). Not public self-register. |
 
 ## Implementation notes (agents)
