@@ -14,6 +14,11 @@ import {
   ExerciseHistoryDialog,
   ExerciseHistoryDialogData,
 } from '../../../shared/components/exercise-history-dialog/exercise-history-dialog';
+import {
+  SetNotesDialog,
+  SetNotesDialogData,
+  SetNotesDialogResult,
+} from '../../../shared/components/set-notes-dialog/set-notes-dialog';
 import { formatSessionDuration } from '../../../shared/utils/set-form';
 
 export type TrackedMetricKey = 'reps' | 'weightKg' | 'durationSeconds' | 'distanceMeters';
@@ -136,6 +141,35 @@ export class WorkoutDetailPage implements OnInit {
       data: { exerciseId, exerciseName },
       maxWidth: '720px',
       width: '92vw',
+    });
+  }
+
+  editNotes(row: WorkoutSet): void {
+    const readOnly = this.setsReadOnly();
+    const ref = this.dialog.open<
+      SetNotesDialog,
+      SetNotesDialogData,
+      SetNotesDialogResult | undefined
+    >(SetNotesDialog, {
+      data: {
+        exerciseName: row.exerciseName,
+        setNumber: row.setNumber,
+        notes: row.notes,
+        readOnly,
+      },
+      maxWidth: '520px',
+      width: '92vw',
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (!result || readOnly) {
+        return;
+      }
+      const next = result.notes;
+      const current = row.notes;
+      if (current === next || (!current && !next)) {
+        return;
+      }
+      this.patchSet(row, { notes: next });
     });
   }
 

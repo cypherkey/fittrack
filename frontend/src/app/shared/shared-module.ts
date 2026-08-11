@@ -27,6 +27,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ExerciseDetailDialog } from './components/exercise-detail-dialog/exercise-detail-dialog';
 import { ExerciseHistoryDialog } from './components/exercise-history-dialog/exercise-history-dialog';
+import { SetNotesDialog } from './components/set-notes-dialog/set-notes-dialog';
 import { SetsEditor } from './components/sets-editor/sets-editor';
 import { MarkdownPipe } from './pipes/markdown-pipe';
 
@@ -56,7 +57,7 @@ const MATERIAL = [
 ];
 
 @NgModule({
-  declarations: [MarkdownPipe, SetsEditor, ExerciseDetailDialog, ExerciseHistoryDialog],
+  declarations: [MarkdownPipe, SetsEditor, ExerciseDetailDialog, ExerciseHistoryDialog, SetNotesDialog],
   imports: [CommonModule, ReactiveFormsModule, RouterModule, DragDropModule, ...MATERIAL],
   exports: [
     CommonModule,
@@ -68,6 +69,7 @@ const MATERIAL = [
     SetsEditor,
     ExerciseDetailDialog,
     ExerciseHistoryDialog,
+    SetNotesDialog,
   ],
 })
 export class SharedModule {}

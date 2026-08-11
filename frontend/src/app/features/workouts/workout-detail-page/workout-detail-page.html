@@ -76,6 +76,16 @@
               >
                 <mat-icon>history</mat-icon>
               </button>
+              <button
+                mat-icon-button
+                type="button"
+                [attr.aria-label]="row.notes ? 'Edit set notes' : 'Add set notes'"
+                [matTooltip]="row.notes ? 'Edit notes' : 'Add notes'"
+                [class.has-notes]="!!row.notes"
+                (click)="editNotes(row)"
+              >
+                <mat-icon>{{ row.notes ? 'sticky_note_2' : 'note_add' }}</mat-icon>
+              </button>
             </div>
           </td>
         </ng-container>

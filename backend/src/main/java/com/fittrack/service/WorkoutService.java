@@ -132,6 +132,10 @@ public class WorkoutService {
 		if (request.isRpePresent()) {
 			set.setRpe(request.getRpe());
 		}
+		if (request.isNotesPresent()) {
+			String notes = request.getNotes();
+			set.setNotes(StringUtils.hasText(notes) ? notes.trim() : null);
+		}
 		if (metricsChanged) {
 			workout.setTotalWeightLifted(computeTotal(workout.getSets()));
 		}
