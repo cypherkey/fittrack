@@ -49,6 +49,10 @@ table {
   gap: 0.25rem;
 }
 
+.exercise-cell .has-notes {
+  color: var(--mat-sys-primary, #3f51b5);
+}
+
 .metrics-cell {
   display: flex;
   flex-wrap: wrap;

@@ -22,6 +22,7 @@ export interface WorkoutSetPatchRequest {
   durationSeconds?: number | null;
   distanceMeters?: number | null;
   rpe?: RpeLevel | null;
+  notes?: string | null;
 }
 
 export interface Workout {

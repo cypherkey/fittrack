@@ -359,7 +359,7 @@ class EndpointCoverageTest {
 		mockMvc.perform(patch("/api/v1/workouts/" + directId + "/sets/" + d0)
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"completed\":true,\"rpe\":\"EASY\",\"reps\":5}"))
+						.content("{\"completed\":true,\"rpe\":\"EASY\",\"reps\":5,\"notes\":\"Felt strong\"}"))
 				.andExpect(status().isOk());
 		JsonNode afterSet = objectMapper.readTree(mockMvc.perform(get("/api/v1/workouts/" + directId)
 						.header("Authorization", "Bearer " + adminToken))
@@ -373,11 +373,32 @@ class EndpointCoverageTest {
 				org.junit.jupiter.api.Assertions.assertTrue(set.get("completed").asBoolean());
 				org.junit.jupiter.api.Assertions.assertEquals("EASY", set.get("rpe").asText());
 				org.junit.jupiter.api.Assertions.assertEquals(5, set.get("reps").asInt());
+				org.junit.jupiter.api.Assertions.assertEquals("Felt strong", set.get("notes").asText());
 				org.junit.jupiter.api.Assertions.assertTrue(set.has("trackedParameters"));
 				setFound = true;
 			}
 		}
 		org.junit.jupiter.api.Assertions.assertTrue(setFound);
+
+		mockMvc.perform(patch("/api/v1/workouts/" + directId + "/sets/" + d0)
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"notes\":null}"))
+				.andExpect(status().isOk());
+		JsonNode afterClearNotes = objectMapper.readTree(mockMvc.perform(get("/api/v1/workouts/" + directId)
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andReturn()
+				.getResponse()
+				.getContentAsString());
+		boolean notesCleared = false;
+		for (JsonNode set : afterClearNotes.get("sets")) {
+			if (d0.equals(set.get("id").asText())) {
+				org.junit.jupiter.api.Assertions.assertTrue(set.get("notes").isNull());
+				notesCleared = true;
+			}
+		}
+		org.junit.jupiter.api.Assertions.assertTrue(notesCleared);
 
 		mockMvc.perform(put("/api/v1/workouts/" + directId)
 						.header("Authorization", "Bearer " + adminToken)
