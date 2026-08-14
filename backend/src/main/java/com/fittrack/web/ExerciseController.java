@@ -2,10 +2,13 @@ package com.fittrack.web;
 
 import com.fittrack.domain.User;
 import com.fittrack.service.ExerciseService;
+import com.fittrack.service.UserExerciseNoteService;
 import com.fittrack.web.dto.ExerciseHistoryEntryResponse;
 import com.fittrack.web.dto.ExerciseRequest;
 import com.fittrack.web.dto.ExerciseResponse;
 import com.fittrack.web.dto.PageResponse;
+import com.fittrack.web.dto.UserExerciseNotesRequest;
+import com.fittrack.web.dto.UserExerciseNotesResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -29,10 +32,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ExerciseController {
 
 	private final ExerciseService exerciseService;
+	private final UserExerciseNoteService userExerciseNoteService;
 	private final CurrentUserResolver currentUserResolver;
 
-	public ExerciseController(ExerciseService exerciseService, CurrentUserResolver currentUserResolver) {
+	public ExerciseController(
+			ExerciseService exerciseService,
+			UserExerciseNoteService userExerciseNoteService,
+			CurrentUserResolver currentUserResolver
+	) {
 		this.exerciseService = exerciseService;
+		this.userExerciseNoteService = userExerciseNoteService;
 		this.currentUserResolver = currentUserResolver;
 	}
 
@@ -59,6 +68,24 @@ public class ExerciseController {
 	@GetMapping("/{id}/history")
 	public List<ExerciseHistoryEntryResponse> history(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
 		return exerciseService.history(currentUserResolver.requireUser(jwt), id);
+	}
+
+	@GetMapping("/{id}/notes")
+	public UserExerciseNotesResponse getNotes(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+		return userExerciseNoteService.get(currentUserResolver.requireUser(jwt), id);
+	}
+
+	@PutMapping("/{id}/notes")
+	public UserExerciseNotesResponse putNotes(
+			@AuthenticationPrincipal Jwt jwt,
+			@PathVariable String id,
+			@RequestBody UserExerciseNotesRequest request
+	) {
+		return userExerciseNoteService.upsert(
+				currentUserResolver.requireUser(jwt),
+				id,
+				request != null ? request.notes() : null
+		);
 	}
 
 	@PostMapping

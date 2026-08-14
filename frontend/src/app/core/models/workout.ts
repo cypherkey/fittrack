@@ -12,7 +12,8 @@ export interface WorkoutSet {
   distanceMeters: number | null;
   completed: boolean;
   rpe: RpeLevel | null;
-  notes: string | null;
+  /** Per-user notes for this exercise (not set-specific). */
+  exerciseNotes: string | null;
 }
 
 export interface WorkoutSetPatchRequest {
@@ -22,7 +23,6 @@ export interface WorkoutSetPatchRequest {
   durationSeconds?: number | null;
   distanceMeters?: number | null;
   rpe?: RpeLevel | null;
-  notes?: string | null;
 }
 
 export interface Workout {
@@ -52,7 +52,6 @@ export interface WorkoutSetRequest {
   distanceMeters?: number | null;
   completed?: boolean | null;
   rpe?: RpeLevel | null;
-  notes?: string | null;
 }
 
 export interface WorkoutRequest {

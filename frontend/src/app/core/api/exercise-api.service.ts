@@ -44,6 +44,14 @@ export class ExerciseApi {
     return this.http.get<ExerciseHistoryEntry[]>(`${this.base}/${id}/history`);
   }
 
+  getNotes(id: string): Observable<{ exerciseId: string; notes: string | null }> {
+    return this.http.get<{ exerciseId: string; notes: string | null }>(`${this.base}/${id}/notes`);
+  }
+
+  putNotes(id: string, notes: string | null): Observable<{ exerciseId: string; notes: string | null }> {
+    return this.http.put<{ exerciseId: string; notes: string | null }>(`${this.base}/${id}/notes`, { notes });
+  }
+
   create(body: ExerciseRequest): Observable<Exercise> {
     return this.http.post<Exercise>(this.base, body);
   }

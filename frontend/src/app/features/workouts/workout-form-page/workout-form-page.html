@@ -45,6 +45,8 @@
     <app-sets-editor
       [sets]="sets"
       [showCompleted]="true"
+      [showNotes]="false"
+      [useMetric]="useMetricPreference"
       [entityId]="workoutId"
       (reorderPersisted)="onReorder($event)"
     />

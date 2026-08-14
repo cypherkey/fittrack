@@ -31,15 +31,18 @@ public class WorkoutService {
 	private final WorkoutRepository workoutRepository;
 	private final WorkoutTemplateRepository templateRepository;
 	private final ExerciseService exerciseService;
+	private final UserExerciseNoteService userExerciseNoteService;
 
 	public WorkoutService(
 			WorkoutRepository workoutRepository,
 			WorkoutTemplateRepository templateRepository,
-			ExerciseService exerciseService
+			ExerciseService exerciseService,
+			UserExerciseNoteService userExerciseNoteService
 	) {
 		this.workoutRepository = workoutRepository;
 		this.templateRepository = templateRepository;
 		this.exerciseService = exerciseService;
+		this.userExerciseNoteService = userExerciseNoteService;
 	}
 
 	@Transactional(readOnly = true)
@@ -131,10 +134,6 @@ public class WorkoutService {
 		}
 		if (request.isRpePresent()) {
 			set.setRpe(request.getRpe());
-		}
-		if (request.isNotesPresent()) {
-			String notes = request.getNotes();
-			set.setNotes(StringUtils.hasText(notes) ? notes.trim() : null);
 		}
 		if (metricsChanged) {
 			workout.setTotalWeightLifted(computeTotal(workout.getSets()));
@@ -235,7 +234,6 @@ public class WorkoutService {
 			set.setDistanceMeters(req.distanceMeters());
 			set.setCompleted(req.completed() == null || req.completed());
 			set.setRpe(req.rpe());
-			set.setNotes(req.notes());
 			workout.getSets().add(set);
 		}
 		workout.setTotalWeightLifted(computeTotal(workout.getSets()));
@@ -277,10 +275,19 @@ public class WorkoutService {
 
 	WorkoutResponse toResponse(Workout workout, boolean includeSets) {
 		int setCount = workout.getSets().size();
+		Map<String, String> exerciseNotes = Map.of();
+		if (includeSets && !workout.getSets().isEmpty()) {
+			List<String> exerciseIds = workout.getSets().stream()
+					.map(s -> s.getExercise().getId())
+					.distinct()
+					.toList();
+			exerciseNotes = userExerciseNoteService.notesByExerciseIds(workout.getUser().getId(), exerciseIds);
+		}
+		Map<String, String> notesByExercise = exerciseNotes;
 		List<WorkoutSetResponse> sets = includeSets
 				? workout.getSets().stream()
 						.sorted(Comparator.comparingInt(WorkoutSet::getSetNumber))
-						.map(this::toSetResponse)
+						.map(s -> toSetResponse(s, notesByExercise.get(s.getExercise().getId())))
 						.toList()
 				: List.of();
 		return new WorkoutResponse(
@@ -302,7 +309,7 @@ public class WorkoutService {
 		);
 	}
 
-	private WorkoutSetResponse toSetResponse(WorkoutSet set) {
+	private WorkoutSetResponse toSetResponse(WorkoutSet set, String exerciseNotes) {
 		return new WorkoutSetResponse(
 				set.getId(),
 				set.getExercise().getId(),
@@ -315,7 +322,7 @@ public class WorkoutService {
 				set.getDistanceMeters(),
 				set.isCompleted(),
 				set.getRpe(),
-				set.getNotes()
+				exerciseNotes
 		);
 	}
 }

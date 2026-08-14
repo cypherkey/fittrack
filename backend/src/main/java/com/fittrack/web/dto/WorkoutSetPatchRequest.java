@@ -16,7 +16,6 @@ public class WorkoutSetPatchRequest {
 	private Integer durationSeconds;
 	private Double distanceMeters;
 	private RpeLevel rpe;
-	private String notes;
 
 	private boolean completedPresent;
 	private boolean repsPresent;
@@ -24,7 +23,6 @@ public class WorkoutSetPatchRequest {
 	private boolean durationSecondsPresent;
 	private boolean distanceMetersPresent;
 	private boolean rpePresent;
-	private boolean notesPresent;
 
 	public Boolean getCompleted() {
 		return completed;
@@ -86,16 +84,6 @@ public class WorkoutSetPatchRequest {
 		this.rpePresent = true;
 	}
 
-	public String getNotes() {
-		return notes;
-	}
-
-	@JsonProperty("notes")
-	public void setNotes(String notes) {
-		this.notes = notes;
-		this.notesPresent = true;
-	}
-
 	@JsonIgnore
 	public boolean isCompletedPresent() {
 		return completedPresent;
@@ -124,10 +112,5 @@ public class WorkoutSetPatchRequest {
 	@JsonIgnore
 	public boolean isRpePresent() {
 		return rpePresent;
-	}
-
-	@JsonIgnore
-	public boolean isNotesPresent() {
-		return notesPresent;
 	}
 }

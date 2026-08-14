@@ -43,7 +43,7 @@
         <div><dt>Completed</dt><dd>{{ workout.completed ? 'Yes' : 'No' }}</dd></div>
         <div><dt>Difficulty</dt><dd>{{ workout.difficulty || '-' }}</dd></div>
         <div><dt>Duration</dt><dd>{{ durationLabel(workout) }}</dd></div>
-        <div><dt>Total weight lifted</dt><dd>{{ workout.totalWeightLifted ?? '-' }} kg</dd></div>
+        <div><dt>Total weight lifted</dt><dd>{{ totalWeightLabel(workout) }}</dd></div>
       </dl>
       @if (workout.notes) {
         <p><strong>Notes:</strong> {{ workout.notes }}</p>
@@ -79,12 +79,12 @@
               <button
                 mat-icon-button
                 type="button"
-                [attr.aria-label]="row.notes ? 'Edit set notes' : 'Add set notes'"
-                [matTooltip]="row.notes ? 'Edit notes' : 'Add notes'"
-                [class.has-notes]="!!row.notes"
+                [attr.aria-label]="row.exerciseNotes ? 'Edit exercise notes' : 'Add exercise notes'"
+                [matTooltip]="row.exerciseNotes ? 'Edit notes' : 'Add notes'"
+                [class.has-notes]="!!row.exerciseNotes"
                 (click)="editNotes(row)"
               >
-                <mat-icon>{{ row.notes ? 'sticky_note_2' : 'note_add' }}</mat-icon>
+                <mat-icon>{{ row.exerciseNotes ? 'sticky_note_2' : 'note_add' }}</mat-icon>
               </button>
             </div>
           </td>

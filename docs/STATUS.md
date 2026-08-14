@@ -58,12 +58,13 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - OpenAPI / Swagger UI: `/v3/api-docs`, `/swagger-ui.html`; JWT bearer for Try it out
 - Actuator: only `health` exposed
 - SQLite: `foreign_keys=true&journal_mode=WAL`
-- Prefer additive Flyway migrations for schema changes (V4: workout timing/`completed`; V5: exercise `video_url`; V6: unique `(user_id, name)` on workout; V7: `app_user.use_metric`; V8: `workout.use_metric`)
+- Prefer additive Flyway migrations for schema changes (V4: workout timing/`completed`; V5: exercise `video_url`; V6: unique `(user_id, name)` on workout; V7: `app_user.use_metric`; V8: `workout.use_metric`; V9: `user_exercise_notes`, drop `workout_set.notes`)
 - Docker: root `Dockerfile` embeds Angular into Boot `static/`; compose mounts `/data`; SPA deep-link fallthrough via `SpaForwardController`
 - Git remote may be `github`; branch `main`
 - Frontend: `frontend/` Angular 21 NgModules + Material; see [`FRONTEND.md`](FRONTEND.md)
 - Typed SPA clients: **hand-mirrored** from Java DTOs/OpenAPI (not codegen); process in [FRONTEND.md](FRONTEND.md) §8
 - Frontend CD: **zoneless** + **signals** (no `zone.js`)
+- Units: API stores weight in kg; SPA converts kg↔lb when `useMetric` is false (workout + history); distance always meters
 - Test inventory: [`TESTS.md`](TESTS.md)
 
 ## How to update this file

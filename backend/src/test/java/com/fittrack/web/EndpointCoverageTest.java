@@ -359,7 +359,7 @@ class EndpointCoverageTest {
 		mockMvc.perform(patch("/api/v1/workouts/" + directId + "/sets/" + d0)
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"completed\":true,\"rpe\":\"EASY\",\"reps\":5,\"notes\":\"Felt strong\"}"))
+						.content("{\"completed\":true,\"rpe\":\"EASY\",\"reps\":5}"))
 				.andExpect(status().isOk());
 		JsonNode afterSet = objectMapper.readTree(mockMvc.perform(get("/api/v1/workouts/" + directId)
 						.header("Authorization", "Bearer " + adminToken))
@@ -368,23 +368,54 @@ class EndpointCoverageTest {
 				.getResponse()
 				.getContentAsString());
 		boolean setFound = false;
+		String exerciseIdForNotes = null;
 		for (JsonNode set : afterSet.get("sets")) {
 			if (d0.equals(set.get("id").asText())) {
 				org.junit.jupiter.api.Assertions.assertTrue(set.get("completed").asBoolean());
 				org.junit.jupiter.api.Assertions.assertEquals("EASY", set.get("rpe").asText());
 				org.junit.jupiter.api.Assertions.assertEquals(5, set.get("reps").asInt());
-				org.junit.jupiter.api.Assertions.assertEquals("Felt strong", set.get("notes").asText());
 				org.junit.jupiter.api.Assertions.assertTrue(set.has("trackedParameters"));
+				org.junit.jupiter.api.Assertions.assertTrue(set.has("exerciseNotes"));
+				exerciseIdForNotes = set.get("exerciseId").asText();
 				setFound = true;
 			}
 		}
 		org.junit.jupiter.api.Assertions.assertTrue(setFound);
+		org.junit.jupiter.api.Assertions.assertNotNull(exerciseIdForNotes);
 
-		mockMvc.perform(patch("/api/v1/workouts/" + directId + "/sets/" + d0)
+		mockMvc.perform(put("/api/v1/exercise/" + exerciseIdForNotes + "/notes")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"notes\":\"Felt strong\"}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.notes").value("Felt strong"));
+		mockMvc.perform(get("/api/v1/exercise/" + exerciseIdForNotes + "/notes")
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.notes").value("Felt strong"));
+		JsonNode afterNotes = objectMapper.readTree(mockMvc.perform(get("/api/v1/workouts/" + directId)
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andReturn()
+				.getResponse()
+				.getContentAsString());
+		boolean notesFound = false;
+		for (JsonNode set : afterNotes.get("sets")) {
+			if (exerciseIdForNotes.equals(set.get("exerciseId").asText())) {
+				org.junit.jupiter.api.Assertions.assertEquals("Felt strong", set.get("exerciseNotes").asText());
+				notesFound = true;
+			}
+		}
+		org.junit.jupiter.api.Assertions.assertTrue(notesFound);
+
+		MvcResult clearedNotes = mockMvc.perform(put("/api/v1/exercise/" + exerciseIdForNotes + "/notes")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("{\"notes\":null}"))
-				.andExpect(status().isOk());
+				.andExpect(status().isOk())
+				.andReturn();
+		org.junit.jupiter.api.Assertions.assertTrue(
+				objectMapper.readTree(clearedNotes.getResponse().getContentAsString()).get("notes").isNull());
 		JsonNode afterClearNotes = objectMapper.readTree(mockMvc.perform(get("/api/v1/workouts/" + directId)
 						.header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
@@ -394,7 +425,7 @@ class EndpointCoverageTest {
 		boolean notesCleared = false;
 		for (JsonNode set : afterClearNotes.get("sets")) {
 			if (d0.equals(set.get("id").asText())) {
-				org.junit.jupiter.api.Assertions.assertTrue(set.get("notes").isNull());
+				org.junit.jupiter.api.Assertions.assertTrue(set.get("exerciseNotes").isNull());
 				notesCleared = true;
 			}
 		}

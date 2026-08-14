@@ -92,7 +92,7 @@ Install Material: `ng add @angular/material` (pick a theme; support light/dark i
 | Templates | `/templates` | Templates CRUD + clone |
 | Exercises | `/exercises` | Catalog + custom CRUD |
 | Users | `/users` | **Admin only** — user management CRUD (`/api/v1/users`); hidden from nav + `adminGuard` for non-admins |
-| Settings | `/settings` | Display me + API base; unit preference (`useMetric` toggle saves immediately via `PATCH /me`) |
+| Settings | `/settings` | Display me + API base; unit preference (`useMetric` toggle saves immediately via `PATCH /me`; imperial converts weight kg→lb in UI, distance stays m) |
 
 Unauthenticated: `/login`, `/auth/callback` (Google JWT hash handoff).
 
@@ -140,11 +140,12 @@ apiBaseUrl: ''
 
 ### Workouts
 - List with date range filter (Material datepicker) on `startedAt`; show `setCount` from API (list omits nested sets)
-- Detail: Start / Complete actions (`POST …/start`, `POST …/complete`); show derived duration and totals; sets table uses bare bottom-border metric inputs (per exercise `trackedParameters`, max 2), RPE pill chips (tap again to clear), Done checkbox, and a notes dialog (note icon next to exercise actions) — each patches `PATCH …/sets/{setId}` immediately
+- Detail: Start / Complete actions (`POST …/start`, `POST …/complete`); show derived duration and totals; sets table uses bare bottom-border metric inputs (per exercise `trackedParameters`, max 2), RPE pill chips (tap again to clear), Done checkbox, and exercise notes dialog (`PUT /api/v1/exercise/{id}/notes` — per-user, shared across workouts; set responses include `exerciseNotes`) — metrics/RPE/Done still patch `PATCH …/sets/{setId}` immediately
+- Weight is stored as kg; when `useMetric` is false, workout/history UIs convert kg↔lb for display and input (distance stays meters)
 - Workout detail UI backlog (not tried yet): (1) Material fill + density form fields; (4) unit suffix adornment inside the control; (5) −/+ steppers for reps/duration
 - Create/edit workout header (`startedAt`, `endedAt`, `completed`, `useMetric`, name, difficulty, notes); show derived duration; new workouts default `useMetric` from the signed-in user preference
 - Sets table: add/remove/reorder (CDK drag-drop when practical; else up/down calling `PATCH .../sets/reorder` or full PUT — prefer reorder endpoint when only order changes)
-- Show computed `totalWeightLifted` from API (workout header; not on templates)
+- Show computed `totalWeightLifted` from API (workout header; not on templates); convert with workout `useMetric`
 
 ### Dashboard (light)
 - Recent workouts + shortcuts to log workout / open templates (avoid Ryot-style media widgets)

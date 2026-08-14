@@ -107,7 +107,6 @@ public class TemplateService {
 			set.setDurationSeconds(templateSet.getDurationSeconds());
 			set.setDistanceMeters(templateSet.getDistanceMeters());
 			set.setRpe(null);
-			set.setNotes(templateSet.getNotes());
 			set.setCompleted(false);
 			workout.getSets().add(set);
 		}

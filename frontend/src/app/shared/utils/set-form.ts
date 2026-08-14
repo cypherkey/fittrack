@@ -29,7 +29,6 @@ export function createWorkoutSetGroup(fb: FormBuilder, set?: WorkoutSet): FormGr
     distanceMeters: [set?.distanceMeters ?? null],
     completed: [set?.completed ?? false],
     rpe: [set?.rpe ?? null as RpeLevel | null],
-    notes: [set?.notes ?? ''],
   });
 }
 

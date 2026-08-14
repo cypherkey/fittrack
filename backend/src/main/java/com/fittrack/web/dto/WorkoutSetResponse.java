@@ -14,6 +14,6 @@ public record WorkoutSetResponse(
 		Double distanceMeters,
 		boolean completed,
 		RpeLevel rpe,
-		String notes
+		String exerciseNotes
 ) {
 }

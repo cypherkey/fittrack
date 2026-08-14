@@ -32,6 +32,7 @@ import { RPE_LEVELS } from '../../../core/models/enums';
 import { ReorderSetItem } from '../../../core/models/template';
 import { devLog } from '../../../core/utils/dev-log';
 import { renumberSets } from '../../utils/set-form';
+import { weightUnitLabel } from '../../utils/units';
 
 interface ExerciseOption {
   id: string;
@@ -56,6 +57,10 @@ export class SetsEditor implements OnInit {
   @Input() showCompleted = false;
   /** When false (templates), RPE controls are hidden and omitted from new rows. */
   @Input() showRpe = true;
+  /** When false (workouts), per-set notes are hidden; user exercise notes live on the detail page. */
+  @Input() showNotes = true;
+  /** Unit preference for weight labels; distance stays meters. */
+  @Input() useMetric = true;
   @Input() entityId: string | null = null;
   @Output() reorderPersisted = new EventEmitter<ReorderSetItem[]>();
 
@@ -126,6 +131,10 @@ export class SetsEditor implements OnInit {
       this.selectedOptions.set(selected);
     }
     this.loadExercises('');
+  }
+
+  weightLabel(): string {
+    return `Weight (${weightUnitLabel(this.useMetric)})`;
   }
 
   loadExercises(q: string): void {
@@ -209,6 +218,9 @@ export class SetsEditor implements OnInit {
     }
     if (!this.showRpe) {
       group.removeControl('rpe' as never);
+    }
+    if (!this.showNotes) {
+      group.removeControl('notes' as never);
     }
     this.sets.push(group);
   }

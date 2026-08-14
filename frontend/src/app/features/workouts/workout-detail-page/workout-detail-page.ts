@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
+import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { RPE_LEVELS, RpeLevel, TRACKED_PARAM, hasTrackedParam } from '../../../core/models/enums';
 import { Workout, WorkoutSet, WorkoutSetPatchRequest } from '../../../core/models/workout';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -20,6 +21,12 @@ import {
   SetNotesDialogResult,
 } from '../../../shared/components/set-notes-dialog/set-notes-dialog';
 import { formatSessionDuration } from '../../../shared/utils/set-form';
+import {
+  formatWeight,
+  toDisplayWeight,
+  toStorageWeight,
+  weightUnitLabel,
+} from '../../../shared/utils/units';
 
 export type TrackedMetricKey = 'reps' | 'weightKg' | 'durationSeconds' | 'distanceMeters';
 
@@ -39,6 +46,7 @@ export class WorkoutDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly workoutApi = inject(WorkoutApi);
+  private readonly exerciseApi = inject(ExerciseApi);
   private readonly notify = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
 
@@ -145,7 +153,6 @@ export class WorkoutDetailPage implements OnInit {
   }
 
   editNotes(row: WorkoutSet): void {
-    const readOnly = this.setsReadOnly();
     const ref = this.dialog.open<
       SetNotesDialog,
       SetNotesDialogData,
@@ -153,23 +160,35 @@ export class WorkoutDetailPage implements OnInit {
     >(SetNotesDialog, {
       data: {
         exerciseName: row.exerciseName,
-        setNumber: row.setNumber,
-        notes: row.notes,
-        readOnly,
+        notes: row.exerciseNotes,
       },
       maxWidth: '520px',
       width: '92vw',
     });
     ref.afterClosed().subscribe((result) => {
-      if (!result || readOnly) {
+      if (!result) {
         return;
       }
       const next = result.notes;
-      const current = row.notes;
+      const current = row.exerciseNotes;
       if (current === next || (!current && !next)) {
         return;
       }
-      this.patchSet(row, { notes: next });
+      this.exerciseApi.putNotes(row.exerciseId, next).subscribe({
+        next: (saved) => {
+          const w = this.workout();
+          if (!w) {
+            return;
+          }
+          this.workout.set({
+            ...w,
+            sets: w.sets.map((s) =>
+              s.exerciseId === row.exerciseId ? { ...s, exerciseNotes: saved.notes } : s,
+            ),
+          });
+        },
+        error: (err) => this.notify.error(errorMessage(err, 'Failed to save notes')),
+      });
     });
   }
 
@@ -193,15 +212,16 @@ export class WorkoutDetailPage implements OnInit {
       fields.push({ key: 'reps', label: 'Reps', step: null });
     }
     if (hasTrackedParam(flags, TRACKED_PARAM.WEIGHT)) {
-      fields.push({ key: 'weightKg', label: useMetric ? 'kg' : 'lb', step: '0.5' });
+      fields.push({ key: 'weightKg', label: weightUnitLabel(useMetric), step: '0.5' });
     }
     if (hasTrackedParam(flags, TRACKED_PARAM.DURATION)) {
       fields.push({ key: 'durationSeconds', label: 'sec', step: null });
     }
     if (hasTrackedParam(flags, TRACKED_PARAM.DISTANCE)) {
+      // Distance is always meters regardless of metric preference.
       fields.push({
         key: 'distanceMeters',
-        label: useMetric ? 'm' : 'mi',
+        label: 'm',
         step: '0.1',
       });
     }
@@ -209,7 +229,14 @@ export class WorkoutDetailPage implements OnInit {
   }
 
   metricValue(row: WorkoutSet, key: TrackedMetricKey): number | null {
+    if (key === 'weightKg') {
+      return toDisplayWeight(row.weightKg, this.workout()?.useMetric ?? true);
+    }
     return row[key];
+  }
+
+  totalWeightLabel(workout: Workout): string {
+    return formatWeight(workout.totalWeightLifted, workout.useMetric ?? true, '-');
   }
 
   rpeShort(level: RpeLevel): string {
@@ -248,11 +275,14 @@ export class WorkoutDetailPage implements OnInit {
     if (parsed !== null && Number.isNaN(parsed)) {
       return;
     }
-    const current = row[key];
-    if (current === parsed || (current == null && parsed == null)) {
+    const currentDisplay = this.metricValue(row, key);
+    if (currentDisplay === parsed || (currentDisplay == null && parsed == null)) {
       return;
     }
-    this.patchSet(row, { [key]: parsed });
+    const useMetric = this.workout()?.useMetric ?? true;
+    const storageValue =
+      key === 'weightKg' ? toStorageWeight(parsed, useMetric) : parsed;
+    this.patchSet(row, { [key]: storageValue });
   }
 
   private patchSet(row: WorkoutSet, body: WorkoutSetPatchRequest): void {

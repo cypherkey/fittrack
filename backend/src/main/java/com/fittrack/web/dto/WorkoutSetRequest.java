@@ -13,7 +13,6 @@ public record WorkoutSetRequest(
 		Integer durationSeconds,
 		Double distanceMeters,
 		Boolean completed,
-		RpeLevel rpe,
-		String notes
+		RpeLevel rpe
 ) {
 }

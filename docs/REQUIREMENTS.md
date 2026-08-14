@@ -240,7 +240,7 @@ Same structure as `WorkoutSet`: one row per planned set; each set points at an e
 
 No `completed` flag on template sets (that is workout/logging-only).
 
-**Clone template → workout:** create a new `Workout` for the current user with `startedAt`/`endedAt` unset and `completed=false`; default workout `name` to `Workout YYYY-MM-DD` (current local date) unless the clone request supplies a non-blank name; set `useMetric` from the current user's preference; copy template `difficulty` and `notes`; recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`, notes; `rpe` starts unset; set `completed=false`); set `sourceTemplateId`; leave template unchanged.
+**Clone template → workout:** create a new `Workout` for the current user with `startedAt`/`endedAt` unset and `completed=false`; default workout `name` to `Workout YYYY-MM-DD` (current local date) unless the clone request supplies a non-blank name; set `useMetric` from the current user's preference; copy template `difficulty` and `notes`; recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`; `rpe` starts unset; set `completed=false`; do **not** copy template-set notes onto the workout set — personal notes live in `user_exercise_notes`); set `sourceTemplateId`; leave template unchanged.
 
 **Public templates:** any authenticated user may **read** and **clone**; only owner may **edit/delete**. No template search in v1. Both **PRIVATE** and **PUBLIC** templates may include any exercise the owner can use (catalog + their own custom exercises). Cloning a public template copies its exercise references as-is (including the owner's custom exercises) onto the new workout.
 
@@ -295,11 +295,23 @@ One row per set in a workout. Flat: each set points at an exercise directly. Mir
 | distanceMeters | decimal? | |
 | completed | boolean | default false; workout-only |
 | rpe | enum? | `EASY` \| `CHALLENGING` \| `HARD` |
-| notes | string? | Optional per-set notes |
 
 **Unique constraint:** `(workoutId, setNumber)`. Same reorder rules as templates: client owns `setNumber`; server enforces uniqueness and does not auto-renumber.
 
 Only parameters enabled on the exercise should be required/validated; others may be null.
+
+**User exercise notes:** personal notes for an exercise are stored in `user_exercise_notes` (not on `workout_set`). One row per `(userId, exerciseId)`; shared across all workouts. Workout set API responses include `exerciseNotes` from that table when sets are loaded.
+
+#### UserExerciseNote (table `user_exercise_notes`)
+
+| Field | Type | Notes |
+|-------|------|--------|
+| id | UUID | |
+| userId | FK → User | |
+| exerciseId | FK → Exercise | |
+| notes | string? | TEXT; blank clears / deletes the row |
+
+**Unique constraint:** `(userId, exerciseId)`.
 
 **Computed metadata:** on workout save, recompute `totalWeightLifted` = Σ (reps × weightKg) for sets with both values; store on the workout header for fast list views. API responses for workouts and templates also include **`setCount`** (number of sets) so list views do not need the nested `sets` array.
 
@@ -314,6 +326,7 @@ User 1──* Exercise (custom only, via addedBy)
 Equipment 1──* Exercise
 Exercise *──* Muscle          via exerciseHasMuscle (isPrimary boolean)
 Exercise *──* Image           via exerciseHasImage (sortOrder)
+User 1──* UserExerciseNote *──1 Exercise
 WorkoutTemplate 1──* TemplateSet *──1 Exercise
 Workout 1──* WorkoutSet *──1 Exercise
 WorkoutTemplate (optional) ──<cloned into>── Workout
@@ -366,6 +379,8 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `GET /api/v1/exercise` — list/search catalog + current user's custom (query: `q`, `muscle`, `equipment`, `category`, `customOnly`, page)
 - `GET /api/v1/exercise/{id}` — detail for any existing exercise (catalog or custom)
 - `GET /api/v1/exercise/{id}/history` — current user's set history for the exercise from **completed** workouts only (ordered by workout `startedAt` desc, then `setNumber` asc); each row: `startedAt`, `setNumber`, `reps`, `weightKg`
+- `GET /api/v1/exercise/{id}/notes` — current user's personal notes for the exercise (`{ exerciseId, notes }`)
+- `PUT /api/v1/exercise/{id}/notes` — upsert/clear personal notes (`{ "notes": "..." | null }`; blank/null deletes the row)
 - `POST /api/v1/exercise` — create custom exercise (`isCustom=true`, `addedBy` = current user)
 - `PUT /api/v1/exercise/{id}` — update own custom exercise only
 - `DELETE /api/v1/exercise/{id}` — delete own custom exercise only
@@ -387,7 +402,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `POST /api/v1/workouts` — create (empty or with sets); optional `startedAt` / `endedAt` / `completed` / `useMetric` (defaults to the user's preference when omitted)
 - `PUT /api/v1/workouts/{id}` - update metadata / replace structure; client supplies `setNumber` to support frontend reorder (no server auto-renumber to 1…N)
 - `PATCH /api/v1/workouts/{id}/sets/reorder` - body: `{ "items": [ { "setId", "setNumber" } ] }` — same client-owned `setNumber` rules as templates
-- `PATCH /api/v1/workouts/{id}/sets/{setId}` — partial update of one set (owner): any of `completed`, `reps`, `weightKg`, `durationSeconds`, `distanceMeters`, `rpe`, `notes` (explicit `null` clears nullable fields); recomputes workout `totalWeightLifted` when reps/weight change
+- `PATCH /api/v1/workouts/{id}/sets/{setId}` — partial update of one set (owner): any of `completed`, `reps`, `weightKg`, `durationSeconds`, `distanceMeters`, `rpe` (explicit `null` clears nullable fields); recomputes workout `totalWeightLifted` when reps/weight change. Personal exercise notes use `PUT /api/v1/exercise/{id}/notes` (not this endpoint).
 - `POST /api/v1/workouts/{id}/start` — set `startedAt` to now if unset (idempotent if already started)
 - `POST /api/v1/workouts/{id}/complete` — set `endedAt` to now, `completed=true`, recompute `totalWeightLifted` from sets (Σ reps × weightKg); session duration is `endedAt − startedAt` (not stored). If `startedAt` was unset, set it to now as well
 - `DELETE /api/v1/workouts/{id}` - delete
@@ -528,7 +543,7 @@ Deferred (tracked in STATUS): **#1** auth hardening. **#9** user management is d
 | Topic | Default for v1 | Change if needed |
 |-------|----------------|------------------|
 | ID type | **UUID** for all entities including catalog `Exercise.id` (stable UUID derived from upstream slug at seed prep); lookups `Equipment`/`Muscle`/`Image` also UUID | Locked |
-| Weight unit | **Store kg** as SQLite REAL / Java `Double` (`weightKg`, `totalWeightLifted`); UI may convert for display | Locked |
+| Weight unit | **Store kg** as SQLite REAL / Java `Double` (`weightKg`, `totalWeightLifted`); UI may convert kg↔lb for display/input when imperial; **do not** convert distance meters | Locked |
 | Auth | **Local username/password + Google SSO**; both issue **JWT** Bearer tokens | Locked |
 | Google JWT handoff | Redirect to SPA `#token=<jwt>`; no refresh token in v1 | Locked |
 | Default user | Seed on first start: username/password `admin`/`admin` (overridable via env) | Locked |

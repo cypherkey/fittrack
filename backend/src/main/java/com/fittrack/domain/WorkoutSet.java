@@ -49,8 +49,6 @@ public class WorkoutSet {
 	@Enumerated(EnumType.STRING)
 	private RpeLevel rpe;
 
-	private String notes;
-
 	@PrePersist
 	void onCreate() {
 		if (id == null) {
@@ -136,13 +134,5 @@ public class WorkoutSet {
 
 	public void setRpe(RpeLevel rpe) {
 		this.rpe = rpe;
-	}
-
-	public String getNotes() {
-		return notes;
-	}
-
-	public void setNotes(String notes) {
-		this.notes = notes;
 	}
 }

@@ -51,7 +51,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="field-num">
-            <mat-label>Weight (kg)</mat-label>
+            <mat-label>{{ weightLabel() }}</mat-label>
             <input matInput type="number" step="0.5" formControlName="weightKg" />
           </mat-form-field>
 
@@ -81,10 +81,12 @@
             <mat-checkbox formControlName="completed" class="field-completed">Done</mat-checkbox>
           }
 
-          <mat-form-field appearance="outline" class="field-notes">
-            <mat-label>Notes</mat-label>
-            <input matInput formControlName="notes" />
-          </mat-form-field>
+          @if (showNotes) {
+            <mat-form-field appearance="outline" class="field-notes">
+              <mat-label>Notes</mat-label>
+              <input matInput formControlName="notes" />
+            </mat-form-field>
+          }
 
           <div class="set-actions">
             <button mat-icon-button type="button" (click)="moveUp(i)" [disabled]="i === 0" aria-label="Move up">

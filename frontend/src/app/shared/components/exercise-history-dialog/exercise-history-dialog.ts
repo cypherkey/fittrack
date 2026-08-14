@@ -1,8 +1,10 @@
 import { Component, Inject, OnInit, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
+import { AuthService } from '../../../core/auth.service';
 import { ExerciseHistoryEntry } from '../../../core/models/exercise';
 import { errorMessage } from '../../../core/utils/http-error';
+import { formatWeight, weightUnitLabel } from '../../utils/units';
 
 export interface ExerciseHistoryDialogData {
   exerciseId: string;
@@ -17,6 +19,7 @@ export interface ExerciseHistoryDialogData {
 })
 export class ExerciseHistoryDialog implements OnInit {
   private readonly exerciseApi = inject(ExerciseApi);
+  private readonly auth = inject(AuthService);
 
   readonly rows = signal<ExerciseHistoryEntry[]>([]);
   readonly loading = signal(true);
@@ -44,6 +47,18 @@ export class ExerciseHistoryDialog implements OnInit {
   title(): string {
     const name = this.data.exerciseName?.trim();
     return name ? name + ' history' : 'Exercise history';
+  }
+
+  useMetric(): boolean {
+    return this.auth.user()?.useMetric ?? true;
+  }
+
+  weightColumnLabel(): string {
+    return `Weight (${weightUnitLabel(this.useMetric())})`;
+  }
+
+  formatWeightValue(weightKg: number | null | undefined): string {
+    return formatWeight(weightKg, this.useMetric(), '-');
   }
 
   formatDate(iso: string | null | undefined): string {
