@@ -55,9 +55,13 @@ export class WorkoutDetailPage implements OnInit {
   readonly workout = signal<Workout | null>(null);
   readonly loading = signal(true);
   readonly acting = signal(false);
+  /** Set ids with an in-flight PATCH (does not block further edits — those coalesce). */
   readonly setActingIds = signal<ReadonlySet<string>>(new Set());
   readonly setColumns = ['setNumber', 'exercise', 'metrics', 'rpe', 'completed'] as const;
   readonly rpeLevels = RPE_LEVELS;
+
+  /** Latest unsent field merges per set while a PATCH is in flight. */
+  private readonly pendingPatches = new Map<string, WorkoutSetPatchRequest>();
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -202,8 +206,9 @@ export class WorkoutDetailPage implements OnInit {
     return this.workout()?.completed === true;
   }
 
-  isSetDisabled(setId: string): boolean {
-    return this.setsReadOnly() || this.isSetActing(setId);
+  isSetDisabled(_setId: string): boolean {
+    // Keep controls editable while a PATCH is in flight so rapid changes can coalesce.
+    return this.setsReadOnly();
   }
 
   /** Display/input units follow the signed-in user preference from Settings. */
@@ -291,33 +296,74 @@ export class WorkoutDetailPage implements OnInit {
     this.patchSet(row, { [key]: storageValue });
   }
 
+  /**
+   * Optimistic local apply + coalesce: one in-flight PATCH per set; further edits merge
+   * into a pending body and flush when the current request completes.
+   */
   private patchSet(row: WorkoutSet, body: WorkoutSetPatchRequest): void {
     const w = this.workout();
-    if (!w || w.completed || this.isSetActing(row.id)) {
+    if (!w || w.completed) {
       return;
     }
-    const nextActing = new Set(this.setActingIds());
-    nextActing.add(row.id);
-    this.setActingIds.set(nextActing);
 
-    this.workoutApi.patchSet(w.id, row.id, body).subscribe({
+    this.applyLocalPatch(row.id, body);
+
+    if (this.isSetActing(row.id)) {
+      const pending = this.pendingPatches.get(row.id) ?? {};
+      this.pendingPatches.set(row.id, { ...pending, ...body });
+      return;
+    }
+
+    this.sendSetPatch(w.id, row.id, body);
+  }
+
+  private sendSetPatch(workoutId: string, setId: string, body: WorkoutSetPatchRequest): void {
+    this.markSetActing(setId, true);
+
+    this.workoutApi.patchSet(workoutId, setId, body).subscribe({
       next: (updated) => {
+        const pending = this.pendingPatches.get(setId);
+        this.pendingPatches.delete(setId);
+        this.markSetActing(setId, false);
+
+        if (pending && Object.keys(pending).length > 0) {
+          this.workout.set(updated);
+          this.applyLocalPatch(setId, pending);
+          this.sendSetPatch(workoutId, setId, pending);
+          return;
+        }
+
         this.workout.set(updated);
-        this.clearSetActing(row.id);
       },
       error: (err) => {
-        this.clearSetActing(row.id);
+        this.pendingPatches.delete(setId);
+        this.markSetActing(setId, false);
         this.notify.error(errorMessage(err, 'Failed to update set'));
-        this.workoutApi.get(w.id).subscribe({
+        this.workoutApi.get(workoutId).subscribe({
           next: (fresh) => this.workout.set(fresh),
         });
       },
     });
   }
 
-  private clearSetActing(setId: string): void {
-    const nextActing = new Set(this.setActingIds());
-    nextActing.delete(setId);
-    this.setActingIds.set(nextActing);
+  private applyLocalPatch(setId: string, body: WorkoutSetPatchRequest): void {
+    const w = this.workout();
+    if (!w) {
+      return;
+    }
+    this.workout.set({
+      ...w,
+      sets: w.sets.map((s) => (s.id === setId ? { ...s, ...body } : s)),
+    });
+  }
+
+  private markSetActing(setId: string, acting: boolean): void {
+    const next = new Set(this.setActingIds());
+    if (acting) {
+      next.add(setId);
+    } else {
+      next.delete(setId);
+    }
+    this.setActingIds.set(next);
   }
 }
