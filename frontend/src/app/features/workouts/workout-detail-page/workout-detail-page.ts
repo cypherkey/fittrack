@@ -353,7 +353,7 @@ export class WorkoutDetailPage implements OnInit {
     }
     this.workout.set({
       ...w,
-      sets: w.sets.map((s) => (s.id === setId ? { ...s, ...body } : s)),
+      sets: w.sets.map((s) => (s.id === setId ? mergeSetPatch(s, body) : s)),
     });
   }
 
@@ -366,4 +366,17 @@ export class WorkoutDetailPage implements OnInit {
     }
     this.setActingIds.set(next);
   }
+}
+
+/** Apply PATCH fields onto a set without widening `completed` to `boolean | null`. */
+function mergeSetPatch(set: WorkoutSet, body: WorkoutSetPatchRequest): WorkoutSet {
+  return {
+    ...set,
+    ...(body.reps !== undefined ? { reps: body.reps } : {}),
+    ...(body.weightKg !== undefined ? { weightKg: body.weightKg } : {}),
+    ...(body.durationSeconds !== undefined ? { durationSeconds: body.durationSeconds } : {}),
+    ...(body.distanceMeters !== undefined ? { distanceMeters: body.distanceMeters } : {}),
+    ...(body.rpe !== undefined ? { rpe: body.rpe } : {}),
+    ...(body.completed !== undefined ? { completed: body.completed ?? false } : {}),
+  };
 }
