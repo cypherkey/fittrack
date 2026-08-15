@@ -25,7 +25,7 @@
       <div class="preference-row">
         <div class="preference-copy">
           <div class="preference-label">Measurement system</div>
-          <div class="preference-hint">{{ user.useMetric ? 'Metric (kg, m)' : 'Imperial (lb, mi)' }}</div>
+          <div class="preference-hint">{{ user.useMetric ? 'Metric (kg, m)' : 'Imperial (lb; distance stays m)' }}</div>
         </div>
         <mat-slide-toggle
           [checked]="user.useMetric"

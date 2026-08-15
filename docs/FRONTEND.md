@@ -141,11 +141,11 @@ apiBaseUrl: ''
 ### Workouts
 - List with date range filter (Material datepicker) on `startedAt`; show `setCount` from API (list omits nested sets)
 - Detail: Start / Complete actions (`POST …/start`, `POST …/complete`); show derived duration and totals; sets table uses bare bottom-border metric inputs (per exercise `trackedParameters`, max 2), RPE pill chips (tap again to clear), Done checkbox, and exercise notes dialog (`PUT /api/v1/exercise/{id}/notes` — per-user, shared across workouts; set responses include `exerciseNotes`) — metrics/RPE/Done still patch `PATCH …/sets/{setId}` immediately
-- Weight is stored as kg; when `useMetric` is false, workout/history UIs convert kg↔lb for display and input (distance stays meters)
+- Weight is stored as kg; when the signed-in user's `useMetric` is false (Settings), workout/history UIs convert kg↔lb for display and input (distance stays meters)
 - Workout detail UI backlog (not tried yet): (1) Material fill + density form fields; (4) unit suffix adornment inside the control; (5) −/+ steppers for reps/duration
-- Create/edit workout header (`startedAt`, `endedAt`, `completed`, `useMetric`, name, difficulty, notes); show derived duration; new workouts default `useMetric` from the signed-in user preference
+- Create/edit workout header (`startedAt`, `endedAt`, `completed`, `useMetric`, name, difficulty, notes); show derived duration; new workouts and edit form default `useMetric` from the signed-in user preference
 - Sets table: add/remove/reorder (CDK drag-drop when practical; else up/down calling `PATCH .../sets/reorder` or full PUT — prefer reorder endpoint when only order changes)
-- Show computed `totalWeightLifted` from API (workout header; not on templates); convert with workout `useMetric`
+- Show computed `totalWeightLifted` from API (workout header; not on templates); convert with the signed-in user's `useMetric`
 
 ### Dashboard (light)
 - Recent workouts + shortcuts to log workout / open templates (avoid Ryot-style media widgets)

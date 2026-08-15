@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
+import { AuthService } from '../../../core/auth.service';
 import { RPE_LEVELS, RpeLevel, TRACKED_PARAM, hasTrackedParam } from '../../../core/models/enums';
 import { Workout, WorkoutSet, WorkoutSetPatchRequest } from '../../../core/models/workout';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -47,6 +48,7 @@ export class WorkoutDetailPage implements OnInit {
   private readonly router = inject(Router);
   private readonly workoutApi = inject(WorkoutApi);
   private readonly exerciseApi = inject(ExerciseApi);
+  private readonly auth = inject(AuthService);
   private readonly notify = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
 
@@ -204,9 +206,14 @@ export class WorkoutDetailPage implements OnInit {
     return this.setsReadOnly() || this.isSetActing(setId);
   }
 
+  /** Display/input units follow the signed-in user preference from Settings. */
+  useMetricPreference(): boolean {
+    return this.auth.user()?.useMetric ?? true;
+  }
+
   metricFields(row: WorkoutSet): TrackedMetricField[] {
     const flags = row.trackedParameters ?? 0;
-    const useMetric = this.workout()?.useMetric ?? true;
+    const useMetric = this.useMetricPreference();
     const fields: TrackedMetricField[] = [];
     if (hasTrackedParam(flags, TRACKED_PARAM.REPS)) {
       fields.push({ key: 'reps', label: 'Reps', step: null });
@@ -230,13 +237,13 @@ export class WorkoutDetailPage implements OnInit {
 
   metricValue(row: WorkoutSet, key: TrackedMetricKey): number | null {
     if (key === 'weightKg') {
-      return toDisplayWeight(row.weightKg, this.workout()?.useMetric ?? true);
+      return toDisplayWeight(row.weightKg, this.useMetricPreference());
     }
     return row[key];
   }
 
   totalWeightLabel(workout: Workout): string {
-    return formatWeight(workout.totalWeightLifted, workout.useMetric ?? true, '-');
+    return formatWeight(workout.totalWeightLifted, this.useMetricPreference(), '-');
   }
 
   rpeShort(level: RpeLevel): string {
@@ -279,9 +286,8 @@ export class WorkoutDetailPage implements OnInit {
     if (currentDisplay === parsed || (currentDisplay == null && parsed == null)) {
       return;
     }
-    const useMetric = this.workout()?.useMetric ?? true;
     const storageValue =
-      key === 'weightKg' ? toStorageWeight(parsed, useMetric) : parsed;
+      key === 'weightKg' ? toStorageWeight(parsed, this.useMetricPreference()) : parsed;
     this.patchSet(row, { [key]: storageValue });
   }
 

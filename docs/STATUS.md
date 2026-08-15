@@ -64,7 +64,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - Frontend: `frontend/` Angular 21 NgModules + Material; see [`FRONTEND.md`](FRONTEND.md)
 - Typed SPA clients: **hand-mirrored** from Java DTOs/OpenAPI (not codegen); process in [FRONTEND.md](FRONTEND.md) §8
 - Frontend CD: **zoneless** + **signals** (no `zone.js`)
-- Units: API stores weight in kg; SPA converts kg↔lb when `useMetric` is false (workout + history); distance always meters
+- Units: API stores weight in kg; SPA converts kg↔lb from the signed-in user's Settings `useMetric` (list/detail/edit/history); distance always meters
 - Test inventory: [`TESTS.md`](TESTS.md)
 
 ## How to update this file

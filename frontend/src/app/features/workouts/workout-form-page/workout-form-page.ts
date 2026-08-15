@@ -81,7 +81,8 @@ export class WorkoutFormPage implements OnInit {
       this.loading.set(true);
       this.workoutApi.get(this.workoutId).subscribe({
         next: (w) => {
-          const useMetric = w.useMetric ?? true;
+          // Display/input units follow Settings; form checkbox defaults to that preference.
+          const useMetric = this.auth.user()?.useMetric ?? true;
           this.form.patchValue({
             startedAt: toDatetimeLocalValue(w.startedAt),
             endedAt: toDatetimeLocalValue(w.endedAt),

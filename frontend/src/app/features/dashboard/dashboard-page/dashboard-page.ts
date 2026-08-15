@@ -1,9 +1,11 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
+import { AuthService } from '../../../core/auth.service';
 import { Workout } from '../../../core/models/workout';
 import { NotificationService } from '../../../core/services/notification.service';
 import { errorMessage } from '../../../core/utils/http-error';
+import { formatWeight } from '../../../shared/utils/units';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -13,6 +15,7 @@ import { errorMessage } from '../../../core/utils/http-error';
 })
 export class DashboardPage implements OnInit {
   private readonly workoutApi = inject(WorkoutApi);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly notify = inject(NotificationService);
 
@@ -52,5 +55,9 @@ export class DashboardPage implements OnInit {
       return '—';
     }
     return new Date(iso).toLocaleString();
+  }
+
+  formatTotalWeight(workout: Workout): string {
+    return formatWeight(workout.totalWeightLifted, this.auth.user()?.useMetric ?? true);
   }
 }

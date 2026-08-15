@@ -2,10 +2,12 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { WorkoutApi } from '../../../core/api/workout-api.service';
+import { AuthService } from '../../../core/auth.service';
 import { Workout } from '../../../core/models/workout';
 import { NotificationService } from '../../../core/services/notification.service';
 import { errorMessage } from '../../../core/utils/http-error';
 import { fromDatetimeLocalValue } from '../../../shared/utils/set-form';
+import { formatWeight } from '../../../shared/utils/units';
 
 @Component({
   selector: 'app-workouts-page',
@@ -16,6 +18,7 @@ import { fromDatetimeLocalValue } from '../../../shared/utils/set-form';
 export class WorkoutsPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly workoutApi = inject(WorkoutApi);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly notify = inject(NotificationService);
 
@@ -101,5 +104,9 @@ export class WorkoutsPage implements OnInit {
       return '—';
     }
     return new Date(iso).toLocaleString();
+  }
+
+  formatTotalWeight(workout: Workout): string {
+    return formatWeight(workout.totalWeightLifted, this.auth.user()?.useMetric ?? true);
   }
 }
