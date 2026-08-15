@@ -122,7 +122,8 @@ public class ExerciseService {
 						ws.getWorkout().getStartedAt(),
 						ws.getSetNumber(),
 						ws.getReps(),
-						ws.getWeightKg()
+						ws.getWeightKg(),
+						ws.getRpe()
 				))
 				.toList();
 	}

@@ -378,7 +378,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 
 - `GET /api/v1/exercise` — list/search catalog + current user's custom (query: `q`, `muscle`, `equipment`, `category`, `customOnly`, page)
 - `GET /api/v1/exercise/{id}` — detail for any existing exercise (catalog or custom)
-- `GET /api/v1/exercise/{id}/history` — current user's set history for the exercise from **completed** workouts only (ordered by workout `startedAt` desc, then `setNumber` asc); each row: `startedAt`, `setNumber`, `reps`, `weightKg`
+- `GET /api/v1/exercise/{id}/history` — current user's set history for the exercise from **completed** workouts only, and only sets with `completed=true` (ordered by workout `startedAt` desc, then `setNumber` asc); each row: `startedAt`, `setNumber`, `reps`, `weightKg`, `rpe`
 - `GET /api/v1/exercise/{id}/notes` — current user's personal notes for the exercise (`{ exerciseId, notes }`)
 - `PUT /api/v1/exercise/{id}/notes` — upsert/clear personal notes (`{ "notes": "..." | null }`; blank/null deletes the row)
 - `POST /api/v1/exercise` — create custom exercise (`isCustom=true`, `addedBy` = current user)

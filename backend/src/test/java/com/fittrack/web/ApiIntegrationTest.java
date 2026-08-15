@@ -210,18 +210,21 @@ class ApiIntegrationTest {
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
 								{
-								  "startedAt": "2026-07-27T18:00:00Z",
+								  "startedAt": "2026-07-27T18:05:00Z",
 								  "name": "%s",
 								  "completed": true,
 								  "sets": [
-								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 5, "reps": 8, "weightKg": 30.0, "completed": true}
+								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 5, "reps": 8, "weightKg": 30.0, "completed": true, "rpe": "HARD"},
+								    {"exerciseId": "51ababe0-e7cc-40d3-a3ef-7d6fb418fbac", "setNumber": 6, "reps": 50, "completed": false}
 								  ]
 								}
 								""".formatted(liveName)))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.sets.length()").value(1))
-				.andExpect(jsonPath("$.setCount").value(1))
+				.andExpect(jsonPath("$.sets.length()").value(2))
+				.andExpect(jsonPath("$.setCount").value(2))
 				.andExpect(jsonPath("$.sets[0].setNumber").value(5))
+				.andExpect(jsonPath("$.sets[0].rpe").value("HARD"))
+				.andExpect(jsonPath("$.sets[1].completed").value(false))
 				.andExpect(jsonPath("$.completed").value(true))
 				.andExpect(jsonPath("$.totalWeightLifted").value(240.0));
 
@@ -278,10 +281,12 @@ class ApiIntegrationTest {
 			assertTrue(!(row.get("setNumber").asInt() == 1
 					&& row.get("reps").asInt() == 99
 					&& row.get("weightKg").asDouble() == 1.0));
+			assertTrue(!(row.get("setNumber").asInt() == 6 && row.get("reps").asInt() == 50));
 			if (row.get("setNumber").asInt() == 5
 					&& row.get("reps").asInt() == 8
 					&& row.get("weightKg").asDouble() == 30.0
-					&& "2026-07-27T18:00:00Z".equals(startedAt)) {
+					&& "2026-07-27T18:05:00Z".equals(startedAt)) {
+				assertEquals("HARD", row.get("rpe").asText());
 				foundHistoryRow = true;
 			}
 		}

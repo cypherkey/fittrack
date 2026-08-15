@@ -1,4 +1,4 @@
-import { ExerciseLevel, ExerciseMechanic } from './enums';
+import { ExerciseLevel, ExerciseMechanic, RpeLevel } from './enums';
 
 export interface ExerciseMuscle {
   muscleId: string;
@@ -38,6 +38,7 @@ export interface ExerciseHistoryEntry {
   setNumber: number;
   reps: number | null;
   weightKg: number | null;
+  rpe: RpeLevel | null;
 }
 
 export interface MuscleLink {

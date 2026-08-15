@@ -293,7 +293,14 @@ class EndpointCoverageTest {
 		MvcResult workout = mockMvc.perform(get("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
 				.andReturn();
-		objectMapper.readTree(workout.getResponse().getContentAsString());
+		JsonNode workoutBody = objectMapper.readTree(workout.getResponse().getContentAsString());
+		String historySetId = workoutBody.get("sets").get(0).get("id").asText();
+
+		mockMvc.perform(patch("/api/v1/workouts/" + workoutId + "/sets/" + historySetId)
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"completed\":true,\"rpe\":\"EASY\"}"))
+				.andExpect(status().isOk());
 
 		mockMvc.perform(get("/api/v1/workouts").header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk());
@@ -302,7 +309,8 @@ class EndpointCoverageTest {
 						.header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].setNumber").exists())
-				.andExpect(jsonPath("$[0].reps").exists());
+				.andExpect(jsonPath("$[0].reps").exists())
+				.andExpect(jsonPath("$[0].rpe").value("EASY"));
 
 		String directName = "Direct " + java.util.UUID.randomUUID();
 		mockMvc.perform(post("/api/v1/workouts")

@@ -24,7 +24,7 @@ export class ExerciseHistoryDialog implements OnInit {
   readonly rows = signal<ExerciseHistoryEntry[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  readonly columns = ['date', 'setNumber', 'reps', 'weight'] as const;
+  readonly columns = ['date', 'setNumber', 'reps', 'weight', 'rpe'] as const;
 
   constructor(
     private readonly dialogRef: MatDialogRef<ExerciseHistoryDialog>,
@@ -59,6 +59,22 @@ export class ExerciseHistoryDialog implements OnInit {
 
   formatWeightValue(weightKg: number | null | undefined): string {
     return formatWeight(weightKg, this.useMetric(), '-');
+  }
+
+  formatRpe(rpe: string | null | undefined): string {
+    if (!rpe) {
+      return '-';
+    }
+    switch (rpe) {
+      case 'EASY':
+        return 'Easy';
+      case 'CHALLENGING':
+        return 'Challenging';
+      case 'HARD':
+        return 'Hard';
+      default:
+        return rpe;
+    }
   }
 
   formatDate(iso: string | null | undefined): string {
