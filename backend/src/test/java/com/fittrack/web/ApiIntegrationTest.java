@@ -155,6 +155,7 @@ class ApiIntegrationTest {
 				.andExpect(jsonPath("$.setCount").value(2))
 				.andExpect(jsonPath("$.sets[0].setNumber").value(10))
 				.andExpect(jsonPath("$.sets[0].completed").value(false))
+				.andExpect(jsonPath("$.notes").value("Clone from Push Day"))
 				.andExpect(jsonPath("$.sourceTemplateId").value(templateId))
 				.andReturn();
 		String workoutId = objectMapper.readTree(cloneResult.getResponse().getContentAsString()).get("id").asText();

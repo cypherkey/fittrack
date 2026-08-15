@@ -94,7 +94,7 @@ public class TemplateService {
 		workout.setUseMetric(user.isUseMetric());
 		workout.setName(StringUtils.hasText(request.name()) ? request.name().trim() : defaultCloneWorkoutName());
 		workout.setDifficulty(template.getDifficulty());
-		workout.setNotes(template.getNotes());
+		workout.setNotes("Clone from " + template.getName());
 		workout.setSourceTemplate(template);
 
 		for (TemplateSet templateSet : template.getSets()) {

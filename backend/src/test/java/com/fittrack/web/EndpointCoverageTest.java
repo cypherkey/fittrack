@@ -250,6 +250,7 @@ class EndpointCoverageTest {
 				.andExpect(jsonPath("$.startedAt").isEmpty())
 				.andExpect(jsonPath("$.endedAt").isEmpty())
 				.andExpect(jsonPath("$.completed").value(false))
+				.andExpect(jsonPath("$.notes").value("Clone from Coverage T2"))
 				.andReturn();
 		String workoutId = objectMapper.readTree(clone.getResponse().getContentAsString()).get("id").asText();
 
