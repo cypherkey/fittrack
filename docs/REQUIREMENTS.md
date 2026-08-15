@@ -492,7 +492,7 @@ Full SPA requirements: **[`FRONTEND.md`](FRONTEND.md)** (source of truth for Ang
 
 ## 11. Configuration, local run & Docker
 
-- SQLite file path: e.g. `./data/fittrack.db` (gitignore DB files); JDBC URL enables `foreign_keys=true` and `journal_mode=WAL`
+- SQLite file path: e.g. `./data/fittrack.db` (gitignore DB files); JDBC URL enables `foreign_keys=true` and `journal_mode=WAL`; backend runs `PRAGMA wal_checkpoint(TRUNCATE)` every 5 minutes
 - **Local day-to-day:** API on `:8080`, SPA via `ng serve` on `:4200` with proxy
 - **Docker:** root **`docker-compose.yml`** builds the root **`Dockerfile`** (SPA + API in one image) and mounts volume `fittrack-data` at `/data`
 - Single image serves the Angular SPA from Spring Boot `classpath:/static/` (same origin); production `apiBaseUrl` is `''`
