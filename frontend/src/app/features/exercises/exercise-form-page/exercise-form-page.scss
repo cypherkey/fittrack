@@ -34,6 +34,13 @@
   font-size: 0.875rem;
 }
 
+.catalog-hint {
+  flex: 1 1 100%;
+  margin: 0 0 0.5rem;
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
 .param-checks {
   display: flex;
   flex-wrap: wrap;

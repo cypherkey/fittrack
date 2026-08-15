@@ -6,12 +6,10 @@
       <mat-icon>arrow_back</mat-icon>
       Back
     </button>
-    @if (exercise.custom) {
-      <button mat-flat-button color="primary" type="button" (click)="edit()">
-        <mat-icon>edit</mat-icon>
-        Edit
-      </button>
-    }
+    <button mat-flat-button color="primary" type="button" (click)="edit()">
+      <mat-icon>edit</mat-icon>
+      {{ exercise.custom ? 'Edit' : 'Edit tracked parameters' }}
+    </button>
   </div>
 
   <h1>{{ exercise.name }}</h1>

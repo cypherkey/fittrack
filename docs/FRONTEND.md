@@ -131,7 +131,7 @@ apiBaseUrl: ''
 - Paginated/filterable list (q, muscle, equipment, category) — Material table or list + filters; show catalog image thumbnail from API `contentBase64`
 - Detail view (instructions markdown render, sanitized; gallery of seeded images as data URLs)
 - Custom exercise create/edit/delete (owner only); catalog read-only in UI
-- Create/edit form: `force` and `category` as selects (fixed catalog values); `trackedParameters` as Reps/Weight/Duration/Distance checkboxes (bitmask)
+- Create/edit form: `force` and `category` as selects (fixed catalog values); `trackedParameters` as Reps/Weight/Duration/Distance checkboxes (bitmask). Catalog exercises open a limited edit screen where only tracked parameters are writable (`PATCH …/tracked-parameters`)
 
 ### Templates
 - List own templates; browse `visibility=PUBLIC` (no template-level duration or total weight); show `setCount` from API (list omits nested sets)

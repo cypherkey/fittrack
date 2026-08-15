@@ -40,6 +40,7 @@ export class ExerciseFormPage implements OnInit {
   readonly trackedParamOptions = TRACKED_PARAM_OPTIONS;
 
   exerciseId: string | null = null;
+  readonly catalogOnly = signal(false);
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly muscles = signal<Muscle[]>([]);
@@ -71,11 +72,7 @@ export class ExerciseFormPage implements OnInit {
       this.loading.set(true);
       this.exerciseApi.get(this.exerciseId).subscribe({
         next: (ex) => {
-          if (!ex.custom) {
-            this.notify.error('Catalog exercises are read-only');
-            void this.router.navigate(['/exercises', ex.id]);
-            return;
-          }
+          this.catalogOnly.set(!ex.custom);
           this.form.patchValue({
             name: ex.name,
             force: ex.force ?? '',
@@ -95,6 +92,9 @@ export class ExerciseFormPage implements OnInit {
               }),
             );
           });
+          if (!ex.custom) {
+            this.lockCatalogFields();
+          }
           this.loading.set(false);
         },
         error: (err) => {
@@ -106,7 +106,22 @@ export class ExerciseFormPage implements OnInit {
     }
   }
 
+  private lockCatalogFields(): void {
+    this.form.get('name')?.disable({ emitEvent: false });
+    this.form.get('force')?.disable({ emitEvent: false });
+    this.form.get('level')?.disable({ emitEvent: false });
+    this.form.get('mechanic')?.disable({ emitEvent: false });
+    this.form.get('equipmentId')?.disable({ emitEvent: false });
+    this.form.get('instructions')?.disable({ emitEvent: false });
+    this.form.get('videoUrl')?.disable({ emitEvent: false });
+    this.form.get('category')?.disable({ emitEvent: false });
+    this.muscleLinks.disable({ emitEvent: false });
+  }
+
   addMuscle(): void {
+    if (this.catalogOnly()) {
+      return;
+    }
     this.muscleLinks.push(
       this.fb.group({
         muscleId: ['', Validators.required],
@@ -116,6 +131,9 @@ export class ExerciseFormPage implements OnInit {
   }
 
   removeMuscle(index: number): void {
+    if (this.catalogOnly()) {
+      return;
+    }
     this.muscleLinks.removeAt(index);
   }
 
@@ -129,11 +147,15 @@ export class ExerciseFormPage implements OnInit {
   }
 
   save(): void {
+    if (this.catalogOnly()) {
+      this.saveTrackedParametersOnly();
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-    const v = this.form.value;
+    const v = this.form.getRawValue();
     const body: ExerciseRequest = {
       name: v.name!,
       force: v.force || null,
@@ -144,7 +166,7 @@ export class ExerciseFormPage implements OnInit {
       videoUrl: v.videoUrl?.trim() || null,
       category: v.category || null,
       trackedParameters: v.trackedParameters ?? DEFAULT_TRACKED_PARAMETERS,
-      muscles: this.muscleLinks.value,
+      muscles: this.muscleLinks.getRawValue(),
     };
 
     this.saving.set(true);
@@ -161,6 +183,25 @@ export class ExerciseFormPage implements OnInit {
       error: (err) => {
         this.saving.set(false);
         this.notify.error(errorMessage(err, 'Failed to save exercise'));
+      },
+    });
+  }
+
+  private saveTrackedParametersOnly(): void {
+    if (!this.exerciseId) {
+      return;
+    }
+    const trackedParameters = this.form.get('trackedParameters')?.value ?? DEFAULT_TRACKED_PARAMETERS;
+    this.saving.set(true);
+    this.exerciseApi.updateTrackedParameters(this.exerciseId, trackedParameters).subscribe({
+      next: (ex) => {
+        this.saving.set(false);
+        this.notify.success('Tracked parameters updated');
+        void this.router.navigate(['/exercises', ex.id]);
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.notify.error(errorMessage(err, 'Failed to save tracked parameters'));
       },
     });
   }

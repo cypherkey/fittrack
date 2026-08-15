@@ -1,9 +1,22 @@
 @if (loading()) {
   <div class="loading"><mat-spinner diameter="40" /></div>
 } @else {
-  <h1>{{ exerciseId ? 'Edit exercise' : 'New custom exercise' }}</h1>
+  <h1>
+    @if (!exerciseId) {
+      New custom exercise
+    } @else if (catalogOnly()) {
+      Edit tracked parameters
+    } @else {
+      Edit exercise
+    }
+  </h1>
 
   <form [formGroup]="form" (ngSubmit)="save()" class="form">
+    @if (catalogOnly()) {
+      <p class="hint catalog-hint">
+        Catalog exercises are read-only except tracked parameters (which fields appear when logging sets).
+      </p>
+    }
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Name</mat-label>
       <input matInput formControlName="name" required />
@@ -86,7 +99,9 @@
     <section class="muscles">
       <div class="section-header">
         <h3>Muscles</h3>
-        <button mat-stroked-button type="button" (click)="addMuscle()">Add muscle</button>
+        @if (!catalogOnly()) {
+          <button mat-stroked-button type="button" (click)="addMuscle()">Add muscle</button>
+        }
       </div>
       @for (link of muscleLinks.controls; track $index; let i = $index) {
         <div class="muscle-row" [formGroup]="$any(link)">
@@ -99,9 +114,11 @@
             </mat-select>
           </mat-form-field>
           <mat-checkbox formControlName="primary">Primary</mat-checkbox>
-          <button mat-icon-button type="button" color="warn" (click)="removeMuscle(i)">
-            <mat-icon>delete</mat-icon>
-          </button>
+          @if (!catalogOnly()) {
+            <button mat-icon-button type="button" color="warn" (click)="removeMuscle(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          }
         </div>
       }
     </section>

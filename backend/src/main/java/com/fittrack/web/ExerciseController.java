@@ -16,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import com.fittrack.web.dto.TrackedParametersRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -101,6 +103,19 @@ public class ExerciseController {
 			@Valid @RequestBody ExerciseRequest request
 	) {
 		return exerciseService.update(currentUserResolver.requireUser(jwt), id, request);
+	}
+
+	@PatchMapping("/{id}/tracked-parameters")
+	public ExerciseResponse updateTrackedParameters(
+			@AuthenticationPrincipal Jwt jwt,
+			@PathVariable String id,
+			@Valid @RequestBody TrackedParametersRequest request
+	) {
+		return exerciseService.updateTrackedParameters(
+				currentUserResolver.requireUser(jwt),
+				id,
+				request.trackedParameters()
+		);
 	}
 
 	@DeleteMapping("/{id}")

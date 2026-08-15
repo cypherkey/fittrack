@@ -149,6 +149,14 @@ public class ExerciseService {
 	}
 
 	@Transactional
+	public ExerciseResponse updateTrackedParameters(User user, String id, int trackedParameters) {
+		Exercise exercise = requireVisible(user, id);
+		exercise.setTrackedParameters(trackedParameters);
+		exerciseRepository.save(exercise);
+		return toResponse(exercise);
+	}
+
+	@Transactional
 	public void delete(User user, String id) {
 		Exercise exercise = requireOwnedCustom(user, id);
 		if (templateSetRepository.existsByExercise_Id(id) || workoutSetRepository.existsByExercise_Id(id)) {
@@ -215,6 +223,18 @@ public class ExerciseService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found"));
 		if (!exercise.isCustom()) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Catalog exercises are read-only");
+		}
+		if (exercise.getAddedBy() == null || !exercise.getAddedBy().getId().equals(user.getId())) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the owner of this exercise");
+		}
+		return exercise;
+	}
+
+	private Exercise requireVisible(User user, String id) {
+		Exercise exercise = exerciseRepository.findById(id)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found"));
+		if (!exercise.isCustom()) {
+			return exercise;
 		}
 		if (exercise.getAddedBy() == null || !exercise.getAddedBy().getId().equals(user.getId())) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the owner of this exercise");

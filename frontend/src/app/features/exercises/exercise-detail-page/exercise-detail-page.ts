@@ -51,7 +51,7 @@ export class ExerciseDetailPage implements OnInit {
 
   edit(): void {
     const ex = this.exercise();
-    if (ex?.custom) {
+    if (ex) {
       void this.router.navigate(['/exercises', ex.id, 'edit']);
     }
   }

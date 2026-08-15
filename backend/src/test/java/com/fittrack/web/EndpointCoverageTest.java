@@ -161,6 +161,20 @@ class EndpointCoverageTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value("51ababe0-e7cc-40d3-a3ef-7d6fb418fbac"));
 
+		mockMvc.perform(patch("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/tracked-parameters")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"trackedParameters\":4}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.trackedParameters").value(4))
+				.andExpect(jsonPath("$.custom").value(false));
+		mockMvc.perform(patch("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/tracked-parameters")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"trackedParameters\":3}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.trackedParameters").value(3));
+
 		MvcResult custom = mockMvc.perform(post("/api/v1/exercise")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
@@ -170,6 +184,13 @@ class EndpointCoverageTest {
 				.andExpect(status().isCreated())
 				.andReturn();
 		String customId = objectMapper.readTree(custom.getResponse().getContentAsString()).get("id").asText();
+
+		mockMvc.perform(patch("/api/v1/exercise/" + customId + "/tracked-parameters")
+						.header("Authorization", "Bearer " + adminToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"trackedParameters\":12}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.trackedParameters").value(12));
 
 		mockMvc.perform(put("/api/v1/exercise/" + customId)
 						.header("Authorization", "Bearer " + adminToken)

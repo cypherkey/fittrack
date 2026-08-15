@@ -126,7 +126,7 @@ Exercises may be **catalog** (seeded from free-exercise-db, global) or **custom*
 
 Do **not** store `primaryMuscles`, `secondaryMuscles`, or `images` on `Exercise`.
 
-**Custom exercises:** authenticated users may create exercises with `isCustom=true` and `addedBy` = current user. Only `addedBy` may update/delete their custom exercises. Catalog exercises (`isCustom=false`) are read-only via API (managed by seed). List/browse APIs return catalog exercises for everyone, plus the current user's custom exercises. Any existing exercise (catalog or custom) may be referenced on templates and workouts.
+**Custom exercises:** authenticated users may create exercises with `isCustom=true` and `addedBy` = current user. Only `addedBy` may update/delete their custom exercises. Catalog exercises (`isCustom=false`) keep other fields seed-managed, but any authenticated user may update **`trackedParameters`** via `PATCH /api/v1/exercise/{id}/tracked-parameters`. List/browse APIs return catalog exercises for everyone, plus the current user's custom exercises. Any existing exercise (catalog or custom) may be referenced on templates and workouts.
 #### Equipment
 
 Lookup table populated from distinct equipment values in the seed (and any future additions).
@@ -358,7 +358,7 @@ Dual authentication; both issue the same **JWT** for `/api/v1`.
 - **Authorization rules:**
   - Users read/write only their own workouts and private templates
   - Public templates: readable/cloneable by any authenticated user; may include catalog or the owner's custom exercises
-  - Exercise catalog (`isCustom=false`): read-only for all authenticated users (seed managed by app)
+  - Exercise catalog (`isCustom=false`): seed-managed fields are read-only; **`trackedParameters` may be updated** by any authenticated user
   - Custom exercises (`isCustom=true`): owner (`addedBy`) may create/update/delete; listed to owner alongside catalog; any existing exercise may be referenced on templates/workouts
 
 Config via env / `application.yml`: Google client id/secret (optional if only local login in a given env), JWT signing key, default seed user credentials. Secrets never committed.
@@ -383,6 +383,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `PUT /api/v1/exercise/{id}/notes` — upsert/clear personal notes (`{ "notes": "..." | null }`; blank/null deletes the row)
 - `POST /api/v1/exercise` — create custom exercise (`isCustom=true`, `addedBy` = current user)
 - `PUT /api/v1/exercise/{id}` — update own custom exercise only
+- `PATCH /api/v1/exercise/{id}/tracked-parameters` — update `trackedParameters` for catalog or owned custom exercises (`{ "trackedParameters": number }`)
 - `DELETE /api/v1/exercise/{id}` — delete own custom exercise only
 
 ### Templates
