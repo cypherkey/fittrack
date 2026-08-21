@@ -41,6 +41,7 @@ export class UsersPage implements OnInit {
   createUser(): void {
     const ref = this.dialog.open<UserFormDialog, UserFormDialogData>(UserFormDialog, {
       width: '420px',
+      data: {},
     });
     ref.afterClosed().subscribe((body) => {
       if (!body) {

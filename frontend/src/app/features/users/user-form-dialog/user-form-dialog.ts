@@ -28,15 +28,16 @@ export class UserFormDialog {
 
   constructor(
     private readonly dialogRef: MatDialogRef<UserFormDialog, CreateUserRequest | UpdateUserRequest>,
-    @Inject(MAT_DIALOG_DATA) data: UserFormDialogData,
+    @Inject(MAT_DIALOG_DATA) data: UserFormDialogData | null,
   ) {
-    this.isEdit = !!data.user;
-    if (data.user) {
+    const user = data?.user;
+    this.isEdit = !!user;
+    if (user) {
       this.form.patchValue({
-        username: data.user.username ?? '',
-        displayName: data.user.displayName ?? '',
-        email: data.user.email ?? '',
-        admin: data.user.admin ?? false,
+        username: user.username ?? '',
+        displayName: user.displayName ?? '',
+        email: user.email ?? '',
+        admin: user.admin ?? false,
       });
       this.form.get('username')?.disable();
       this.form.get('password')?.clearValidators();
