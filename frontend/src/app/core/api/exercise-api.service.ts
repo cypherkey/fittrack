@@ -60,8 +60,15 @@ export class ExerciseApi {
     return this.http.put<Exercise>(`${this.base}/${id}`, body);
   }
 
-  updateTrackedParameters(id: string, trackedParameters: number): Observable<Exercise> {
-    return this.http.patch<Exercise>(`${this.base}/${id}/tracked-parameters`, { trackedParameters });
+  updateTrackedParameters(
+    id: string,
+    trackedParameters: number,
+    videoUrl?: string | null,
+  ): Observable<Exercise> {
+    return this.http.patch<Exercise>(`${this.base}/${id}/tracked-parameters`, {
+      trackedParameters,
+      videoUrl: videoUrl ?? null,
+    });
   }
 
   delete(id: string): Observable<void> {

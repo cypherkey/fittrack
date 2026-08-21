@@ -5,7 +5,7 @@
     @if (!exerciseId) {
       New custom exercise
     } @else if (catalogOnly()) {
-      Edit tracked parameters
+      Edit catalog exercise
     } @else {
       Edit exercise
     }
@@ -14,7 +14,7 @@
   <form [formGroup]="form" (ngSubmit)="save()" class="form">
     @if (catalogOnly()) {
       <p class="hint catalog-hint">
-        Catalog exercises are read-only except tracked parameters (which fields appear when logging sets).
+        Catalog exercises are read-only except tracked parameters and video URL (administrators only).
       </p>
     }
     <mat-form-field appearance="outline" class="full-width">

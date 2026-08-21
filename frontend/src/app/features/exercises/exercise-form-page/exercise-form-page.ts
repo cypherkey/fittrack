@@ -3,6 +3,7 @@ import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { LookupApi } from '../../../core/api/lookup-api.service';
+import { AuthService } from '../../../core/auth.service';
 import {
   DEFAULT_TRACKED_PARAMETERS,
   EXERCISE_CATEGORIES,
@@ -31,6 +32,7 @@ export class ExerciseFormPage implements OnInit {
   private readonly router = inject(Router);
   private readonly exerciseApi = inject(ExerciseApi);
   private readonly lookupApi = inject(LookupApi);
+  private readonly auth = inject(AuthService);
   private readonly notify = inject(NotificationService);
 
   readonly levels = EXERCISE_LEVELS;
@@ -63,6 +65,10 @@ export class ExerciseFormPage implements OnInit {
     return this.form.get('muscles') as FormArray;
   }
 
+  isAdmin(): boolean {
+    return !!this.auth.user()?.admin;
+  }
+
   ngOnInit(): void {
     this.lookupApi.muscles().subscribe((m) => this.muscles.set(m));
     this.lookupApi.equipment().subscribe((e) => this.equipment.set(e));
@@ -72,6 +78,12 @@ export class ExerciseFormPage implements OnInit {
       this.loading.set(true);
       this.exerciseApi.get(this.exerciseId).subscribe({
         next: (ex) => {
+          if (!ex.custom && !this.isAdmin()) {
+            this.loading.set(false);
+            this.notify.error('Only administrators can edit catalog exercises');
+            void this.router.navigate(['/exercises', ex.id]);
+            return;
+          }
           this.catalogOnly.set(!ex.custom);
           this.form.patchValue({
             name: ex.name,
@@ -113,7 +125,7 @@ export class ExerciseFormPage implements OnInit {
     this.form.get('mechanic')?.disable({ emitEvent: false });
     this.form.get('equipmentId')?.disable({ emitEvent: false });
     this.form.get('instructions')?.disable({ emitEvent: false });
-    this.form.get('videoUrl')?.disable({ emitEvent: false });
+    // Admins may edit videoUrl + trackedParameters on catalog exercises.
     this.form.get('category')?.disable({ emitEvent: false });
     this.muscleLinks.disable({ emitEvent: false });
   }
@@ -142,13 +154,16 @@ export class ExerciseFormPage implements OnInit {
   }
 
   onTrackedParamChange(flag: number, checked: boolean): void {
+    if (this.catalogOnly() && !this.isAdmin()) {
+      return;
+    }
     const next = toggleTrackedParam(this.form.get('trackedParameters')?.value, flag, checked);
     this.form.patchValue({ trackedParameters: next });
   }
 
   save(): void {
     if (this.catalogOnly()) {
-      this.saveTrackedParametersOnly();
+      this.saveCatalogAdminFields();
       return;
     }
     if (this.form.invalid) {
@@ -187,21 +202,22 @@ export class ExerciseFormPage implements OnInit {
     });
   }
 
-  private saveTrackedParametersOnly(): void {
-    if (!this.exerciseId) {
+  private saveCatalogAdminFields(): void {
+    if (!this.exerciseId || !this.isAdmin()) {
       return;
     }
     const trackedParameters = this.form.get('trackedParameters')?.value ?? DEFAULT_TRACKED_PARAMETERS;
+    const videoUrl = this.form.get('videoUrl')?.value?.trim() || null;
     this.saving.set(true);
-    this.exerciseApi.updateTrackedParameters(this.exerciseId, trackedParameters).subscribe({
+    this.exerciseApi.updateTrackedParameters(this.exerciseId, trackedParameters, videoUrl).subscribe({
       next: (ex) => {
         this.saving.set(false);
-        this.notify.success('Tracked parameters updated');
+        this.notify.success('Catalog exercise updated');
         void this.router.navigate(['/exercises', ex.id]);
       },
       error: (err) => {
         this.saving.set(false);
-        this.notify.error(errorMessage(err, 'Failed to save tracked parameters'));
+        this.notify.error(errorMessage(err, 'Failed to save catalog exercise'));
       },
     });
   }

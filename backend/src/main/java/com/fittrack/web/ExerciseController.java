@@ -114,7 +114,7 @@ public class ExerciseController {
 		return exerciseService.updateTrackedParameters(
 				currentUserResolver.requireUser(jwt),
 				id,
-				request.trackedParameters()
+				request
 		);
 	}
 

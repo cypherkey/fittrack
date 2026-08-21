@@ -4,6 +4,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { LookupApi } from '../../../core/api/lookup-api.service';
+import { AuthService } from '../../../core/auth.service';
 import { EXERCISE_CATEGORIES } from '../../../core/models/enums';
 import { Exercise, exerciseImageSrc } from '../../../core/models/exercise';
 import { Equipment, Muscle } from '../../../core/models/lookup';
@@ -20,6 +21,7 @@ export class ExercisesPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly exerciseApi = inject(ExerciseApi);
   private readonly lookupApi = inject(LookupApi);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly notify = inject(NotificationService);
 
@@ -101,6 +103,10 @@ export class ExercisesPage implements OnInit {
 
   createCustom(): void {
     void this.router.navigate(['/exercises/new']);
+  }
+
+  canEdit(exercise: Exercise): boolean {
+    return exercise.custom || !!this.auth.user()?.admin;
   }
 
   edit(id: string): void {

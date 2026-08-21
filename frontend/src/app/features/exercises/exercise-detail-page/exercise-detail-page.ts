@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
+import { AuthService } from '../../../core/auth.service';
 import { trackedParamLabels } from '../../../core/models/enums';
 import { Exercise, ExerciseImage, exerciseImageSrc } from '../../../core/models/exercise';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -16,6 +17,7 @@ export class ExerciseDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly exerciseApi = inject(ExerciseApi);
+  private readonly auth = inject(AuthService);
   private readonly notify = inject(NotificationService);
 
   readonly exercise = signal<Exercise | null>(null);
@@ -40,6 +42,14 @@ export class ExerciseDetailPage implements OnInit {
     });
   }
 
+  canEdit(): boolean {
+    const ex = this.exercise();
+    if (!ex) {
+      return false;
+    }
+    return ex.custom || !!this.auth.user()?.admin;
+  }
+
   imageSrc(image: ExerciseImage): string | null {
     return exerciseImageSrc(image);
   }
@@ -51,7 +61,7 @@ export class ExerciseDetailPage implements OnInit {
 
   edit(): void {
     const ex = this.exercise();
-    if (ex) {
+    if (ex && this.canEdit()) {
       void this.router.navigate(['/exercises', ex.id, 'edit']);
     }
   }

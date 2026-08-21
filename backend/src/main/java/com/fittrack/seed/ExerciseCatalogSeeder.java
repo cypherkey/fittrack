@@ -151,6 +151,7 @@ public class ExerciseCatalogSeeder implements ApplicationRunner {
 			exercise.setMechanic(mapMechanic(seed.mechanic()));
 			exercise.setEquipment(equipment);
 			exercise.setInstructions(toMarkdown(seed.instructions()));
+			exercise.setVideoUrl(StringUtils.hasText(seed.videoUrl()) ? seed.videoUrl().trim() : null);
 			exercise.setCategory(seed.category());
 			exercise.setTrackedParameters(
 					seed.trackedParameters() != null
@@ -361,7 +362,8 @@ public class ExerciseCatalogSeeder implements ApplicationRunner {
 			List<String> instructions,
 			String category,
 			List<String> images,
-			Integer trackedParameters
+			Integer trackedParameters,
+			String videoUrl
 	) {
 	}
 }

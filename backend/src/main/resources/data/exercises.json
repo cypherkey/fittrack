@@ -1165,7 +1165,8 @@
       "Barbell_Bench_Press_-_Medium_Grip/1.jpg"
     ],
     "id": "4141e1e4-90b0-4c1d-89ef-c7eb1652bf56",
-    "trackedParameters": 3
+    "trackedParameters": 3,
+    "videoUrl": "https://www.youtube.com/watch?v=iBdF89xBAxA"
   },
   {
     "name": "Barbell Curl",
@@ -6026,7 +6027,8 @@
       "Dumbbell_Bench_Press/1.jpg"
     ],
     "id": "3fc93093-1e9d-4e24-a2d5-2ada419cd949",
-    "trackedParameters": 3
+    "trackedParameters": 3,
+    "videoUrl": "https://www.youtube.com/watch?v=7V_Lk6XGv-4"
   },
   {
     "name": "Dumbbell Bench Press with Neutral Grip",
@@ -8327,7 +8329,8 @@
       "Hammer_Curls/1.jpg"
     ],
     "id": "a300be58-c0dc-48e3-9037-b3d40fb6edd8",
-    "trackedParameters": 3
+    "trackedParameters": 3,
+    "videoUrl": "https://www.youtube.com/watch?v=UUyTeP1gft8"
   },
   {
     "name": "Hammer Grip Incline DB Bench Press",

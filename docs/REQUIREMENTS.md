@@ -126,7 +126,7 @@ Exercises may be **catalog** (seeded from free-exercise-db, global) or **custom*
 
 Do **not** store `primaryMuscles`, `secondaryMuscles`, or `images` on `Exercise`.
 
-**Custom exercises:** authenticated users may create exercises with `isCustom=true` and `addedBy` = current user. Only `addedBy` may update/delete their custom exercises. Catalog exercises (`isCustom=false`) keep other fields seed-managed, but any authenticated user may update **`trackedParameters`** via `PATCH /api/v1/exercise/{id}/tracked-parameters`. List/browse APIs return catalog exercises for everyone, plus the current user's custom exercises. Any existing exercise (catalog or custom) may be referenced on templates and workouts.
+**Custom exercises:** authenticated users may create exercises with `isCustom=true` and `addedBy` = current user. Only `addedBy` may update/delete their custom exercises. Catalog exercises (`isCustom=false`) keep other fields seed-managed, but **admins** may update **`trackedParameters`** and **`videoUrl`** via `PATCH /api/v1/exercise/{id}/tracked-parameters`. List/browse APIs return catalog exercises for everyone, plus the current user's custom exercises. Any existing exercise (catalog or custom) may be referenced on templates and workouts.
 #### Equipment
 
 Lookup table populated from distinct equipment values in the seed (and any future additions).
@@ -358,7 +358,7 @@ Dual authentication; both issue the same **JWT** for `/api/v1`.
 - **Authorization rules:**
   - Users read/write only their own workouts and private templates
   - Public templates: readable/cloneable by any authenticated user; may include catalog or the owner's custom exercises
-  - Exercise catalog (`isCustom=false`): seed-managed fields are read-only; **`trackedParameters` may be updated** by any authenticated user
+  - Exercise catalog (`isCustom=false`): seed-managed fields are read-only; **admins** may update **`trackedParameters`** and **`videoUrl`**
   - Custom exercises (`isCustom=true`): owner (`addedBy`) may create/update/delete; listed to owner alongside catalog; any existing exercise may be referenced on templates/workouts
 
 Config via env / `application.yml`: Google client id/secret (optional if only local login in a given env), JWT signing key, default seed user credentials. Secrets never committed.
@@ -383,7 +383,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 - `PUT /api/v1/exercise/{id}/notes` — upsert/clear personal notes (`{ "notes": "..." | null }`; blank/null deletes the row)
 - `POST /api/v1/exercise` — create custom exercise (`isCustom=true`, `addedBy` = current user)
 - `PUT /api/v1/exercise/{id}` — update own custom exercise only
-- `PATCH /api/v1/exercise/{id}/tracked-parameters` — update `trackedParameters` for catalog or owned custom exercises (`{ "trackedParameters": number }`)
+- `PATCH /api/v1/exercise/{id}/tracked-parameters` — **admin only**; update `trackedParameters` and optional `videoUrl` for catalog or custom exercises (`{ "trackedParameters": number, "videoUrl": string|null }`)
 - `DELETE /api/v1/exercise/{id}` — delete own custom exercise only
 
 ### Templates
@@ -442,7 +442,7 @@ Import strategy (backend startup `ApplicationRunner`):
 1. **Skip entirely if the `exercise` table already has any rows** (idempotent; does not re-upsert on later startups)
 2. Otherwise upsert lookup rows: distinct `equipment` → `Equipment`; union of muscles → `Muscle`
 3. For each distinct image path → `Image`: set `path`, load bytes → `contentBase64` + `contentType`, optional `altText`
-4. Insert `Exercise` by UUID `id`; map enums; set `equipmentId`; markdown `instructions`; `trackedParameters` from seed (Ryot `lot` → bitmask; category heuristic only as fallback); `isCustom=false`, `addedBy=null`
+4. Insert `Exercise` by UUID `id`; map enums; set `equipmentId`; markdown `instructions`; optional `videoUrl` from seed JSON; `trackedParameters` from seed (Ryot `lot` → bitmask; category heuristic only as fallback); `isCustom=false`, `addedBy=null`
 5. Join rows: `exercise_has_muscle`, `exercise_has_image` (`sortOrder` = array index)
 6. API returns image metadata **and** `contentBase64` / `contentType` on exercise responses for the SPA to render as data URLs
 

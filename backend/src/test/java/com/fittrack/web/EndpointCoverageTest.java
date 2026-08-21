@@ -164,16 +164,24 @@ class EndpointCoverageTest {
 		mockMvc.perform(patch("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/tracked-parameters")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"trackedParameters\":4}"))
+						.content("{\"trackedParameters\":4,\"videoUrl\":\"https://example.com/admin-video\"}"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.trackedParameters").value(4))
+				.andExpect(jsonPath("$.videoUrl").value("https://example.com/admin-video"))
 				.andExpect(jsonPath("$.custom").value(false));
 		mockMvc.perform(patch("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/tracked-parameters")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"trackedParameters\":3}"))
+						.content("{\"trackedParameters\":3,\"videoUrl\":null}"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.trackedParameters").value(3));
+				.andExpect(jsonPath("$.trackedParameters").value(3))
+				.andExpect(jsonPath("$.videoUrl").isEmpty());
+
+		mockMvc.perform(patch("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/tracked-parameters")
+						.header("Authorization", "Bearer " + otherToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"trackedParameters\":1}"))
+				.andExpect(status().isForbidden());
 
 		MvcResult custom = mockMvc.perform(post("/api/v1/exercise")
 						.header("Authorization", "Bearer " + adminToken)
@@ -188,9 +196,10 @@ class EndpointCoverageTest {
 		mockMvc.perform(patch("/api/v1/exercise/" + customId + "/tracked-parameters")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"trackedParameters\":12}"))
+						.content("{\"trackedParameters\":12,\"videoUrl\":\"https://example.com/custom\"}"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.trackedParameters").value(12));
+				.andExpect(jsonPath("$.trackedParameters").value(12))
+				.andExpect(jsonPath("$.videoUrl").value("https://example.com/custom"));
 
 		mockMvc.perform(put("/api/v1/exercise/" + customId)
 						.header("Authorization", "Bearer " + adminToken)

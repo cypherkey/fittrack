@@ -95,14 +95,16 @@
         <button mat-icon-button type="button" (click)="view(row.id)" aria-label="View">
           <mat-icon>visibility</mat-icon>
         </button>
-        <button
-          mat-icon-button
-          type="button"
-          (click)="edit(row.id)"
-          [attr.aria-label]="row.custom ? 'Edit' : 'Edit tracked parameters'"
-        >
-          <mat-icon>edit</mat-icon>
-        </button>
+        @if (canEdit(row)) {
+          <button
+            mat-icon-button
+            type="button"
+            (click)="edit(row.id)"
+            [attr.aria-label]="row.custom ? 'Edit' : 'Edit catalog fields'"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+        }
         @if (row.custom) {
           <button mat-icon-button type="button" color="warn" (click)="delete(row)" aria-label="Delete">
             <mat-icon>delete</mat-icon>

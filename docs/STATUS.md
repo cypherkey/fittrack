@@ -52,7 +52,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - RPE on **workout** sets is enum `RpeLevel` (`EASY` | `CHALLENGING` | `HARD`), not decimal; distinct from session `WorkoutDifficulty`. Template sets do not have RPE.
 - Same exercise may appear on multiple sets; uniqueness is `(template|workout, setNumber)` only
 - Set order is client-controlled; `PATCH /api/v1/workouts|templates/{id}/sets/reorder` updates `setNumber`
-- Exercise catalog: vendored `data/exercises.json` (UUID ids + `trackedParameters` bitmask from Ryot lots); images as base64 on `image` via `exercise_has_image`; local files under `data/exercise-images/` (gitignored) or GitHub download; seeder skips if exercise table has rows
+- Exercise catalog: vendored `data/exercises.json` (UUID ids + `trackedParameters` bitmask from Ryot lots; optional `videoUrl`); images as base64 on `image` via `exercise_has_image`; local files under `data/exercise-images/` (gitignored) or GitHub download; seeder skips if exercise table has rows
 - Templates: no header timing/`completed` / `totalWeightLifted` (workout stores `startedAt`/`endedAt`/`completed`; session duration derived in UI; per-set `durationSeconds` on sets only)
 - User admin: Flyway `V2__user_admin.sql`; seed `admin` is admin; Google JIT users are non-admin
 - OpenAPI / Swagger UI: `/v3/api-docs`, `/swagger-ui.html`; JWT bearer for Try it out

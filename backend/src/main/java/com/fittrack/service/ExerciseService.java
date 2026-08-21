@@ -21,6 +21,7 @@ import com.fittrack.web.dto.ExerciseRequest;
 import com.fittrack.web.dto.ExerciseResponse;
 import com.fittrack.web.dto.MuscleLinkRequest;
 import com.fittrack.web.dto.PageResponse;
+import com.fittrack.web.dto.TrackedParametersRequest;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -150,9 +151,16 @@ public class ExerciseService {
 	}
 
 	@Transactional
-	public ExerciseResponse updateTrackedParameters(User user, String id, int trackedParameters) {
+	public ExerciseResponse updateTrackedParameters(User user, String id, TrackedParametersRequest request) {
+		if (!user.isAdmin()) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins may update tracked parameters");
+		}
 		Exercise exercise = requireVisible(user, id);
-		exercise.setTrackedParameters(trackedParameters);
+		exercise.setTrackedParameters(request.getTrackedParameters());
+		if (request.isVideoUrlPresent()) {
+			String videoUrl = request.getVideoUrl();
+			exercise.setVideoUrl(StringUtils.hasText(videoUrl) ? videoUrl.trim() : null);
+		}
 		exerciseRepository.save(exercise);
 		return toResponse(exercise);
 	}
