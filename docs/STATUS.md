@@ -63,6 +63,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - Git remote may be `github`; branch `main`
 - Frontend: `frontend/` Angular 21 NgModules + Material; see [`FRONTEND.md`](FRONTEND.md)
 - Typed SPA clients: **hand-mirrored** from Java DTOs/OpenAPI (not codegen); process in [FRONTEND.md](FRONTEND.md) §8
+- PowerShell API client: [`scripts/FitTrack`](../scripts/FitTrack); keep in sync per [POWERSHELL.md](POWERSHELL.md) when exercise/template/workout REST changes
 - Frontend CD: **zoneless** + **signals** (no `zone.js`)
 - Units: API stores weight in kg; SPA converts kg↔lb from the signed-in user's Settings `useMetric` (list/detail/edit/history); distance always meters
 - Workout detail set patches: coalesce per set (pending merge while in flight) so rapid Done/RPE/metric edits are not dropped

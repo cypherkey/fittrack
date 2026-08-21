@@ -256,6 +256,8 @@ Do **not** invent parallel field names (e.g. do not rename `custom` to `isCustom
 - No committed `openapi.json` snapshot in the repo (fetch live from `/v3/api-docs` when needed)
 - Regenerating clients is a **possible later improvement**; until then, treat hand mirrors + Swagger as the process
 
+Also update the PowerShell module when exercise/template/workout REST changes — see [`POWERSHELL.md`](POWERSHELL.md) (same PR / same agent turn as SPA client updates when those surfaces change).
+
 ### API surface checklist (SPA must cover)
 
 See also Swagger UI:

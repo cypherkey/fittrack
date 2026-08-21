@@ -9,7 +9,8 @@ Before implementing or changing behavior, read (in order):
 1. [`docs/STATUS.md`](docs/STATUS.md) — **what is done / next / deferred** (session continuity)
 2. [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md) — product requirements, domain model, API sketch, locked decisions
 3. [`docs/FRONTEND.md`](docs/FRONTEND.md) — Angular SPA requirements (Phase 8)
-4. [`docs/TESTS.md`](docs/TESTS.md) — backend test inventory
+4. [`docs/POWERSHELL.md`](docs/POWERSHELL.md) — PowerShell API module (`scripts/FitTrack`) sync rules
+5. [`docs/TESTS.md`](docs/TESTS.md) — backend test inventory
 
 Treat `REQUIREMENTS.md` / `FRONTEND.md` as product sources of truth unless the user explicitly overrides them in chat. Treat `STATUS.md` as the progress source of truth; update it when phases complete.
 
@@ -31,3 +32,4 @@ Treat `REQUIREMENTS.md` / `FRONTEND.md` as product sources of truth unless the u
 5. Update `docs/REQUIREMENTS.md` when durable product/design decisions change.
 6. Update `docs/STATUS.md` when implementation progress or deferrals change.
 7. When changing REST DTOs/endpoints, update hand-mirrored SPA types/services per [`docs/FRONTEND.md`](docs/FRONTEND.md) §8 (Typed API clients).
+8. When changing REST for exercises, templates, or workouts (or expanding the scripted client), update [`scripts/FitTrack`](scripts/FitTrack) per [`docs/POWERSHELL.md`](docs/POWERSHELL.md).
