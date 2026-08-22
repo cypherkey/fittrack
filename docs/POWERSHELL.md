@@ -8,6 +8,8 @@ Hand-maintained PowerShell module for scripting against `/api/v1` with a JWT Bea
 |------|------|
 | [`scripts/FitTrack/FitTrack.psd1`](../scripts/FitTrack/FitTrack.psd1) | Module manifest |
 | [`scripts/FitTrack/FitTrack.psm1`](../scripts/FitTrack/FitTrack.psm1) | Cmdlets + HTTP helpers |
+| [`scripts/Import-FitTrackWorkouts.ps1`](../scripts/Import-FitTrackWorkouts.ps1) | Import workouts/sets from `import.json` |
+| [`scripts/import.config.example.json`](../scripts/import.config.example.json) | Example JWT + exercise map (copy → `import.config.json`) |
 
 **Import (from repo root):**
 
@@ -17,6 +19,27 @@ Connect-FitTrack -Token '<jwt>' -BaseUrl 'http://localhost:8080'
 ```
 
 Auth is session-scoped in the module (`Connect-FitTrack` / `Disconnect-FitTrack` / `Get-FitTrackSession`). There is no password login helper yet—SSO/script users supply a JWT.
+
+## Legacy workout import
+
+[`Import-FitTrackWorkouts.ps1`](../scripts/Import-FitTrackWorkouts.ps1) loads `scripts/import.json` (gitignored) and creates/updates FitTrack workouts for **one exercise at a time**.
+
+1. Copy [`import.config.example.json`](../scripts/import.config.example.json) → `scripts/import.config.json` (gitignored). Set `token` (JWT) and `exerciseMap` (import name → FitTrack name or UUID).
+2. **Check only** (no writes): verify the mapped exercise exists and list matching workouts/sets:
+
+```powershell
+.\scripts\Import-FitTrackWorkouts.ps1 -Exercise 'Dumbbell Hammer Curl' -CheckOnly
+```
+
+3. **Import** sets for that exercise (lbs → kg). If a workout with the same `name` already exists, sets for other exercises are kept and sets for this exercise are replaced:
+
+```powershell
+.\scripts\Import-FitTrackWorkouts.ps1 -Exercise 'Dumbbell Hammer Curl'
+```
+
+Optional: `-Map @{ 'Cable Face Pull' = 'Face Pull' }` merges over config `exerciseMap`; `-ConfigPath` / `-ImportPath` override paths; `-WhatIf` / `-Confirm` via `SupportsShouldProcess`.
+
+Do **not** commit `import.config.json` or live JWTs.
 
 ## Covered API surface (must stay aligned)
 

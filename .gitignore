@@ -36,3 +36,6 @@ backend/src/main/resources/data/exercise-images/
 
 # Import file
 import.json
+# FitTrack workout import (secrets + local export)
+scripts/import.config.json
+import.config.json

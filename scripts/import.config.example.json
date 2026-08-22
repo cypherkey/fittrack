@@ -1,0 +1,11 @@
+{
+  "baseUrl": "http://localhost:8080",
+  "token": "PASTE_JWT_HERE",
+  "exerciseMap": {
+    "Dumbbell Hammer Curl": "Hammer Curls",
+    "Cable Face Pull": "Face Pull",
+    "Cable Kneeling Face Pull": "Face Pull",
+    "Barbell Bench Press": "Barbell Bench Press - Medium Grip",
+    "Dumbbell Bench Press": "Dumbbell Bench Press"
+  }
+}
