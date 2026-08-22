@@ -34,8 +34,5 @@ dist/
 # Vendored free-exercise-db images (run scripts/fetch-exercise-images.ps1)
 backend/src/main/resources/data/exercise-images/
 
-
-# One-off Ryot tracked-params import artifacts
-scripts/apply-ryot-tracked-params.mjs
-scripts/ryot-exercise-lots.tsv
-scripts/ryot-tracked-params-report.json
+# Import file
+import.json
