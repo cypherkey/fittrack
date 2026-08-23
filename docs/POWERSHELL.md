@@ -25,17 +25,20 @@ Auth is session-scoped in the module (`Connect-FitTrack` / `Disconnect-FitTrack`
 [`Import-FitTrackWorkouts.ps1`](../scripts/Import-FitTrackWorkouts.ps1) loads `scripts/import.json` (gitignored) and creates/updates FitTrack workouts for **one exercise at a time**.
 
 1. Copy [`import.config.example.json`](../scripts/import.config.example.json) → `scripts/import.config.json` (gitignored). Set `token` (JWT) and `exerciseMap` (import name → FitTrack name or UUID).
-2. **Check only** (no writes): verify the mapped exercise exists and list matching workouts/sets:
+2. **Check only** (no writes): verify the mapped exercise exists and that each matching import set has exactly the fields required by that exercise’s `trackedParameters` (reps / weight / duration / distance). Missing required or extra untracked fields fail the check:
 
 ```powershell
 .\scripts\Import-FitTrackWorkouts.ps1 -Exercise 'Dumbbell Hammer Curl' -CheckOnly
 ```
 
-3. **Import** sets for that exercise (lbs → kg). If a workout with the same `name` already exists, sets for other exercises are kept and sets for this exercise are replaced:
+3. **Import** sets for that exercise (lbs → kg). By default, if a FitTrack workout with the same `name` already exists, the script resolves its id and **appends** the new sets (keeping other exercises). If that workout already has sets for this exercise, it **warns and skips** unless you pass `-Force` (replace this exercise’s sets only):
 
 ```powershell
 .\scripts\Import-FitTrackWorkouts.ps1 -Exercise 'Dumbbell Hammer Curl'
+.\scripts\Import-FitTrackWorkouts.ps1 -Exercise 'Dumbbell Hammer Curl' -Force
 ```
+
+A `409 Conflict` on create is treated the same way: look up the existing workout by name and append.
 
 Optional: `-Map @{ 'Cable Face Pull' = 'Face Pull' }` merges over config `exerciseMap`; `-ConfigPath` / `-ImportPath` override paths; `-WhatIf` / `-Confirm` via `SupportsShouldProcess`.
 
@@ -93,4 +96,5 @@ Do **not** commit JWTs, passwords, or live tokens in examples or scripts.
 
 - PowerShell 5.1+ compatible (`ConvertTo-Json -Depth 20` for nested sets).
 - `Invoke-FitTrackApi` is private to the module; callers use exported `Get-*` / `Set-*` / session cmdlets.
+- List endpoints that return a JSON array emit **one pipeline object per element** (so `@()` / `foreach` work). Do not treat a bare `Object[]` as a single list item.
 - Weight remains **kg** in API payloads (same as SPA/backend); no unit conversion in this module.

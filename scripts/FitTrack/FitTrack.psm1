@@ -129,7 +129,17 @@ function Invoke-FitTrackApi {
     }
 
     try {
-        return Invoke-RestMethod @params
+        $response = Invoke-RestMethod @params
+        # JSON arrays come back as one Object[]. Emit items individually so that
+        # `@(Get-FitTrackWorkout)` / foreach behave as callers expect. Otherwise
+        # `@()` wraps the whole array as a single element and property access breaks.
+        if ($response -is [System.Array]) {
+            foreach ($item in $response) {
+                Write-Output $item
+            }
+            return
+        }
+        return $response
     }
     catch {
         $message = $_.Exception.Message
