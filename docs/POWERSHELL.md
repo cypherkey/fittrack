@@ -52,7 +52,7 @@ When backend REST for these areas changes, update the module in the **same chang
 |------|------|----------------|
 | Exercises | `GET /api/v1/exercise`, `GET /api/v1/exercise/{id}` | `Get-FitTrackExercise` |
 | Templates | `GET /api/v1/templates`, `GET /api/v1/templates/{id}` | `Get-FitTrackTemplate` |
-| Workouts | `GET /api/v1/workouts`, `GET /api/v1/workouts/{id}` | `Get-FitTrackWorkout` |
+| Workouts | `GET /api/v1/workouts`, `GET /api/v1/workouts/team`, `GET /api/v1/workouts/{id}` | `Get-FitTrackWorkout` (`-Team`, `-ExerciseId`) |
 | Workouts | `POST /api/v1/workouts`, `PUT /api/v1/workouts/{id}` | `Set-FitTrackWorkout` |
 | Workout sets | `PATCH /api/v1/workouts/{id}/sets/{setId}` | `Set-FitTrackWorkoutSet` |
 

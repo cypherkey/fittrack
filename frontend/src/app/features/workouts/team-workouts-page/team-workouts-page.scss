@@ -16,6 +16,10 @@
   align-items: center;
 }
 
+.exercise-filter {
+  min-width: 16rem;
+}
+
 .filter-actions {
   display: flex;
   gap: 0.5rem;
@@ -42,8 +46,4 @@ a {
 
 a:hover {
   text-decoration: underline;
-}
-
-.exercise-filter {
-  min-width: 16rem;
 }

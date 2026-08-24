@@ -29,12 +29,12 @@ interface ExerciseOption {
 }
 
 @Component({
-  selector: 'app-workouts-page',
-  templateUrl: './workouts-page.html',
+  selector: 'app-team-workouts-page',
+  templateUrl: './team-workouts-page.html',
   standalone: false,
-  styleUrl: './workouts-page.scss',
+  styleUrl: './team-workouts-page.scss',
 })
-export class WorkoutsPage implements OnInit {
+export class TeamWorkoutsPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly workoutApi = inject(WorkoutApi);
   private readonly exerciseApi = inject(ExerciseApi);
@@ -58,6 +58,8 @@ export class WorkoutsPage implements OnInit {
   private readonly selectedOption = signal<ExerciseOption | null>(null);
   private readonly lastQuery = signal('');
   private selectedExerciseId: string | null = null;
+
+  readonly columns = ['user', 'name', 'sets', 'weight', 'actions'] as const;
 
   readonly exerciseOptions = computed(() => {
     const results: ExerciseOption[] = this.searchResults().map((ex) => ({
@@ -160,7 +162,7 @@ export class WorkoutsPage implements OnInit {
     this.loading.set(true);
     const v = this.filterForm.value;
     this.workoutApi
-      .list({
+      .listTeam({
         from: v.from ? fromDatetimeLocalValue(v.from) : undefined,
         to: v.to ? fromDatetimeLocalValue(v.to) : undefined,
         exerciseId: this.selectedExerciseId ?? undefined,
@@ -172,7 +174,7 @@ export class WorkoutsPage implements OnInit {
         },
         error: (err) => {
           this.loading.set(false);
-          this.notify.error(errorMessage(err, 'Failed to load workouts'));
+          this.notify.error(errorMessage(err, 'Failed to load team workouts'));
         },
       });
   }
@@ -190,47 +192,8 @@ export class WorkoutsPage implements OnInit {
     this.load();
   }
 
-  create(): void {
-    void this.router.navigate(['/workouts/new']);
-  }
-
   view(id: string): void {
     void this.router.navigate(['/workouts', id]);
-  }
-
-  start(id: string): void {
-    this.workoutApi.start(id).subscribe({
-      next: () => {
-        this.notify.success('Workout started');
-        void this.router.navigate(['/workouts', id]);
-      },
-      error: (err) => this.notify.error(errorMessage(err, 'Failed to start workout')),
-    });
-  }
-
-  edit(id: string): void {
-    void this.router.navigate(['/workouts', id, 'edit']);
-  }
-
-  delete(workout: Workout): void {
-    const label = workout.name || workout.startedAt || workout.id;
-    if (!confirm(`Delete workout "${label}"?`)) {
-      return;
-    }
-    this.workoutApi.delete(workout.id).subscribe({
-      next: () => {
-        this.notify.success('Workout deleted');
-        this.load();
-      },
-      error: (err) => this.notify.error(errorMessage(err)),
-    });
-  }
-
-  formatDate(iso: string | null | undefined): string {
-    if (!iso) {
-      return '—';
-    }
-    return new Date(iso).toLocaleString();
   }
 
   formatTotalWeight(workout: Workout): string {

@@ -10,7 +10,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 | **Done** | Phases 1–9 + deferred **#9** user management (admin API + Users page) |
 | **Next** | Deferred **#1** auth hardening; **#2** Farmer walk tracked params; UX polish / E2E |
 | **Run** | Backend `backend/`: `.\mvnw.cmd spring-boot:run` -> `:8080`; Frontend `frontend/`: `npm start` -> `:4200` (proxies `/api` to `:8080`) |
-| **Key URLs** | Swagger `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login`, users (admin) `/api/v1/users` |
+| **Key URLs** | Swagger `/swagger-ui.html`, OpenAPI `/v3/api-docs`, health `/actuator/health`, login `POST /api/v1/auth/login`, users (admin) `/api/v1/users`, team workouts `GET /api/v1/workouts/team` |
 | **Docker** | Root `Dockerfile` (SPA+API) via `docker compose up --build` → `:8080` (volume `fittrack-data` → `/data`) |
 | **Seed user** | `admin` / `admin` (**ROLE_ADMIN**); env-overridable |
 | **Google SSO** | On when `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` non-empty; handoff `{SPA_CALLBACK}#token=<jwt>` |
@@ -66,6 +66,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - PowerShell API client: [`scripts/FitTrack`](../scripts/FitTrack); keep in sync per [POWERSHELL.md](POWERSHELL.md) when exercise/template/workout REST changes
 - Frontend CD: **zoneless** + **signals** (no `zone.js`)
 - Units: API stores weight in kg; SPA converts kg↔lb from the signed-in user's Settings `useMetric` (list/detail/edit/history); distance always meters
+- Workouts: `GET /api/v1/workouts/team` lists all users' workouts; `GET /api/v1/workouts/{id}` readable by any authenticated user (mutations still owner-only); list supports `exerciseId`; responses include `userDisplayName`
 - Workout detail set patches: coalesce per set (pending merge while in flight) so rapid Done/RPE/metric edits are not dropped
 - Test inventory: [`TESTS.md`](TESTS.md)
 

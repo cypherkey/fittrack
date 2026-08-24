@@ -7,6 +7,7 @@ import java.util.List;
 public record WorkoutResponse(
 		String id,
 		String userId,
+		String userDisplayName,
 		Instant startedAt,
 		Instant endedAt,
 		String name,

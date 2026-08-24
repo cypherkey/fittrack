@@ -46,15 +46,24 @@ public class WorkoutService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<WorkoutResponse> list(User user, Instant from, Instant to) {
-		return workoutRepository.findByUserIdAndStartedAtRange(user.getId(), from, to).stream()
+	public List<WorkoutResponse> list(User user, Instant from, Instant to, String exerciseId) {
+		String exerciseFilter = StringUtils.hasText(exerciseId) ? exerciseId : null;
+		return workoutRepository.findByUserIdAndStartedAtRange(user.getId(), from, to, exerciseFilter).stream()
+				.map(w -> toResponse(w, false))
+				.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public List<WorkoutResponse> listTeam(Instant from, Instant to, String exerciseId) {
+		String exerciseFilter = StringUtils.hasText(exerciseId) ? exerciseId : null;
+		return workoutRepository.findAllByStartedAtRange(from, to, exerciseFilter).stream()
 				.map(w -> toResponse(w, false))
 				.toList();
 	}
 
 	@Transactional(readOnly = true)
 	public WorkoutResponse get(User user, String id) {
-		return toResponse(requireOwned(user, id), true);
+		return toResponse(requireReadable(id), true);
 	}
 
 	@Transactional
@@ -264,13 +273,27 @@ public class WorkoutService {
 		}
 	}
 
-	private Workout requireOwned(User user, String id) {
-		Workout workout = workoutRepository.findWithSetsById(id)
+	private Workout requireReadable(String id) {
+		return workoutRepository.findWithSetsById(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Workout not found"));
+	}
+
+	private Workout requireOwned(User user, String id) {
+		Workout workout = requireReadable(id);
 		if (!workout.getUser().getId().equals(user.getId())) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the owner of this workout");
 		}
 		return workout;
+	}
+
+	private static String resolveUserDisplayName(User user) {
+		if (StringUtils.hasText(user.getDisplayName())) {
+			return user.getDisplayName();
+		}
+		if (StringUtils.hasText(user.getUsername())) {
+			return user.getUsername();
+		}
+		return user.getId();
 	}
 
 	WorkoutResponse toResponse(Workout workout, boolean includeSets) {
@@ -290,9 +313,11 @@ public class WorkoutService {
 						.map(s -> toSetResponse(s, notesByExercise.get(s.getExercise().getId())))
 						.toList()
 				: List.of();
+		User owner = workout.getUser();
 		return new WorkoutResponse(
 				workout.getId(),
-				workout.getUser().getId(),
+				owner.getId(),
+				resolveUserDisplayName(owner),
 				workout.getStartedAt(),
 				workout.getEndedAt(),
 				workout.getName(),

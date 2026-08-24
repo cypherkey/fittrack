@@ -7,33 +7,38 @@
       Back
     </button>
     <div class="header-actions">
-      <button
-        mat-stroked-button
-        type="button"
-        (click)="start()"
-        [disabled]="acting() || !!workout.startedAt"
-      >
-        <mat-icon>play_arrow</mat-icon>
-        Start
-      </button>
-      <button
-        mat-flat-button
-        color="accent"
-        type="button"
-        (click)="complete()"
-        [disabled]="acting() || workout.completed"
-      >
-        <mat-icon>check</mat-icon>
-        Complete
-      </button>
-      <button mat-flat-button color="primary" type="button" (click)="edit()">
-        <mat-icon>edit</mat-icon>
-        Edit
-      </button>
+      @if (isOwned()) {
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="start()"
+          [disabled]="acting() || !!workout.startedAt"
+        >
+          <mat-icon>play_arrow</mat-icon>
+          Start
+        </button>
+        <button
+          mat-flat-button
+          color="accent"
+          type="button"
+          (click)="complete()"
+          [disabled]="acting() || workout.completed"
+        >
+          <mat-icon>check</mat-icon>
+          Complete
+        </button>
+        <button mat-flat-button color="primary" type="button" (click)="edit()">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+      }
     </div>
   </div>
 
   <h1>{{ workout.name || 'Workout' }}</h1>
+  @if (!isOwned()) {
+    <p class="owner-label">{{ workout.userDisplayName }}</p>
+  }
 
   <mat-card>
     <mat-card-content>
@@ -76,16 +81,18 @@
               >
                 <mat-icon>history</mat-icon>
               </button>
-              <button
-                mat-icon-button
-                type="button"
-                [attr.aria-label]="row.exerciseNotes ? 'Edit exercise notes' : 'Add exercise notes'"
-                [matTooltip]="row.exerciseNotes ? 'Edit notes' : 'Add notes'"
-                [class.has-notes]="!!row.exerciseNotes"
-                (click)="editNotes(row)"
-              >
-                <mat-icon>{{ row.exerciseNotes ? 'sticky_note_2' : 'note_add' }}</mat-icon>
-              </button>
+              @if (isOwned()) {
+                <button
+                  mat-icon-button
+                  type="button"
+                  [attr.aria-label]="row.exerciseNotes ? 'Edit exercise notes' : 'Add exercise notes'"
+                  [matTooltip]="row.exerciseNotes ? 'Edit notes' : 'Add notes'"
+                  [class.has-notes]="!!row.exerciseNotes"
+                  (click)="editNotes(row)"
+                >
+                  <mat-icon>{{ row.exerciseNotes ? 'sticky_note_2' : 'note_add' }}</mat-icon>
+                </button>
+              }
             </div>
           </td>
         </ng-container>

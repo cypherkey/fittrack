@@ -42,10 +42,22 @@ public class WorkoutController {
 	public List<WorkoutResponse> list(
 			@AuthenticationPrincipal Jwt jwt,
 			@RequestParam(required = false) Instant from,
-			@RequestParam(required = false) Instant to
+			@RequestParam(required = false) Instant to,
+			@RequestParam(required = false) String exerciseId
 	) {
 		User user = currentUserResolver.requireUser(jwt);
-		return workoutService.list(user, from, to);
+		return workoutService.list(user, from, to, exerciseId);
+	}
+
+	@GetMapping("/team")
+	public List<WorkoutResponse> listTeam(
+			@AuthenticationPrincipal Jwt jwt,
+			@RequestParam(required = false) Instant from,
+			@RequestParam(required = false) Instant to,
+			@RequestParam(required = false) String exerciseId
+	) {
+		currentUserResolver.requireUser(jwt);
+		return workoutService.listTeam(from, to, exerciseId);
 	}
 
 	@GetMapping("/{id}")

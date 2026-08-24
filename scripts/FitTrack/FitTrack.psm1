@@ -248,6 +248,10 @@ function Get-FitTrackWorkout {
         Get-FitTrackWorkout -Id '<uuid>'
     .EXAMPLE
         Get-FitTrackWorkout -From '2026-08-01T00:00:00Z' -To '2026-08-31T23:59:59Z'
+    .EXAMPLE
+        Get-FitTrackWorkout -Team
+    .EXAMPLE
+        Get-FitTrackWorkout -ExerciseId '4141e1e4-90b0-4c1d-89ef-c7eb1652bf56'
     #>
     [CmdletBinding(DefaultParameterSetName = 'List')]
     param(
@@ -255,10 +259,19 @@ function Get-FitTrackWorkout {
         [string] $Id,
 
         [Parameter(ParameterSetName = 'List')]
+        [Parameter(ParameterSetName = 'Team')]
         [string] $From,
 
         [Parameter(ParameterSetName = 'List')]
-        [string] $To
+        [Parameter(ParameterSetName = 'Team')]
+        [string] $To,
+
+        [Parameter(ParameterSetName = 'List')]
+        [Parameter(ParameterSetName = 'Team')]
+        [string] $ExerciseId,
+
+        [Parameter(ParameterSetName = 'Team')]
+        [switch] $Team
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'ById') {
@@ -268,7 +281,9 @@ function Get-FitTrackWorkout {
     $queryParams = @{}
     if ($From) { $queryParams.from = $From }
     if ($To) { $queryParams.to = $To }
-    return Invoke-FitTrackApi -Method GET -Path '/api/v1/workouts' -Query $queryParams
+    if ($ExerciseId) { $queryParams.exerciseId = $ExerciseId }
+    $path = if ($Team) { '/api/v1/workouts/team' } else { '/api/v1/workouts' }
+    return Invoke-FitTrackApi -Method GET -Path $path -Query $queryParams
 }
 
 function Set-FitTrackWorkout {

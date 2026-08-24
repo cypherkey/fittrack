@@ -7,16 +7,43 @@
   >
     <div class="brand">FitTrack</div>
     <mat-nav-list>
-      @for (item of navItems(); track item.path) {
-        <a
-          mat-list-item
-          [routerLink]="item.path"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.exact }"
-        >
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
-        </a>
+      @for (item of navItems(); track item.label) {
+        @if (item.children; as children) {
+          <a
+            mat-list-item
+            href="/workouts"
+            (click)="toggleWorkoutsMenu($event)"
+            [class.active]="workoutsExpanded()"
+          >
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+            <mat-icon matListItemMeta>{{ workoutsExpanded() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </a>
+          @if (workoutsExpanded()) {
+            @for (child of children; track child.path) {
+              <a
+                mat-list-item
+                class="nav-child"
+                [routerLink]="child.path"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: !!child.exact }"
+              >
+                <mat-icon matListItemIcon>{{ child.icon }}</mat-icon>
+                <span matListItemTitle>{{ child.label }}</span>
+              </a>
+            }
+          }
+        } @else {
+          <a
+            mat-list-item
+            [routerLink]="item.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: !!item.exact }"
+          >
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
       }
     </mat-nav-list>
   </mat-sidenav>

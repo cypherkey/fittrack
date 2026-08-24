@@ -18,7 +18,24 @@ export class WorkoutApi {
     if (params.to) {
       httpParams = httpParams.set('to', params.to);
     }
+    if (params.exerciseId) {
+      httpParams = httpParams.set('exerciseId', params.exerciseId);
+    }
     return this.http.get<Workout[]>(this.base, { params: httpParams });
+  }
+
+  listTeam(params: WorkoutListParams = {}): Observable<Workout[]> {
+    let httpParams = new HttpParams();
+    if (params.from) {
+      httpParams = httpParams.set('from', params.from);
+    }
+    if (params.to) {
+      httpParams = httpParams.set('to', params.to);
+    }
+    if (params.exerciseId) {
+      httpParams = httpParams.set('exerciseId', params.exerciseId);
+    }
+    return this.http.get<Workout[]>(`${this.base}/team`, { params: httpParams });
   }
 
   get(id: string): Observable<Workout> {

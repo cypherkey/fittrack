@@ -122,13 +122,14 @@ export class WorkoutDetailPage implements OnInit {
 
   edit(): void {
     const w = this.workout();
-    if (w) {
-      void this.router.navigate(['/workouts', w.id, 'edit']);
+    if (!w || !this.isOwned()) {
+      return;
     }
+    void this.router.navigate(['/workouts', w.id, 'edit']);
   }
 
   back(): void {
-    void this.router.navigate(['/workouts']);
+    void this.router.navigate([this.isOwned() ? '/workouts' : '/workouts/team']);
   }
 
   formatDate(iso: string | null | undefined): string {
@@ -203,7 +204,20 @@ export class WorkoutDetailPage implements OnInit {
   }
 
   setsReadOnly(): boolean {
-    return this.workout()?.completed === true;
+    const w = this.workout();
+    if (!w) {
+      return true;
+    }
+    return w.completed === true || !this.isOwned();
+  }
+
+  isOwned(): boolean {
+    const w = this.workout();
+    const me = this.auth.user();
+    if (!w || !me) {
+      return false;
+    }
+    return w.userId === me.id;
   }
 
   isSetDisabled(_setId: string): boolean {

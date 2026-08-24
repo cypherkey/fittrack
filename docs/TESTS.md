@@ -53,7 +53,7 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 | `authMeAndActuatorAndOpenApi` | Login, `GET /me` (incl. `admin`), health, info 401, OpenAPI |
 | `adminUserManagement` | Admin users CRUD (`/api/v1/users`); non-admin 403; cannot delete self |
 | `lookupsExercisesTemplatesWorkoutsAndReorder` | Equipment, muscles, exercise CRUD, template CRUD + reorder + clone, workout list/create/get/put/reorder/delete |
-| `authorizationEdgesForPrivateTemplatesAndWorkouts` | PUBLIC+custom create allowed; private template hidden from other; workout forbidden for non-owner |
+| `authorizationEdgesForPrivateTemplatesAndWorkouts` | PUBLIC+custom create allowed; private template hidden from other; workout readable by non-owner, mutate forbidden; team list includes others |
 
 ## Endpoints vs tests (checklist)
 
@@ -83,6 +83,7 @@ Inventory of automated tests under `backend/src/test`. Run from `backend/`:
 | `DELETE /api/v1/templates/{id}` | `EndpointCoverageTest` |
 | `POST /api/v1/templates/{id}/clone` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `GET /api/v1/workouts` | `EndpointCoverageTest` |
+| `GET /api/v1/workouts/team` | `EndpointCoverageTest` |
 | `GET /api/v1/workouts/{id}` | `ApiIntegrationTest`, `EndpointCoverageTest` |
 | `POST /api/v1/workouts` | `EndpointCoverageTest` |
 | `PUT /api/v1/workouts/{id}` | `ApiIntegrationTest`, `EndpointCoverageTest` |

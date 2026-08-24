@@ -551,7 +551,23 @@ class EndpointCoverageTest {
 				.andReturn();
 		String workoutId = objectMapper.readTree(workout.getResponse().getContentAsString()).get("id").asText();
 		mockMvc.perform(get("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + otherToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(workoutId))
+				.andExpect(jsonPath("$.userDisplayName").isNotEmpty());
+		mockMvc.perform(delete("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + otherToken))
 				.andExpect(status().isForbidden());
+		MvcResult teamList = mockMvc.perform(get("/api/v1/workouts/team").header("Authorization", "Bearer " + otherToken))
+				.andExpect(status().isOk())
+				.andReturn();
+		boolean foundInTeam = false;
+		for (JsonNode node : objectMapper.readTree(teamList.getResponse().getContentAsString())) {
+			if (workoutId.equals(node.get("id").asText())) {
+				org.junit.jupiter.api.Assertions.assertFalse(node.get("userDisplayName").asText().isBlank());
+				foundInTeam = true;
+				break;
+			}
+		}
+		org.junit.jupiter.api.Assertions.assertTrue(foundInTeam);
 
 		mockMvc.perform(delete("/api/v1/workouts/" + workoutId).header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isNoContent());

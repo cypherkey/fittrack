@@ -28,6 +28,8 @@ export interface WorkoutSetPatchRequest {
 export interface Workout {
   id: string;
   userId: string;
+  /** Owner display name (falls back to username on the API). */
+  userDisplayName: string;
   startedAt: string | null;
   endedAt: string | null;
   name: string | null;
@@ -69,4 +71,5 @@ export interface WorkoutRequest {
 export interface WorkoutListParams {
   from?: string;
   to?: string;
+  exerciseId?: string;
 }

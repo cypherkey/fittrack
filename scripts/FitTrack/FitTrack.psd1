@@ -1,6 +1,6 @@
 @{
     RootModule        = 'FitTrack.psm1'
-    ModuleVersion     = '0.1.1'
+    ModuleVersion     = '0.1.2'
     GUID              = 'a7c3e9f1-4b2d-4e8a-9c1f-6d5e8a2b3c4d'
     Author            = 'FitTrack'
     Description       = 'PowerShell client for the FitTrack REST API (JWT Bearer auth).'
