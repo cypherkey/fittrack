@@ -182,6 +182,7 @@ Each feature: `XxxModule` + `XxxRoutingModule` + components with `standalone: fa
 - Prefer Material components for forms, tables, dialogs, snackbars, sidenav, toolbar, buttons, icons
 - Density: comfortable default; mobile-friendly sidenav overlay
 - Theme: one primary Material theme; **dark mode toggle in v1** (locked)
+- **Typography:** **DM Mono** (Google Fonts) — set in `frontend/src/index.html` and `frontend/src/styles.scss` (`mat.theme()` `typography`). **Previous font:** **Roboto** (Angular Material default).
 - Avoid inventing a parallel design system
 
 ---
