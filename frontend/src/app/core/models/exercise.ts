@@ -66,6 +66,7 @@ export interface ExerciseListParams {
   equipment?: string;
   category?: string;
   customOnly?: boolean;
+  favoriteOnly?: boolean;
   page?: number;
   size?: number;
 }

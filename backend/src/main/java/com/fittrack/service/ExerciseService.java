@@ -84,6 +84,7 @@ public class ExerciseService {
 			String equipment,
 			String category,
 			boolean customOnly,
+			boolean favoriteOnly,
 			int page,
 			int size
 	) {
@@ -91,6 +92,7 @@ public class ExerciseService {
 		int safeSize = Math.min(Math.max(size, 1), 100);
 		Specification<Exercise> spec = visibleTo(user.getId());
 		spec = and(spec, customOnlySpec(customOnly));
+		spec = and(spec, favoriteOnlySpec(user.getId(), favoriteOnly));
 		spec = and(spec, nameContains(q));
 		spec = and(spec, categoryEquals(category));
 		spec = and(spec, equipmentMatches(equipment));
@@ -353,6 +355,22 @@ public class ExerciseService {
 			return null;
 		}
 		return (root, query, cb) -> cb.isTrue(root.get("custom"));
+	}
+
+	private static Specification<Exercise> favoriteOnlySpec(String userId, boolean favoriteOnly) {
+		if (!favoriteOnly) {
+			return null;
+		}
+		return (root, query, cb) -> {
+			var subquery = query.subquery(String.class);
+			var favorite = subquery.from(UserFavoriteExercise.class);
+			subquery.select(favorite.get("exercise").get("id"));
+			subquery.where(cb.and(
+					cb.equal(favorite.get("user").get("id"), userId),
+					cb.equal(favorite.get("exercise").get("id"), root.get("id"))
+			));
+			return cb.exists(subquery);
+		};
 	}
 
 	private static Specification<Exercise> nameContains(String q) {

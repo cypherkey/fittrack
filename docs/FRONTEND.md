@@ -36,6 +36,7 @@ Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIRE
 | Runtime | **Node.js 24.x (latest LTS)** | "Krypton" Active/Maintenance LTS; also satisfies Angular 21 engines (`^20.19 \|\| ^22.12 \|\| ^24`) |
 | Package manager | **npm** (locked) | Default Angular CLI package manager |
 | UI | **Angular Material** | + Angular CDK; use theme from `ng add @angular/material` + dark toggle |
+| Charts | **ng2-charts** + **Chart.js** | Dashboard line charts for favorite exercise weight over time |
 | Components | **NgModules — not standalone** | Preference locked: `standalone: false` on components/directives/pipes; declare in feature `NgModule`s |
 | Routing | `AppRoutingModule` + feature routing modules | Lazy-load feature modules where sensible |
 | HTTP | `HttpClientModule` (or `provideHttpClient` only if forced by CLI — prefer module style) | Interceptor attaches JWT |
@@ -128,7 +129,7 @@ apiBaseUrl: ''
 - Optional "Continue with Google" when SSO is configured (can always show; backend fails if unset)
 
 ### Exercises
-- Paginated/filterable list (q, muscle, equipment, category) — Material table or list + filters; show catalog image thumbnail from API `contentBase64`; star to favorite/unfavorite
+- Paginated/filterable list (q, muscle, equipment, category, custom only, **favorites only**) — Material table or list + filters; show catalog image thumbnail from API `contentBase64`; star to favorite/unfavorite
 - Detail view (instructions markdown render, sanitized; gallery of seeded images as data URLs); favorite star in the upper-right header (also in the workout exercise-info dialog)
 - Custom exercise create/edit/delete (owner only); catalog read-only in UI
 - Create/edit form: `force` and `category` as selects (fixed catalog values); `trackedParameters` as Reps/Weight/Duration/Distance checkboxes (bitmask). Catalog exercises: **admin-only** limited edit for tracked parameters + video URL (`PATCH …/tracked-parameters`); non-admins have no catalog edit action
@@ -152,6 +153,7 @@ apiBaseUrl: ''
 
 ### Dashboard (light)
 - Recent workouts + shortcuts to log workout / open templates (avoid Ryot-style media widgets)
+- **Favorite exercises chart:** line chart (ng2-charts) — x-axis workout start **date** (no time), y-axis max set weight per day; one series per favorited exercise that has completed weighted sets; respects Settings `useMetric`
 
 ---
 

@@ -165,6 +165,13 @@ class EndpointCoverageTest {
 						.header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.favorite").value(true));
+		mockMvc.perform(get("/api/v1/exercise")
+						.param("favoriteOnly", "true")
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content.length()").value(1))
+				.andExpect(jsonPath("$.content[0].id").value("51ababe0-e7cc-40d3-a3ef-7d6fb418fbac"))
+				.andExpect(jsonPath("$.content[0].favorite").value(true));
 		mockMvc.perform(get("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac").header("Authorization", "Bearer " + otherToken))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.favorite").value(false));

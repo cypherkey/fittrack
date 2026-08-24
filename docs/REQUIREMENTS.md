@@ -376,7 +376,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 
 ### Exercises
 
-- `GET /api/v1/exercise` — list/search catalog + current user's custom (query: `q`, `muscle`, `equipment`, `category`, `customOnly`, page); each item includes `favorite` for the current user
+- `GET /api/v1/exercise` — list/search catalog + current user's custom (query: `q`, `muscle`, `equipment`, `category`, `customOnly`, `favoriteOnly`, page); each item includes `favorite` for the current user
 - `GET /api/v1/exercise/{id}` — detail for any existing exercise (catalog or custom); includes `favorite`
 - `PUT /api/v1/exercise/{id}/favorite` — mark as favorite for the current user
 - `DELETE /api/v1/exercise/{id}/favorite` — remove favorite

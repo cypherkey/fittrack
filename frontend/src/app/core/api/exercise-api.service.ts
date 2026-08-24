@@ -27,6 +27,9 @@ export class ExerciseApi {
     if (params.customOnly) {
       httpParams = httpParams.set('customOnly', 'true');
     }
+    if (params.favoriteOnly) {
+      httpParams = httpParams.set('favoriteOnly', 'true');
+    }
     if (params.page != null) {
       httpParams = httpParams.set('page', String(params.page));
     }

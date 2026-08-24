@@ -55,11 +55,12 @@ public class ExerciseController {
 			@RequestParam(required = false) String equipment,
 			@RequestParam(required = false) String category,
 			@RequestParam(defaultValue = "false") boolean customOnly,
+			@RequestParam(defaultValue = "false") boolean favoriteOnly,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "50") int size
 	) {
 		User user = currentUserResolver.requireUser(jwt);
-		return exerciseService.list(user, q, muscle, equipment, category, customOnly, page, size);
+		return exerciseService.list(user, q, muscle, equipment, category, customOnly, favoriteOnly, page, size);
 	}
 
 	@GetMapping("/{id}")

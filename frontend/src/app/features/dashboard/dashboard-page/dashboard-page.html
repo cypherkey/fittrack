@@ -1,5 +1,43 @@
 <h1>Dashboard</h1>
 
+<section class="favorites-section">
+  <h2>Favorite exercises</h2>
+
+  @if (loadingCharts()) {
+    <mat-card class="chart-card">
+      <mat-card-content>
+        <div class="loading"><mat-spinner diameter="40" /></div>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <mat-card class="chart-card">
+      <mat-card-content>
+        @if (favoriteExercises().length === 0) {
+          <p class="chart-empty">
+            No favorite exercises yet.
+            <a routerLink="/exercises">Star exercises</a> to track weight over time.
+          </p>
+        } @else if (!hasChartData()) {
+          <p class="chart-empty">
+            Favorite exercises have no completed sets with weight yet. Log a workout to see progress
+            here.
+          </p>
+        } @else {
+          <div class="chart-container">
+            <canvas
+              baseChart
+              type="line"
+              [data]="chartData()"
+              [options]="chartOptions()"
+              [legend]="true"
+            ></canvas>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</section>
+
 <section class="shortcuts">
   @for (s of shortcuts; track s.path) {
     <button mat-stroked-button type="button" (click)="navigate(s.path)">
@@ -11,7 +49,7 @@
 
 <h2>Recent workouts</h2>
 
-@if (loading()) {
+@if (loadingWorkouts()) {
   <div class="loading"><mat-spinner diameter="40" /></div>
 } @else if (recentWorkouts().length === 0) {
   <p>No workouts yet. <a routerLink="/workouts/new">Log your first workout</a>.</p>

@@ -33,6 +33,7 @@ export class ExercisesPage implements OnInit {
     equipment: [''],
     category: [''],
     customOnly: [false],
+    favoriteOnly: [false],
   });
 
   displayedColumns = ['image', 'name', 'category', 'equipment', 'level', 'custom', 'actions'];
@@ -64,6 +65,7 @@ export class ExercisesPage implements OnInit {
         equipment: v.equipment || undefined,
         category: v.category || undefined,
         customOnly: v.customOnly ?? false,
+        favoriteOnly: v.favoriteOnly ?? false,
         page: this.pageIndex(),
         size: this.pageSize(),
       })
@@ -86,7 +88,14 @@ export class ExercisesPage implements OnInit {
   }
 
   clearFilters(): void {
-    this.filterForm.reset({ q: '', muscle: '', equipment: '', category: '', customOnly: false });
+    this.filterForm.reset({
+      q: '',
+      muscle: '',
+      equipment: '',
+      category: '',
+      customOnly: false,
+      favoriteOnly: false,
+    });
     this.pageIndex.set(0);
     this.load();
   }
@@ -115,6 +124,10 @@ export class ExercisesPage implements OnInit {
       : this.exerciseApi.favorite(exercise.id);
     req.subscribe({
       next: (updated) => {
+        if (this.filterForm.value.favoriteOnly && !updated.favorite) {
+          this.load();
+          return;
+        }
         this.exercises.update((rows) =>
           rows.map((row) => (row.id === updated.id ? { ...row, favorite: updated.favorite } : row)),
         );
