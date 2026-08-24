@@ -90,6 +90,16 @@ public class ExerciseController {
 		);
 	}
 
+	@PutMapping("/{id}/favorite")
+	public ExerciseResponse favorite(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+		return exerciseService.setFavorite(currentUserResolver.requireUser(jwt), id, true);
+	}
+
+	@DeleteMapping("/{id}/favorite")
+	public ExerciseResponse unfavorite(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+		return exerciseService.setFavorite(currentUserResolver.requireUser(jwt), id, false);
+	}
+
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public ExerciseResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody ExerciseRequest request) {

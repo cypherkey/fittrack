@@ -12,6 +12,16 @@
   padding-right: 0;
 }
 
+.title-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.is-favorite {
+  color: #f9a825;
+}
+
 .loading {
   display: flex;
   justify-content: center;

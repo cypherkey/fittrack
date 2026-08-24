@@ -128,8 +128,8 @@ apiBaseUrl: ''
 - Optional "Continue with Google" when SSO is configured (can always show; backend fails if unset)
 
 ### Exercises
-- Paginated/filterable list (q, muscle, equipment, category) — Material table or list + filters; show catalog image thumbnail from API `contentBase64`
-- Detail view (instructions markdown render, sanitized; gallery of seeded images as data URLs)
+- Paginated/filterable list (q, muscle, equipment, category) — Material table or list + filters; show catalog image thumbnail from API `contentBase64`; star to favorite/unfavorite
+- Detail view (instructions markdown render, sanitized; gallery of seeded images as data URLs); favorite star in the upper-right header (also in the workout exercise-info dialog)
 - Custom exercise create/edit/delete (owner only); catalog read-only in UI
 - Create/edit form: `force` and `category` as selects (fixed catalog values); `trackedParameters` as Reps/Weight/Duration/Distance checkboxes (bitmask). Catalog exercises: **admin-only** limited edit for tracked parameters + video URL (`PATCH …/tracked-parameters`); non-admins have no catalog edit action
 
@@ -267,7 +267,7 @@ See also Swagger UI:
 
 - Auth: login, me; Google callback
 - Lookups: equipment, muscles
-- Exercises CRUD + list filters
+- Exercises CRUD + list filters + favorite (`PUT/DELETE …/favorite`; `favorite` on exercise JSON)
 - Templates CRUD, clone, sets reorder
 - Workouts CRUD, list range, sets reorder
 - Users (admin): list/create/update/delete

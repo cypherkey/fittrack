@@ -92,6 +92,15 @@
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let row">
+        <button
+          mat-icon-button
+          type="button"
+          [attr.aria-label]="row.favorite ? 'Remove favorite' : 'Add favorite'"
+          [matTooltip]="row.favorite ? 'Remove favorite' : 'Favorite'"
+          (click)="toggleFavorite(row)"
+        >
+          <mat-icon [class.is-favorite]="row.favorite">{{ row.favorite ? 'star' : 'star_border' }}</mat-icon>
+        </button>
         <button mat-icon-button type="button" (click)="view(row.id)" aria-label="View">
           <mat-icon>visibility</mat-icon>
         </button>

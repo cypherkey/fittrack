@@ -109,6 +109,20 @@ export class ExercisesPage implements OnInit {
     return exercise.custom || !!this.auth.user()?.admin;
   }
 
+  toggleFavorite(exercise: Exercise): void {
+    const req = exercise.favorite
+      ? this.exerciseApi.unfavorite(exercise.id)
+      : this.exerciseApi.favorite(exercise.id);
+    req.subscribe({
+      next: (updated) => {
+        this.exercises.update((rows) =>
+          rows.map((row) => (row.id === updated.id ? { ...row, favorite: updated.favorite } : row)),
+        );
+      },
+      error: (err) => this.notify.error(errorMessage(err, 'Failed to update favorite')),
+    });
+  }
+
   edit(id: string): void {
     void this.router.navigate(['/exercises', id, 'edit']);
   }

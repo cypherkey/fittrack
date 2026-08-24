@@ -28,6 +28,7 @@ export interface Exercise {
   category: string | null;
   trackedParameters: number;
   custom: boolean;
+  favorite: boolean;
   addedById: string | null;
   muscles: ExerciseMuscle[];
   images: ExerciseImage[];

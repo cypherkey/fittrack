@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { trackedParamLabels } from '../../../core/models/enums';
 import { Exercise, ExerciseImage, exerciseImageSrc } from '../../../core/models/exercise';
 import { errorMessage } from '../../../core/utils/http-error';
@@ -17,6 +18,7 @@ export interface ExerciseDetailDialogData {
 })
 export class ExerciseDetailDialog implements OnInit {
   private readonly exerciseApi = inject(ExerciseApi);
+  private readonly notify = inject(NotificationService);
 
   readonly exercise = signal<Exercise | null>(null);
   readonly loading = signal(true);
@@ -51,5 +53,17 @@ export class ExerciseDetailDialog implements OnInit {
 
   close(): void {
     this.dialogRef.close();
+  }
+
+  toggleFavorite(): void {
+    const ex = this.exercise();
+    if (!ex) {
+      return;
+    }
+    const req = ex.favorite ? this.exerciseApi.unfavorite(ex.id) : this.exerciseApi.favorite(ex.id);
+    req.subscribe({
+      next: (updated) => this.exercise.set(updated),
+      error: (err) => this.notify.error(errorMessage(err, 'Failed to update favorite')),
+    });
   }
 }

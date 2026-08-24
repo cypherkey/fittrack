@@ -74,4 +74,12 @@ export class ExerciseApi {
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
+
+  favorite(id: string): Observable<Exercise> {
+    return this.http.put<Exercise>(`${this.base}/${id}/favorite`, {});
+  }
+
+  unfavorite(id: string): Observable<Exercise> {
+    return this.http.delete<Exercise>(`${this.base}/${id}/favorite`);
+  }
 }

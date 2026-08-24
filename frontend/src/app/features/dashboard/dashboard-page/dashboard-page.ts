@@ -32,7 +32,7 @@ export class DashboardPage implements OnInit {
     this.loading.set(true);
     this.workoutApi.list().subscribe({
       next: (items) => {
-        this.recentWorkouts.set(items.slice(0, 10));
+        this.recentWorkouts.set(items.slice(0, 5));
         this.loading.set(false);
       },
       error: (err) => {

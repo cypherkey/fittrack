@@ -17,6 +17,7 @@ public record ExerciseResponse(
 		String category,
 		int trackedParameters,
 		boolean custom,
+		boolean favorite,
 		String addedById,
 		List<ExerciseMuscleResponse> muscles,
 		List<ExerciseImageResponse> images

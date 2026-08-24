@@ -423,6 +423,36 @@ function Set-FitTrackWorkoutSet {
     }
 }
 
+function Set-FitTrackExerciseFavorite {
+    <#
+    .SYNOPSIS
+        Favorite or unfavorite an exercise for the current user.
+    .EXAMPLE
+        Set-FitTrackExerciseFavorite -Id '<uuid>' -Favorite
+    .EXAMPLE
+        Set-FitTrackExerciseFavorite -Id '<uuid>' -Favorite:$false
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory, Position = 0)]
+        [string] $Id,
+
+        [Parameter(Mandatory)]
+        [bool] $Favorite
+    )
+
+    if ($Favorite) {
+        if ($PSCmdlet.ShouldProcess("exercise/$Id/favorite", 'PUT')) {
+            return Invoke-FitTrackApi -Method PUT -Path "/api/v1/exercise/$Id/favorite" -Body @{}
+        }
+    }
+    else {
+        if ($PSCmdlet.ShouldProcess("exercise/$Id/favorite", 'DELETE')) {
+            return Invoke-FitTrackApi -Method DELETE -Path "/api/v1/exercise/$Id/favorite"
+        }
+    }
+}
+
 Export-ModuleMember -Function @(
     'Connect-FitTrack',
     'Disconnect-FitTrack',
@@ -431,5 +461,6 @@ Export-ModuleMember -Function @(
     'Get-FitTrackTemplate',
     'Get-FitTrackWorkout',
     'Set-FitTrackWorkout',
-    'Set-FitTrackWorkoutSet'
+    'Set-FitTrackWorkoutSet',
+    'Set-FitTrackExerciseFavorite'
 )

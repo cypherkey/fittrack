@@ -50,6 +50,18 @@ export class ExerciseDetailPage implements OnInit {
     return ex.custom || !!this.auth.user()?.admin;
   }
 
+  toggleFavorite(): void {
+    const ex = this.exercise();
+    if (!ex) {
+      return;
+    }
+    const req = ex.favorite ? this.exerciseApi.unfavorite(ex.id) : this.exerciseApi.favorite(ex.id);
+    req.subscribe({
+      next: (updated) => this.exercise.set(updated),
+      error: (err) => this.notify.error(errorMessage(err, 'Failed to update favorite')),
+    });
+  }
+
   imageSrc(image: ExerciseImage): string | null {
     return exerciseImageSrc(image);
   }

@@ -4,6 +4,7 @@ import com.fittrack.domain.Equipment;
 import com.fittrack.domain.Exercise;
 import com.fittrack.domain.ExerciseHasMuscle;
 import com.fittrack.domain.Muscle;
+import com.fittrack.domain.UserFavoriteExercise;
 import com.fittrack.domain.TrackedParameters;
 import com.fittrack.domain.User;
 import com.fittrack.repository.EquipmentRepository;
@@ -11,6 +12,7 @@ import com.fittrack.repository.ExerciseHasImageRepository;
 import com.fittrack.repository.ExerciseHasMuscleRepository;
 import com.fittrack.repository.ExerciseRepository;
 import com.fittrack.repository.MuscleRepository;
+import com.fittrack.repository.UserFavoriteExerciseRepository;
 import com.fittrack.repository.TemplateSetRepository;
 import com.fittrack.repository.WorkoutSetRepository;
 import com.fittrack.domain.WorkoutSet;
@@ -27,8 +29,11 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -49,6 +54,7 @@ public class ExerciseService {
 	private final ExerciseHasImageRepository exerciseHasImageRepository;
 	private final TemplateSetRepository templateSetRepository;
 	private final WorkoutSetRepository workoutSetRepository;
+	private final UserFavoriteExerciseRepository userFavoriteExerciseRepository;
 
 	public ExerciseService(
 			ExerciseRepository exerciseRepository,
@@ -57,7 +63,8 @@ public class ExerciseService {
 			ExerciseHasMuscleRepository exerciseHasMuscleRepository,
 			ExerciseHasImageRepository exerciseHasImageRepository,
 			TemplateSetRepository templateSetRepository,
-			WorkoutSetRepository workoutSetRepository
+			WorkoutSetRepository workoutSetRepository,
+			UserFavoriteExerciseRepository userFavoriteExerciseRepository
 	) {
 		this.exerciseRepository = exerciseRepository;
 		this.equipmentRepository = equipmentRepository;
@@ -66,6 +73,7 @@ public class ExerciseService {
 		this.exerciseHasImageRepository = exerciseHasImageRepository;
 		this.templateSetRepository = templateSetRepository;
 		this.workoutSetRepository = workoutSetRepository;
+		this.userFavoriteExerciseRepository = userFavoriteExerciseRepository;
 	}
 
 	@Transactional(readOnly = true)
@@ -92,7 +100,7 @@ public class ExerciseService {
 				spec,
 				PageRequest.of(safePage, safeSize, Sort.by("name").ascending())
 		);
-		List<ExerciseResponse> content = result.getContent().stream().map(this::toResponse).toList();
+		List<ExerciseResponse> content = toResponses(user, result.getContent());
 		return new PageResponse<>(
 				content,
 				result.getNumber(),
@@ -106,7 +114,25 @@ public class ExerciseService {
 	public ExerciseResponse get(User user, String id) {
 		Exercise exercise = exerciseRepository.findById(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found"));
-		return toResponse(exercise);
+		return toResponse(exercise, isFavorite(user, exercise.getId()));
+	}
+
+	@Transactional
+	public ExerciseResponse setFavorite(User user, String id, boolean favorite) {
+		Exercise exercise = exerciseRepository.findById(id)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found"));
+		if (favorite) {
+			if (!userFavoriteExerciseRepository.existsByUser_IdAndExercise_Id(user.getId(), exercise.getId())) {
+				UserFavoriteExercise row = new UserFavoriteExercise();
+				row.setUser(user);
+				row.setExercise(exercise);
+				userFavoriteExerciseRepository.save(row);
+			}
+		}
+		else {
+			userFavoriteExerciseRepository.deleteByUser_IdAndExercise_Id(user.getId(), exercise.getId());
+		}
+		return toResponse(exercise, favorite);
 	}
 
 	@Transactional(readOnly = true)
@@ -138,7 +164,7 @@ public class ExerciseService {
 		applyRequest(exercise, request);
 		exerciseRepository.save(exercise);
 		replaceMuscles(exercise, request.muscles());
-		return toResponse(exercise);
+		return toResponse(exercise, isFavorite(user, exercise.getId()));
 	}
 
 	@Transactional
@@ -147,7 +173,7 @@ public class ExerciseService {
 		applyRequest(exercise, request);
 		exerciseRepository.save(exercise);
 		replaceMuscles(exercise, request.muscles());
-		return toResponse(exercise);
+		return toResponse(exercise, isFavorite(user, exercise.getId()));
 	}
 
 	@Transactional
@@ -162,7 +188,7 @@ public class ExerciseService {
 			exercise.setVideoUrl(StringUtils.hasText(videoUrl) ? videoUrl.trim() : null);
 		}
 		exerciseRepository.save(exercise);
-		return toResponse(exercise);
+		return toResponse(exercise, isFavorite(user, exercise.getId()));
 	}
 
 	@Transactional
@@ -173,6 +199,7 @@ public class ExerciseService {
 		}
 		exerciseHasMuscleRepository.deleteByExerciseId(id);
 		exerciseHasImageRepository.deleteByExerciseId(id);
+		userFavoriteExerciseRepository.deleteByExercise_Id(id);
 		exerciseRepository.delete(exercise);
 	}
 
@@ -251,7 +278,24 @@ public class ExerciseService {
 		return exercise;
 	}
 
-	private ExerciseResponse toResponse(Exercise exercise) {
+	private List<ExerciseResponse> toResponses(User user, List<Exercise> exercises) {
+		if (exercises.isEmpty()) {
+			return List.of();
+		}
+		Set<String> ids = exercises.stream().map(Exercise::getId).collect(Collectors.toSet());
+		Set<String> favoriteIds = userFavoriteExerciseRepository
+				.findByUser_IdAndExercise_IdIn(user.getId(), ids)
+				.stream()
+				.map(row -> row.getExercise().getId())
+				.collect(Collectors.toCollection(HashSet::new));
+		return exercises.stream().map(ex -> toResponse(ex, favoriteIds.contains(ex.getId()))).toList();
+	}
+
+	private boolean isFavorite(User user, String exerciseId) {
+		return userFavoriteExerciseRepository.existsByUser_IdAndExercise_Id(user.getId(), exerciseId);
+	}
+
+	private ExerciseResponse toResponse(Exercise exercise, boolean favorite) {
 		List<ExerciseMuscleResponse> muscles = exerciseHasMuscleRepository.findByExercise_Id(exercise.getId()).stream()
 				.map(link -> new ExerciseMuscleResponse(
 						link.getMuscle().getId(),
@@ -283,6 +327,7 @@ public class ExerciseService {
 				exercise.getCategory(),
 				exercise.getTrackedParameters(),
 				exercise.isCustom(),
+				favorite,
 				exercise.getAddedBy() != null ? exercise.getAddedBy().getId() : null,
 				muscles,
 				images

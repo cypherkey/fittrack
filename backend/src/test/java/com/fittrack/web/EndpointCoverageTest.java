@@ -159,7 +159,19 @@ class EndpointCoverageTest {
 				.andExpect(jsonPath("$.content").isArray());
 		mockMvc.perform(get("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac").header("Authorization", "Bearer " + adminToken))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id").value("51ababe0-e7cc-40d3-a3ef-7d6fb418fbac"));
+				.andExpect(jsonPath("$.id").value("51ababe0-e7cc-40d3-a3ef-7d6fb418fbac"))
+				.andExpect(jsonPath("$.favorite").value(false));
+		mockMvc.perform(put("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/favorite")
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.favorite").value(true));
+		mockMvc.perform(get("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac").header("Authorization", "Bearer " + otherToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.favorite").value(false));
+		mockMvc.perform(delete("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/favorite")
+						.header("Authorization", "Bearer " + adminToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.favorite").value(false));
 
 		mockMvc.perform(patch("/api/v1/exercise/51ababe0-e7cc-40d3-a3ef-7d6fb418fbac/tracked-parameters")
 						.header("Authorization", "Bearer " + adminToken)

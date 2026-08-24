@@ -6,12 +6,23 @@
       <mat-icon>arrow_back</mat-icon>
       Back
     </button>
-    @if (canEdit()) {
-      <button mat-flat-button color="primary" type="button" (click)="edit()">
-        <mat-icon>edit</mat-icon>
-        {{ exercise.custom ? 'Edit' : 'Edit catalog fields' }}
+    <div class="header-actions">
+      <button
+        mat-icon-button
+        type="button"
+        [attr.aria-label]="exercise.favorite ? 'Remove favorite' : 'Add favorite'"
+        [matTooltip]="exercise.favorite ? 'Remove favorite' : 'Favorite'"
+        (click)="toggleFavorite()"
+      >
+        <mat-icon [class.is-favorite]="exercise.favorite">{{ exercise.favorite ? 'star' : 'star_border' }}</mat-icon>
       </button>
-    }
+      @if (canEdit()) {
+        <button mat-flat-button color="primary" type="button" (click)="edit()">
+          <mat-icon>edit</mat-icon>
+          {{ exercise.custom ? 'Edit' : 'Edit catalog fields' }}
+        </button>
+      }
+    </div>
   </div>
 
   <h1>{{ exercise.name }}</h1>

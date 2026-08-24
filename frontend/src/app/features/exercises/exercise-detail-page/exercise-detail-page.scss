@@ -5,6 +5,16 @@
   margin-bottom: 1rem;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.is-favorite {
+  color: #f9a825;
+}
+
 .loading {
   display: flex;
   justify-content: center;

@@ -58,7 +58,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - OpenAPI / Swagger UI: `/v3/api-docs`, `/swagger-ui.html`; JWT bearer for Try it out
 - Actuator: only `health` exposed
 - SQLite: `foreign_keys=true&journal_mode=WAL`; scheduled `wal_checkpoint(TRUNCATE)` every 5 minutes
-- Prefer additive Flyway migrations for schema changes (V4: workout timing/`completed`; V5: exercise `video_url`; V6: unique `(user_id, name)` on workout; V7: `app_user.use_metric`; V8: `workout.use_metric`; V9: `user_exercise_notes`, drop `workout_set.notes`)
+- Prefer additive Flyway migrations for schema changes (V4: workout timing/`completed`; V5: exercise `video_url`; V6: unique `(user_id, name)` on workout; V7: `app_user.use_metric`; V8: `workout.use_metric`; V9: `user_exercise_notes`, drop `workout_set.notes`; V10: `appuser_favorite_exercise`)
 - Docker: root `Dockerfile` embeds Angular into Boot `static/`; compose mounts `/data`; SPA deep-link fallthrough via `SpaForwardController`
 - Git remote may be `github`; branch `main`
 - Frontend: `frontend/` Angular 21 NgModules + Material; see [`FRONTEND.md`](FRONTEND.md)
@@ -67,6 +67,7 @@ Living progress tracker for agents and humans. Read this after [`REQUIREMENTS.md
 - Frontend CD: **zoneless** + **signals** (no `zone.js`)
 - Units: API stores weight in kg; SPA converts kg↔lb from the signed-in user's Settings `useMetric` (list/detail/edit/history); distance always meters
 - Workouts: `GET /api/v1/workouts/team` lists all users' workouts; `GET /api/v1/workouts/{id}` readable by any authenticated user (mutations still owner-only); list supports `exerciseId`; responses include `userDisplayName`
+- Exercise favorites: table `appuser_favorite_exercise` (`user_id`, `exercise_id`); `PUT/DELETE /api/v1/exercise/{id}/favorite`; `favorite` on exercise JSON
 - Workout detail set patches: coalesce per set (pending merge while in flight) so rapid Done/RPE/metric edits are not dropped
 - Test inventory: [`TESTS.md`](TESTS.md)
 
