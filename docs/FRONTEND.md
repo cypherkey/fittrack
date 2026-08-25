@@ -130,7 +130,7 @@ apiBaseUrl: ''
 
 ### Exercises
 - Paginated/filterable list (q, muscle, equipment, category, custom only, **favorites only**) — Material table or list + filters; show catalog image thumbnail from API `contentBase64`; star to favorite/unfavorite
-- Detail view (instructions markdown render, sanitized; gallery of seeded images as data URLs); favorite star in the upper-right header (also in the workout exercise-info dialog)
+- Detail view (instructions markdown render, sanitized; gallery of seeded images as data URLs); favorite star in the upper-right header (also in the workout exercise-info dialog); **Info / Progress tabs** below the video link — Progress uses shared `app-weight-progress-chart` (same as dashboard); mobile can swipe between tabs (custom touch handlers on `mat-tab-group`; Material does not swipe natively)
 - Custom exercise create/edit/delete (owner only); catalog read-only in UI
 - Create/edit form: `force` and `category` as selects (fixed catalog values); `trackedParameters` as Reps/Weight/Duration/Distance checkboxes (bitmask). Catalog exercises: **admin-only** limited edit for tracked parameters + video URL (`PATCH …/tracked-parameters`); non-admins have no catalog edit action
 
@@ -153,7 +153,7 @@ apiBaseUrl: ''
 
 ### Dashboard (light)
 - Recent workouts + shortcuts to log workout / open templates (avoid Ryot-style media widgets)
-- **Favorite exercises chart:** line chart (ng2-charts) — x-axis workout start **date** (no time), y-axis max set weight per day; one series per favorited exercise that has completed weighted sets; respects Settings `useMetric`
+- **Favorite exercises chart:** shared `app-weight-progress-chart` (ng2-charts) — x-axis workout start **date** (no time), y-axis max set weight per day; one series per favorited exercise that has completed weighted sets; respects Settings `useMetric`. Same component powers exercise-detail Progress tab.
 
 ---
 

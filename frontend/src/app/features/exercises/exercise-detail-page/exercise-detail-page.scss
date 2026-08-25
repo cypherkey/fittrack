@@ -43,6 +43,14 @@
   font-weight: 500;
 }
 
+.detail-tabs {
+  margin-top: 0.25rem;
+}
+
+.tab-card {
+  margin-top: 1rem;
+}
+
 .meta {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

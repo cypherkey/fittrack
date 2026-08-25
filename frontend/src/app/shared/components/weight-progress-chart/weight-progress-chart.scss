@@ -1,0 +1,15 @@
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.chart-empty {
+  margin: 0;
+  padding: 1rem 0;
+}
+
+.chart-container {
+  position: relative;
+  height: 320px;
+}

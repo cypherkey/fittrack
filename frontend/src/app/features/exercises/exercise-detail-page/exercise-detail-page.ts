@@ -3,9 +3,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { AuthService } from '../../../core/auth.service';
 import { trackedParamLabels } from '../../../core/models/enums';
-import { Exercise, ExerciseImage, exerciseImageSrc } from '../../../core/models/exercise';
+import {
+  Exercise,
+  ExerciseHistoryEntry,
+  ExerciseImage,
+  exerciseImageSrc,
+} from '../../../core/models/exercise';
 import { NotificationService } from '../../../core/services/notification.service';
 import { errorMessage } from '../../../core/utils/http-error';
+import { WeightProgressSeries } from '../../../shared/utils/weight-progress-chart';
 
 @Component({
   selector: 'app-exercise-detail-page',
@@ -22,6 +28,12 @@ export class ExerciseDetailPage implements OnInit {
 
   readonly exercise = signal<Exercise | null>(null);
   readonly loading = signal(true);
+  readonly selectedTab = signal(0);
+  readonly history = signal<ExerciseHistoryEntry[]>([]);
+  readonly loadingHistory = signal(false);
+  readonly chartSeries = signal<WeightProgressSeries[]>([]);
+
+  private touchStartX = 0;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -33,6 +45,7 @@ export class ExerciseDetailPage implements OnInit {
       next: (ex) => {
         this.exercise.set(ex);
         this.loading.set(false);
+        this.loadHistory(ex);
       },
       error: (err) => {
         this.loading.set(false);
@@ -80,5 +93,42 @@ export class ExerciseDetailPage implements OnInit {
 
   back(): void {
     void this.router.navigate(['/exercises']);
+  }
+
+  onSelectedTabChange(index: number): void {
+    this.selectedTab.set(index);
+  }
+
+  onTabTouchStart(event: TouchEvent): void {
+    this.touchStartX = event.changedTouches[0]?.screenX ?? 0;
+  }
+
+  onTabTouchEnd(event: TouchEvent): void {
+    const endX = event.changedTouches[0]?.screenX ?? this.touchStartX;
+    const dx = endX - this.touchStartX;
+    const threshold = 56;
+    if (Math.abs(dx) < threshold) {
+      return;
+    }
+    if (dx < 0 && this.selectedTab() < 1) {
+      this.selectedTab.set(1);
+    } else if (dx > 0 && this.selectedTab() > 0) {
+      this.selectedTab.set(0);
+    }
+  }
+
+  private loadHistory(ex: Exercise): void {
+    this.loadingHistory.set(true);
+    this.exerciseApi.history(ex.id).subscribe({
+      next: (rows) => {
+        this.history.set(rows);
+        this.chartSeries.set([{ label: ex.name, history: rows }]);
+        this.loadingHistory.set(false);
+      },
+      error: (err) => {
+        this.loadingHistory.set(false);
+        this.notify.error(errorMessage(err, 'Failed to load exercise progress'));
+      },
+    });
   }
 }

@@ -23,12 +23,15 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { BaseChartDirective } from 'ng2-charts';
 import { ExerciseDetailDialog } from './components/exercise-detail-dialog/exercise-detail-dialog';
 import { ExerciseHistoryDialog } from './components/exercise-history-dialog/exercise-history-dialog';
 import { SetNotesDialog } from './components/set-notes-dialog/set-notes-dialog';
 import { SetsEditor } from './components/sets-editor/sets-editor';
+import { WeightProgressChart } from './components/weight-progress-chart/weight-progress-chart';
 import { MarkdownPipe } from './pipes/markdown-pipe';
 
 const MATERIAL = [
@@ -52,13 +55,21 @@ const MATERIAL = [
   MatSnackBarModule,
   MatSortModule,
   MatTableModule,
+  MatTabsModule,
   MatToolbarModule,
   MatTooltipModule,
 ];
 
 @NgModule({
-  declarations: [MarkdownPipe, SetsEditor, ExerciseDetailDialog, ExerciseHistoryDialog, SetNotesDialog],
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, DragDropModule, ...MATERIAL],
+  declarations: [
+    MarkdownPipe,
+    SetsEditor,
+    ExerciseDetailDialog,
+    ExerciseHistoryDialog,
+    SetNotesDialog,
+    WeightProgressChart,
+  ],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, DragDropModule, BaseChartDirective, ...MATERIAL],
   exports: [
     CommonModule,
     ReactiveFormsModule,
@@ -70,6 +81,7 @@ const MATERIAL = [
     ExerciseDetailDialog,
     ExerciseHistoryDialog,
     SetNotesDialog,
+    WeightProgressChart,
   ],
 })
 export class SharedModule {}

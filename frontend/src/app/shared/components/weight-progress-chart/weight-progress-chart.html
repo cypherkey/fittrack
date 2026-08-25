@@ -1,0 +1,17 @@
+@if (loadingSignal()) {
+  <div class="loading"><mat-spinner diameter="40" /></div>
+} @else if (seriesSignal().length === 0) {
+  <p class="chart-empty">{{ emptyMessage }}</p>
+} @else if (!hasChartData()) {
+  <p class="chart-empty">{{ noDataMessage }}</p>
+} @else {
+  <div class="chart-container">
+    <canvas
+      baseChart
+      type="line"
+      [data]="chartData()"
+      [options]="chartOptions()"
+      [legend]="showLegend"
+    ></canvas>
+  </div>
+}
