@@ -40,28 +40,53 @@
       </p>
     }
 
-    <dl class="meta">
-      <div><dt>Level</dt><dd>{{ exercise.level }}</dd></div>
-      <div><dt>Category</dt><dd>{{ exercise.category || '—' }}</dd></div>
-      <div><dt>Equipment</dt><dd>{{ exercise.equipmentName || '—' }}</dd></div>
-      <div><dt>Mechanic</dt><dd>{{ exercise.mechanic || '—' }}</dd></div>
-      <div><dt>Force</dt><dd>{{ exercise.force || '—' }}</dd></div>
-      <div><dt>Tracked parameters</dt><dd>{{ parameterLabels(exercise.trackedParameters) }}</dd></div>
-      <div><dt>Type</dt><dd>{{ exercise.custom ? 'Custom' : 'Catalog' }}</dd></div>
-    </dl>
+    <mat-tab-group
+      class="detail-tabs"
+      animationDuration="200ms"
+      [selectedIndex]="selectedTab()"
+      (selectedIndexChange)="onSelectedTabChange($event)"
+      (touchstart)="onTabTouchStart($event)"
+      (touchend)="onTabTouchEnd($event)"
+    >
+      <mat-tab label="Info">
+        <div class="tab-body">
+          <dl class="meta">
+            <div><dt>Level</dt><dd>{{ exercise.level }}</dd></div>
+            <div><dt>Category</dt><dd>{{ exercise.category || '—' }}</dd></div>
+            <div><dt>Equipment</dt><dd>{{ exercise.equipmentName || '—' }}</dd></div>
+            <div><dt>Mechanic</dt><dd>{{ exercise.mechanic || '—' }}</dd></div>
+            <div><dt>Force</dt><dd>{{ exercise.force || '—' }}</dd></div>
+            <div><dt>Tracked parameters</dt><dd>{{ parameterLabels(exercise.trackedParameters) }}</dd></div>
+            <div><dt>Type</dt><dd>{{ exercise.custom ? 'Custom' : 'Catalog' }}</dd></div>
+          </dl>
 
-    @if (exercise.muscles.length) {
-      <h3>Muscles</h3>
-      <mat-chip-set>
-        @for (m of exercise.muscles; track m.muscleId) {
-          <mat-chip>{{ m.name }}{{ m.primary ? ' (primary)' : '' }}</mat-chip>
-        }
-      </mat-chip-set>
-    }
+          @if (exercise.muscles.length) {
+            <h3>Muscles</h3>
+            <mat-chip-set>
+              @for (m of exercise.muscles; track m.muscleId) {
+                <mat-chip>{{ m.name }}{{ m.primary ? ' (primary)' : '' }}</mat-chip>
+              }
+            </mat-chip-set>
+          }
 
-    @if (exercise.instructions) {
-      <h3>Instructions</h3>
-      <div class="instructions" [innerHTML]="exercise.instructions | markdown"></div>
-    }
+          @if (exercise.instructions) {
+            <h3>Instructions</h3>
+            <div class="instructions" [innerHTML]="exercise.instructions | markdown"></div>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Progress">
+        <div class="tab-body">
+          <app-weight-progress-chart
+            [loading]="loadingHistory()"
+            [series]="chartSeries()"
+            [showLegend]="false"
+            emptyMessage="No progress data yet."
+            noDataMessage="No completed sets with weight yet. Log a workout to see your progression here."
+          />
+        </div>
+      </mat-tab>
+    </mat-tab-group>
   }
 </mat-dialog-content>

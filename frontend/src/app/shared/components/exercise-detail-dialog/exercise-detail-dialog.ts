@@ -3,8 +3,14 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ExerciseApi } from '../../../core/api/exercise-api.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { trackedParamLabels } from '../../../core/models/enums';
-import { Exercise, ExerciseImage, exerciseImageSrc } from '../../../core/models/exercise';
+import {
+  Exercise,
+  ExerciseHistoryEntry,
+  ExerciseImage,
+  exerciseImageSrc,
+} from '../../../core/models/exercise';
 import { errorMessage } from '../../../core/utils/http-error';
+import { WeightProgressSeries } from '../../utils/weight-progress-chart';
 
 export interface ExerciseDetailDialogData {
   exerciseId: string;
@@ -23,6 +29,12 @@ export class ExerciseDetailDialog implements OnInit {
   readonly exercise = signal<Exercise | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly selectedTab = signal(0);
+  readonly history = signal<ExerciseHistoryEntry[]>([]);
+  readonly loadingHistory = signal(false);
+  readonly chartSeries = signal<WeightProgressSeries[]>([]);
+
+  private touchStartX = 0;
 
   constructor(
     private readonly dialogRef: MatDialogRef<ExerciseDetailDialog>,
@@ -34,6 +46,7 @@ export class ExerciseDetailDialog implements OnInit {
       next: (ex) => {
         this.exercise.set(ex);
         this.loading.set(false);
+        this.loadHistory(ex);
       },
       error: (err) => {
         this.loading.set(false);
@@ -64,6 +77,43 @@ export class ExerciseDetailDialog implements OnInit {
     req.subscribe({
       next: (updated) => this.exercise.set(updated),
       error: (err) => this.notify.error(errorMessage(err, 'Failed to update favorite')),
+    });
+  }
+
+  onSelectedTabChange(index: number): void {
+    this.selectedTab.set(index);
+  }
+
+  onTabTouchStart(event: TouchEvent): void {
+    this.touchStartX = event.changedTouches[0]?.screenX ?? 0;
+  }
+
+  onTabTouchEnd(event: TouchEvent): void {
+    const endX = event.changedTouches[0]?.screenX ?? this.touchStartX;
+    const dx = endX - this.touchStartX;
+    const threshold = 56;
+    if (Math.abs(dx) < threshold) {
+      return;
+    }
+    if (dx < 0 && this.selectedTab() < 1) {
+      this.selectedTab.set(1);
+    } else if (dx > 0 && this.selectedTab() > 0) {
+      this.selectedTab.set(0);
+    }
+  }
+
+  private loadHistory(ex: Exercise): void {
+    this.loadingHistory.set(true);
+    this.exerciseApi.history(ex.id).subscribe({
+      next: (rows) => {
+        this.history.set(rows);
+        this.chartSeries.set([{ label: ex.name, history: rows }]);
+        this.loadingHistory.set(false);
+      },
+      error: (err) => {
+        this.loadingHistory.set(false);
+        this.notify.error(errorMessage(err, 'Failed to load exercise progress'));
+      },
     });
   }
 }
