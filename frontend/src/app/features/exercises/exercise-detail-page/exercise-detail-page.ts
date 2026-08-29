@@ -60,7 +60,10 @@ export class ExerciseDetailPage implements OnInit {
     if (!ex) {
       return false;
     }
-    return ex.custom || !!this.auth.user()?.admin;
+    if (!ex.custom) {
+      return !!this.auth.user()?.admin;
+    }
+    return ex.addedById === this.auth.user()?.id;
   }
 
   toggleFavorite(): void {

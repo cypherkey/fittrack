@@ -90,7 +90,7 @@ public class ExerciseService {
 	) {
 		int safePage = Math.max(page, 0);
 		int safeSize = Math.min(Math.max(size, 1), 100);
-		Specification<Exercise> spec = visibleTo(user.getId());
+		Specification<Exercise> spec = (root, query, cb) -> cb.conjunction();
 		spec = and(spec, customOnlySpec(customOnly));
 		spec = and(spec, favoriteOnlySpec(user.getId(), favoriteOnly));
 		spec = and(spec, nameContains(q));
@@ -183,7 +183,7 @@ public class ExerciseService {
 		if (!user.isAdmin()) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins may update tracked parameters");
 		}
-		Exercise exercise = requireVisible(user, id);
+		Exercise exercise = requireExisting(id);
 		exercise.setTrackedParameters(request.getTrackedParameters());
 		if (request.isVideoUrlPresent()) {
 			String videoUrl = request.getVideoUrl();
@@ -256,23 +256,16 @@ public class ExerciseService {
 		exerciseHasMuscleRepository.saveAll(links);
 	}
 
+	private Exercise requireExisting(String id) {
+		return exerciseRepository.findById(id)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found"));
+	}
+
 	private Exercise requireOwnedCustom(User user, String id) {
 		Exercise exercise = exerciseRepository.findById(id)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found"));
 		if (!exercise.isCustom()) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Catalog exercises are read-only");
-		}
-		if (exercise.getAddedBy() == null || !exercise.getAddedBy().getId().equals(user.getId())) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the owner of this exercise");
-		}
-		return exercise;
-	}
-
-	private Exercise requireVisible(User user, String id) {
-		Exercise exercise = exerciseRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exercise not found"));
-		if (!exercise.isCustom()) {
-			return exercise;
 		}
 		if (exercise.getAddedBy() == null || !exercise.getAddedBy().getId().equals(user.getId())) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the owner of this exercise");
@@ -338,16 +331,6 @@ public class ExerciseService {
 
 	private static Specification<Exercise> and(Specification<Exercise> base, Specification<Exercise> extra) {
 		return extra == null ? base : base.and(extra);
-	}
-
-	private static Specification<Exercise> visibleTo(String userId) {
-		return (root, query, cb) -> {
-			Join<Exercise, User> addedBy = root.join("addedBy", JoinType.LEFT);
-			return cb.or(
-					cb.isFalse(root.get("custom")),
-					cb.equal(addedBy.get("id"), userId)
-			);
-		};
 	}
 
 	private static Specification<Exercise> customOnlySpec(boolean customOnly) {

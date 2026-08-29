@@ -115,7 +115,7 @@
             <mat-icon>edit</mat-icon>
           </button>
         }
-        @if (row.custom) {
+        @if (canDelete(row)) {
           <button mat-icon-button type="button" color="warn" (click)="delete(row)" aria-label="Delete">
             <mat-icon>delete</mat-icon>
           </button>

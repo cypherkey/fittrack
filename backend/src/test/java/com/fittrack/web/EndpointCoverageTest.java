@@ -529,6 +529,20 @@ class EndpointCoverageTest {
 				.andReturn();
 		String customId = objectMapper.readTree(custom.getResponse().getContentAsString()).get("id").asText();
 
+		mockMvc.perform(get("/api/v1/exercise/" + customId).header("Authorization", "Bearer " + otherToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(customId));
+		mockMvc.perform(get("/api/v1/exercise?customOnly=true").header("Authorization", "Bearer " + otherToken))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content[?(@.id=='" + customId + "')]").exists());
+		mockMvc.perform(put("/api/v1/exercise/" + customId)
+						.header("Authorization", "Bearer " + otherToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"name":"Stolen Move","level":"BEGINNER","instructions":"x","trackedParameters":1}
+								"""))
+				.andExpect(status().isForbidden());
+
 		MvcResult publicT = mockMvc.perform(post("/api/v1/templates")
 						.header("Authorization", "Bearer " + adminToken)
 						.contentType(MediaType.APPLICATION_JSON)

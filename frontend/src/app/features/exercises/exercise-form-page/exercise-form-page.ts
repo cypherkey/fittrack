@@ -84,6 +84,12 @@ export class ExerciseFormPage implements OnInit {
             void this.router.navigate(['/exercises', ex.id]);
             return;
           }
+          if (ex.custom && ex.addedById !== this.auth.user()?.id) {
+            this.loading.set(false);
+            this.notify.error('You can only edit your own custom exercises');
+            void this.router.navigate(['/exercises', ex.id]);
+            return;
+          }
           this.catalogOnly.set(!ex.custom);
           this.form.patchValue({
             name: ex.name,

@@ -13,7 +13,7 @@ Agent-readable SPA requirements. Product API/domain: [`REQUIREMENTS.md`](REQUIRE
 ## 1. Goals (v1 SPA)
 
 - Authenticate (local username/password + optional Google SSO via backend handoff)
-- Browse catalog exercises; create/edit/delete **own** custom exercises
+- Browse catalog and custom exercises; create/edit/delete **own** custom exercises
 - Manage workout **templates** (private/public) and **clone** to a workout
 - Log and edit **workouts** (sets with client-controlled `setNumber` / reorder)
 - Call FitTrack REST API with `Authorization: Bearer <jwt>`
@@ -131,7 +131,7 @@ apiBaseUrl: ''
 ### Exercises
 - Paginated/filterable list (q, muscle, equipment, category, custom only, **favorites only**) — Material table or list + filters; show catalog image thumbnail from API `contentBase64`; star to favorite/unfavorite
 - Detail view (instructions markdown render, sanitized; gallery of seeded images as data URLs); favorite star in the upper-right header (also in the workout exercise-info dialog); **Info / Progress tabs** below the video link on the detail page **and** the workout exercise-info dialog — Progress uses shared `app-weight-progress-chart` (same as dashboard); mobile can swipe between tabs (custom touch handlers on `mat-tab-group`; Material does not swipe natively)
-- Custom exercise create/edit/delete (owner only); catalog read-only in UI
+- Custom exercise create/edit/delete (owner only); all users can browse and use any custom exercise; catalog read-only in UI
 - Create/edit form: `force` and `category` as selects (fixed catalog values); `trackedParameters` as Reps/Weight/Duration/Distance checkboxes (bitmask). Catalog exercises: **admin-only** limited edit for tracked parameters + video URL (`PATCH …/tracked-parameters`); non-admins have no catalog edit action
 
 ### Templates

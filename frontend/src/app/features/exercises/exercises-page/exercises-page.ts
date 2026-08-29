@@ -115,7 +115,14 @@ export class ExercisesPage implements OnInit {
   }
 
   canEdit(exercise: Exercise): boolean {
-    return exercise.custom || !!this.auth.user()?.admin;
+    if (!exercise.custom) {
+      return !!this.auth.user()?.admin;
+    }
+    return exercise.addedById === this.auth.user()?.id;
+  }
+
+  canDelete(exercise: Exercise): boolean {
+    return exercise.custom && exercise.addedById === this.auth.user()?.id;
   }
 
   toggleFavorite(exercise: Exercise): void {
@@ -141,7 +148,7 @@ export class ExercisesPage implements OnInit {
   }
 
   delete(exercise: Exercise): void {
-    if (!exercise.custom || !confirm(`Delete custom exercise "${exercise.name}"?`)) {
+    if (!this.canDelete(exercise) || !confirm(`Delete custom exercise "${exercise.name}"?`)) {
       return;
     }
     this.exerciseApi.delete(exercise.id).subscribe({

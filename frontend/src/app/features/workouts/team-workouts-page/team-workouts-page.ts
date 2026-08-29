@@ -8,7 +8,6 @@ import {
   catchError,
   debounceTime,
   distinctUntilChanged,
-  forkJoin,
   map,
   of,
   switchMap,
@@ -106,22 +105,8 @@ export class TeamWorkoutsPage implements OnInit {
   }
 
   private fetchExercises(q: string) {
-    return forkJoin({
-      normal: this.exerciseApi.list({ q, size: 100 }),
-      customs: this.exerciseApi.list({ q, customOnly: true, size: 100 }),
-    }).pipe(
-      map(({ normal, customs }) => {
-        const byId = new Map<string, Exercise>();
-        for (const ex of customs.content) {
-          byId.set(ex.id, ex);
-        }
-        for (const ex of normal.content) {
-          if (!byId.has(ex.id)) {
-            byId.set(ex.id, ex);
-          }
-        }
-        return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
-      }),
+    return this.exerciseApi.list({ q, size: 100 }).pipe(
+      map((page) => [...page.content].sort((a, b) => a.name.localeCompare(b.name))),
       catchError(() => of([] as Exercise[])),
     );
   }

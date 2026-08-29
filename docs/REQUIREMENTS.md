@@ -126,7 +126,7 @@ Exercises may be **catalog** (seeded from free-exercise-db, global) or **custom*
 
 Do **not** store `primaryMuscles`, `secondaryMuscles`, or `images` on `Exercise`.
 
-**Custom exercises:** authenticated users may create exercises with `isCustom=true` and `addedBy` = current user. Only `addedBy` may update/delete their custom exercises. Catalog exercises (`isCustom=false`) keep other fields seed-managed, but **admins** may update **`trackedParameters`** and **`videoUrl`** via `PATCH /api/v1/exercise/{id}/tracked-parameters`. List/browse APIs return catalog exercises for everyone, plus the current user's custom exercises. Any existing exercise (catalog or custom) may be referenced on templates and workouts.
+**Custom exercises:** authenticated users may create exercises with `isCustom=true` and `addedBy` = current user. Only `addedBy` may update/delete their custom exercises. Catalog exercises (`isCustom=false`) keep other fields seed-managed, but **admins** may update **`trackedParameters`** and **`videoUrl`** via `PATCH /api/v1/exercise/{id}/tracked-parameters`. List/browse APIs return all catalog and custom exercises to every authenticated user. Any existing exercise (catalog or custom) may be referenced on templates and workouts.
 #### Equipment
 
 Lookup table populated from distinct equipment values in the seed (and any future additions).
@@ -242,7 +242,7 @@ No `completed` flag on template sets (that is workout/logging-only).
 
 **Clone template → workout:** create a new `Workout` for the current user with `startedAt`/`endedAt` unset and `completed=false`; default workout `name` to `Workout YYYY-MM-DD` (current local date) unless the clone request supplies a non-blank name; set `useMetric` from the current user's preference; copy template `difficulty`; set workout `notes` to `Clone from {template name}` (do not copy template notes); recompute workout `totalWeightLifted` from cloned sets; for each `TemplateSet`, create a matching `WorkoutSet` (same `exerciseId`, `setNumber`, metrics including per-set `durationSeconds`/`weightKg`; `rpe` starts unset; set `completed=false`; do **not** copy template-set notes onto the workout set — personal notes live in `user_exercise_notes`); set `sourceTemplateId`; leave template unchanged.
 
-**Public templates:** any authenticated user may **read** and **clone**; only owner may **edit/delete**. No template search in v1. Both **PRIVATE** and **PUBLIC** templates may include any exercise the owner can use (catalog + their own custom exercises). Cloning a public template copies its exercise references as-is (including the owner's custom exercises) onto the new workout.
+**Public templates:** any authenticated user may **read** and **clone**; only owner may **edit/delete**. No template search in v1. Both **PRIVATE** and **PUBLIC** templates may include any exercise (catalog or custom). Cloning a public template copies its exercise references as-is onto the new workout.
 
 ### 4.4 Workout
 
@@ -357,9 +357,9 @@ Dual authentication; both issue the same **JWT** for `/api/v1`.
 - **Token strategy:** JWT after either local or Google success (`sub` = user id, expiry); signing secret via env (never committed)
 - **Authorization rules:**
   - Users read/write only their own workouts and private templates
-  - Public templates: readable/cloneable by any authenticated user; may include catalog or the owner's custom exercises
+  - Public templates: readable/cloneable by any authenticated user; may include catalog or custom exercises
   - Exercise catalog (`isCustom=false`): seed-managed fields are read-only; **admins** may update **`trackedParameters`** and **`videoUrl`**
-  - Custom exercises (`isCustom=true`): owner (`addedBy`) may create/update/delete; listed to owner alongside catalog; any existing exercise may be referenced on templates/workouts
+  - Custom exercises (`isCustom=true`): owner (`addedBy`) may create/update/delete; listed to all users alongside catalog; any existing exercise may be referenced on templates/workouts
 
 Config via env / `application.yml`: Google client id/secret (optional if only local login in a given env), JWT signing key, default seed user credentials. Secrets never committed.
 
@@ -392,7 +392,7 @@ Config via env / `application.yml`: Google client id/secret (optional if only lo
 
 - `GET /api/v1/templates` — own templates; optional `visibility=PUBLIC` for browse
 - `GET /api/v1/templates/{id}` — get with sets (if owner or public)
-- `POST /api/v1/templates` — create (with optional sets); sets may reference catalog or the owner's custom exercises
+- `POST /api/v1/templates` — create (with optional sets); sets may reference catalog or custom exercises
 - `PUT /api/v1/templates/{id}` - update metadata / replace sets (owner); client supplies `setNumber` for order/reorder (no server auto-renumber to 1…N)
 - `PATCH /api/v1/templates/{id}/sets/reorder` - body: `{ "items": [ { "setId", "setNumber" } ] }` — updates `setNumber` only; uniqueness rules apply, no forced contiguous rewrite
 - `DELETE /api/v1/templates/{id}` - delete (owner)
@@ -551,12 +551,12 @@ Deferred (tracked in STATUS): **#1** auth hardening. **#9** user management is d
 | Google JWT handoff | Redirect to SPA `#token=<jwt>`; no refresh token in v1 | Locked |
 | Default user | Seed on first start: username/password `admin`/`admin` (overridable via env) | Locked |
 | Docker | Root **`Dockerfile`** multi-stage (Angular + Boot single image); SQLite on a volume | Locked |
-| Public templates | Listed to all logged-in users; **no search**; may include catalog or owner's custom exercises | Locked |
+| Public templates | Listed to all logged-in users; **no search**; may include catalog or custom exercises | Locked |
 | Difficulty | Enum `EASY` \| `MEDIUM` \| `HARD` (nullable, session-level) | Locked |
 | RPE (per set) | Enum `EASY` \| `CHALLENGING` \| `HARD` on **workout sets only** (nullable; more values later). Not on template sets. | Locked |
 | Muscle on join | `exerciseHasMuscle.isPrimary` boolean (not an enum) | Locked |
 | Workout time | **`startedAt` / `endedAt` datetimes** (not date-only; both nullable); session duration derived in UI; **`completed`** boolean on workout; multiple workouts per day allowed | Locked |
-| Custom exercises | Allowed: `isCustom` + `addedBy`; create/update/delete owner-only; referenceable on any template/workout by id | Locked |
+| Custom exercises | Allowed: `isCustom` + `addedBy`; create/update/delete owner-only; visible to all users; referenceable on any template/workout by id | Locked |
 | Template vs workout | Same shape: header + flat sets; table `workout_template` / entity `WorkoutTemplate` | Locked |
 | trackedParameters | INTEGER bitmask on Exercise | Locked |
 | Set order | Client-controlled `setNumber`; API supports reorder; no server auto-renumber | Locked |
