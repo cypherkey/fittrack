@@ -157,6 +157,19 @@ function ConvertTo-FitTrackJson {
     return ($InputObject | ConvertTo-Json -Depth 20 -Compress)
 }
 
+function Get-FitTrackMe {
+    <#
+    .SYNOPSIS
+        Get the current authenticated user profile (GET /api/v1/me).
+    .EXAMPLE
+        Get-FitTrackMe
+    #>
+    [CmdletBinding()]
+    param()
+
+    return Invoke-FitTrackApi -Method GET -Path '/api/v1/me'
+}
+
 function Get-FitTrackExercise {
     <#
     .SYNOPSIS
@@ -457,6 +470,7 @@ Export-ModuleMember -Function @(
     'Connect-FitTrack',
     'Disconnect-FitTrack',
     'Get-FitTrackSession',
+    'Get-FitTrackMe',
     'Get-FitTrackExercise',
     'Get-FitTrackTemplate',
     'Get-FitTrackWorkout',

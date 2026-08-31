@@ -9,6 +9,10 @@
     exists, sets are appended to it (other exercises kept). Use -Force to replace sets
     for this exercise if they are already present.
 
+.PARAMETER ValidateToken
+    Test the configured JWT against GET /api/v1/me and print the authenticated
+    user's display name and email. No import or writes. -Exercise is not required.
+
 .PARAMETER Exercise
     Mandatory. Exercise name as it appears in import.json (source name).
 
@@ -30,6 +34,9 @@
     Without -Force those workouts are skipped with a warning.
 
 .EXAMPLE
+    .\scripts\Import-FitTrackWorkouts.ps1 -ValidateToken
+
+.EXAMPLE
     .\scripts\Import-FitTrackWorkouts.ps1 -Exercise 'Dumbbell Hammer Curl' -CheckOnly
 
 .EXAMPLE
@@ -40,10 +47,13 @@
       'Barbell Bench Press' = 'Barbell Bench Press - Medium Grip'
     }
 #>
-[CmdletBinding(SupportsShouldProcess = $true)]
+[CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = 'Import')]
 param(
-    [Parameter(Mandatory)]
+    [Parameter(ParameterSetName = 'Import', Mandatory)]
     [string] $Exercise,
+
+    [Parameter(ParameterSetName = 'ValidateToken')]
+    [switch] $ValidateToken,
 
     [switch] $CheckOnly,
 
@@ -101,6 +111,29 @@ function Read-ImportConfig {
         Token       = [string]$cfg.token
         ExerciseMap = $exerciseMap
     }
+}
+
+function Show-AuthenticatedUser {
+    <#
+    .SYNOPSIS
+        Call GET /api/v1/me and print display name and email.
+    #>
+    try {
+        $me = Get-FitTrackMe
+    }
+    catch {
+        throw "Token validation failed: $($_.Exception.Message)"
+    }
+
+    $displayName = Get-ObjectPropertyValue -Object $me -Name 'displayName'
+    $email = Get-ObjectPropertyValue -Object $me -Name 'email'
+    $username = Get-ObjectPropertyValue -Object $me -Name 'username'
+    $name = if ($displayName) { [string]$displayName } elseif ($username) { [string]$username } else { '(unknown)' }
+    $emailText = if ($email) { [string]$email } else { '(no email)' }
+
+    Write-Host "Authenticated user: $name"
+    Write-Host "Email: $emailText"
+    return $me
 }
 
 function Merge-ExerciseMap {
@@ -449,6 +482,14 @@ $config = Read-ImportConfig -Path $ConfigPath
 $exerciseMap = Merge-ExerciseMap -ConfigMap $config.ExerciseMap -OverrideMap $Map
 
 Connect-FitTrack -Token $config.Token -BaseUrl $config.BaseUrl
+
+if ($ValidateToken) {
+    Show-AuthenticatedUser
+    Write-Host "Token is valid." -ForegroundColor Green
+    exit 0
+}
+
+Show-AuthenticatedUser
 
 if (-not (Test-Path -LiteralPath $ImportPath)) {
     throw "Import file not found: $ImportPath"

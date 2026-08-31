@@ -31,6 +31,14 @@ Auth is session-scoped in the module (`Connect-FitTrack` / `Disconnect-FitTrack`
 .\scripts\Import-FitTrackWorkouts.ps1 -Exercise 'Dumbbell Hammer Curl' -CheckOnly
 ```
 
+**Validate token** (no writes): test the JWT from config against `GET /api/v1/me` and print display name and email:
+
+```powershell
+.\scripts\Import-FitTrackWorkouts.ps1 -ValidateToken
+```
+
+Import and check modes also verify the token and print the authenticated user before proceeding.
+
 3. **Import** sets for that exercise (lbs → kg). By default, if a FitTrack workout with the same `name` already exists, the script resolves its id and **appends** the new sets (keeping other exercises). If that workout already has sets for this exercise, it **warns and skips** unless you pass `-Force` (replace this exercise’s sets only):
 
 ```powershell
@@ -56,8 +64,9 @@ When backend REST for these areas changes, update the module in the **same chang
 | Workouts | `GET /api/v1/workouts`, `GET /api/v1/workouts/team`, `GET /api/v1/workouts/{id}` | `Get-FitTrackWorkout` (`-Team`, `-ExerciseId`) |
 | Workouts | `POST /api/v1/workouts`, `PUT /api/v1/workouts/{id}` | `Set-FitTrackWorkout` |
 | Workout sets | `PATCH /api/v1/workouts/{id}/sets/{setId}` | `Set-FitTrackWorkoutSet` |
+| Me | `GET /api/v1/me` | `Get-FitTrackMe` |
 
-**Not covered yet** (do not invent unofficial endpoints here; add a cmdlet when product needs them): exercise create/update/delete/history/notes; template create/update/delete/clone/reorder; workout delete/start/complete/reorder; users; lookups; `me`.
+**Not covered yet** (do not invent unofficial endpoints here; add a cmdlet when product needs them): exercise create/update/delete/history/notes; template create/update/delete/clone/reorder; workout delete/start/complete/reorder; users; lookups; `PATCH /me`.
 
 Request/response field names must match Java DTOs / OpenAPI JSON exactly (e.g. `weightKg`, `useMetric`, `trackedParameters`, `rpe` enum strings `EASY` \| `CHALLENGING` \| `HARD`).
 
