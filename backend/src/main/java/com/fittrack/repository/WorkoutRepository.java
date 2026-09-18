@@ -39,7 +39,7 @@ public interface WorkoutRepository extends JpaRepository<Workout, String> {
 			        SELECT 1 FROM WorkoutSet s
 			        WHERE s.workout = w AND s.exercise.id = :exerciseId
 			      ))
-			ORDER BY CASE WHEN w.startedAt IS NULL THEN 1 ELSE 0 END, w.startedAt DESC
+			ORDER BY CASE WHEN w.startedAt IS NULL THEN 1 ELSE 0 END DESC, w.startedAt DESC
 			""")
 	List<Workout> findAllByStartedAtRange(
 			@Param("from") Instant from,
